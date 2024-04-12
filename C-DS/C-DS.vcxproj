@@ -169,8 +169,11 @@
     <ClCompile Include="..\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\imgui\imgui_widgets.cpp" />
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="CodeVisualizer.cpp" />
     <ClCompile Include="DockingArea.cpp" />
+    <ClCompile Include="GrandWindow.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="TextArea.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -184,7 +187,10 @@
     <ClInclude Include="..\imgui\imstb_textedit.h" />
     <ClInclude Include="..\imgui\imstb_truetype.h" />
     <ClInclude Include="App.h" />
+    <ClInclude Include="CodeVisualizer.h" />
     <ClInclude Include="DockingArea.h" />
+    <ClInclude Include="GrandWindow.h" />
+    <ClInclude Include="MainMenu.h" />
     <ClInclude Include="TextArea.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,16 +1,10 @@
 #include "App.h"
 #include <imgui_internal.h>
 
-static void glfw_error_callback(int error, const char* description)
-{
-	fprintf(stderr, "GLFW Error %d: %s\n", error, description);
-}
+
 
 void App::initWindow(int x, int y, std::string title, bool vSyncEnabled)
 {
-    glfwSetErrorCallback(glfw_error_callback);
-    if (!glfwInit())
-        exit(1);
 
     // Decide GL+GLSL versions
     #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -85,11 +79,39 @@ void App::initWindow(int x, int y, std::string title, bool vSyncEnabled)
 
 }
 
+void App::updateWindow()
+{
+    if (curWindow != nullptr) {
+        delete curWindow;
+        curWindow = nullptr;
+    }
+
+    switch (state) {
+    case 0:
+        {
+            curWindow = new MainMenu("Main_Menu", state, scale);
+            break;
+        }
+    case 1:
+        {
+
+            break;
+        }
+    case 10:
+        {
+            curWindow = new CodeVisualizer("Code_Visualizer", state, scale);
+            break;
+        }
+    }
+
+    state = -1;
+
+}
+
 App::App(int x, int y, std::string title, bool vSyncEnabled)
 {
+
     initWindow(x, y, title, vSyncEnabled);
-    docking_area = new DockingArea("Dock_Area");
-    text_area = new TextArea("IDE_Area");
 
 }
 
@@ -103,8 +125,9 @@ App::~App()
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    delete docking_area;
-    delete text_area;
+    if (curWindow != nullptr)
+        delete curWindow;
+
 }
 
 void App::run()
@@ -112,6 +135,7 @@ void App::run()
 
     while (!glfwWindowShouldClose(window))
     {
+        glfwPollEvents();
         update();
         render();
     }
@@ -121,90 +145,15 @@ void App::run()
 void App::update()
 {
 
-    // Poll and handle events (inputs, window resize, etc.)
-    glfwPollEvents();
-
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    if (ImGui::BeginMainMenuBar())
-    {
-        if (ImGui::BeginMenu("File"))
-        {
-            if (ImGui::MenuItem("New", "Ctrl+N")) {}
-            if (ImGui::MenuItem("Open", "Ctrl+O")) {}
-            if (ImGui::MenuItem("Save", "Ctrl+S")) {}
-            ImGui::EndMenu();
-        }
+    if (state != -1)
+        updateWindow();
 
-        if (ImGui::BeginMenu("Edit"))
-        {
-            if (ImGui::MenuItem("Cut", "Ctrl+X")) {}
-            if (ImGui::MenuItem("Copy", "Ctrl+C")) {}
-            if (ImGui::MenuItem("Paste", "Ctrl+V")) {}
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("View"))
-        {
-            if (ImGui::MenuItem("Zoom in", "Ctrl+=")) {
-                scale = scale * 1.2f;
-                ImGui::GetIO().FontGlobalScale = scale;
-            }
-            if (ImGui::MenuItem("Zoom out", "Ctrl+-")) {
-                scale = scale * 0.8f;
-                ImGui::GetIO().FontGlobalScale = scale;
-            }
-            if (ImGui::MenuItem("Settings")) {}
-            ImGui::EndMenu();
-        }
-
-        ImGui::EndMainMenuBar();
-    }
-
-    ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoDocking);
-    static bool init = true;
-
-
-    if (init) {
-        ImGuiID dock_id_left, dock_id_right;
-        init = false;
-        ImGui::DockBuilderRemoveNode(dockspace_id);
-        ImGui::DockBuilderAddNode(dockspace_id);
-        ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
-
-        ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.7f, &dock_id_left, &dock_id_right);
-        ImGui::DockBuilderDockWindow(docking_area->getName().c_str(), dock_id_left);
-        ImGui::DockBuilderDockWindow(text_area->getName().c_str(), dock_id_right);
-
-        ImGui::DockBuilderFinish(dockspace_id);
-    }
-
-    docking_area->update();
-    text_area->update();
-
-    //{
-    //    static float f = 0.0f;
-    //    static int counter = 0;
-
-    //    ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-    //    ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-
-    //    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-    //    ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-    //    if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-    //        counter++;
-    //    ImGui::SameLine();
-    //    ImGui::Text("counter = %d", counter);
-
-    //    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io->Framerate, io->Framerate);
-    //    ImGui::End();
-
-    //}
+    curWindow->update();
 
 }
 
@@ -231,4 +180,9 @@ void App::render()
     }
 
     glfwSwapBuffers(window);
+}
+
+GLFWwindow* App::getWindow()
+{
+    return window;
 }

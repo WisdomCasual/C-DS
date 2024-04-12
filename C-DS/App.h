@@ -14,32 +14,31 @@
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
 
-#include "DockingArea.h"
-#include "TextArea.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+
+#include "MainMenu.h"
+#include "CodeVisualizer.h"
 
 class App
 {
 private:
 
 	// private fields:
-
 	GLFWwindow* window;
 	ImGuiStyle* style;
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-	DockingArea* docking_area;
-	TextArea* text_area;
+	GrandWindow* curWindow = nullptr;
 
 	ImGuiIO* io;
-	bool my_tool_active = false;
+	int state = 0;
 	float scale = 1;
 
 	// private methods:
 	void initWindow(int, int, std::string, bool);
+	void updateWindow();
 
 public:
 
@@ -51,6 +50,7 @@ public:
 	void run();
 	void update();
 	void render();
+	GLFWwindow* getWindow();
 
 };
 
