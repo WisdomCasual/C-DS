@@ -44,8 +44,7 @@ void MainMenu::updateMenuBar()
 MainMenu::MainMenu(std::string name, int& state, float& scale, bool& settingsEnabled)
 	: GrandWindow(name, state, scale, settingsEnabled)
 {
-	static ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
-	const ImGuiViewport* viewport = ImGui::GetMainViewport();
+
 }
 
 MainMenu::~MainMenu()
@@ -61,10 +60,15 @@ void MainMenu::update()
 	ImGui::SetNextWindowPos(viewport->WorkPos);
 	ImGui::SetNextWindowSize(viewport->WorkSize);
 
-	ImGui::Begin("Example: Fullscreen window", NULL, flags);
+	ImGui::Begin(getName().c_str(), NULL, flags);
 
-    if (ImGui::Button("Button"))
+    if (ImGui::Button("Grid"))
+        state = 1;
+
+    if (ImGui::Button("Code Visualier"))
         state = 10;
+
+
 
 	ImGui::End();
 	ImGui::PopStyleVar();
