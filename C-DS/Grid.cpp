@@ -108,7 +108,6 @@ void Grid::controlsUpdate()
 		activeAlgo = 2;
 		clearVisited(); 
 		bfs_queue.push({ start_pos.first, start_pos.second });
-		vis[start_pos.first][start_pos.second] = -1;
 	}
 
 	if (ImGui::Button("Dijkstra")) {
@@ -270,6 +269,7 @@ void Grid::dfs()
 					if (inbounds(new_x, new_y) && !is_obstacle[new_x][new_y] && vis[new_x][new_y] == 0) {
 						if (dir[i] != 0 && dir[j] != 0 && is_obstacle[new_x][node.second] && is_obstacle[node.first][new_y])
 							continue;
+						vis[new_x][new_y] = -1;
 						par[new_x][new_y] = node;
 						dfs_stack.push({ new_x, new_y });
 					}
@@ -281,6 +281,7 @@ void Grid::dfs()
 				int new_x = node.first + dx[i];
 				int new_y = node.second + dy[i];
 				if (inbounds(new_x, new_y) && !is_obstacle[new_x][new_y] && vis[new_x][new_y] == 0) {
+					vis[new_x][new_y] = -1;
 					par[new_x][new_y] = node;
 					dfs_stack.push({ new_x, new_y });
 				}
