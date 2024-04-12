@@ -83,6 +83,11 @@ void App::initStyle()
 
     // Set window rounding radius
     style->WindowRounding = 10.0f;
+
+    style->WindowPadding = ImVec2(14, 14);
+    style->ItemSpacing = ImVec2(10, 8);
+
+
 }
 
 void App::updateWindow()
@@ -100,7 +105,7 @@ void App::updateWindow()
         }
     case 1:
         {
-
+            curWindow = new Grid("Grid", state, scale, settingsEnabled);
             break;
         }
     case 10:
