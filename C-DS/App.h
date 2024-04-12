@@ -20,6 +20,7 @@
 
 #include "Settings.h"
 #include "MainMenu.h"
+#include "Grid.h"
 #include "CodeVisualizer.h"
 
 class App
