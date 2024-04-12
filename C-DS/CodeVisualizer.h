@@ -19,7 +19,7 @@ private:
 
 public:
 
-    CodeVisualizer(std::string, int&, float&);
+    CodeVisualizer(std::string, int&, float&, bool&);
     ~CodeVisualizer();
 
     // public methods:

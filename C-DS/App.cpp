@@ -1,8 +1,6 @@
 #include "App.h"
 #include <imgui_internal.h>
 
-
-
 void App::initWindow(int x, int y, std::string title, bool vSyncEnabled)
 {
 
@@ -40,6 +38,18 @@ void App::initWindow(int x, int y, std::string title, bool vSyncEnabled)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     io = &ImGui::GetIO(); (void)io;
+   
+    initStyle();
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+
+    ImGui_ImplOpenGL3_Init(glsl_version);
+
+}
+
+void App::initStyle()
+{
     io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io->ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
@@ -60,8 +70,10 @@ void App::initWindow(int x, int y, std::string title, bool vSyncEnabled)
     }
 
     // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
+    //if(colorMode == 0)
+    //    ImGui::StyleColorsDark();
+    //else
+    //    ImGui::StyleColorsLight();
 
     // load custom font
     ImFont* customFont = io->Fonts->AddFontFromFileTTF("Resources/font.ttf", 20.0f);
@@ -71,12 +83,6 @@ void App::initWindow(int x, int y, std::string title, bool vSyncEnabled)
 
     // Set window rounding radius
     style->WindowRounding = 10.0f;
-
-    // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-
-    ImGui_ImplOpenGL3_Init(glsl_version);
-
 }
 
 void App::updateWindow()
@@ -89,7 +95,7 @@ void App::updateWindow()
     switch (state) {
     case 0:
         {
-            curWindow = new MainMenu("Main_Menu", state, scale);
+            curWindow = new MainMenu("Main_Menu", state, scale, settingsEnabled);
             break;
         }
     case 1:
@@ -99,7 +105,7 @@ void App::updateWindow()
         }
     case 10:
         {
-            curWindow = new CodeVisualizer("Code_Visualizer", state, scale);
+            curWindow = new CodeVisualizer("Code_Visualizer", state, scale, settingsEnabled);
             break;
         }
     }
@@ -110,9 +116,8 @@ void App::updateWindow()
 
 App::App(int x, int y, std::string title, bool vSyncEnabled)
 {
-
     initWindow(x, y, title, vSyncEnabled);
-
+    settings = new Settings("settings", state, scale, settingsEnabled, colorMode);
 }
 
 App::~App()
@@ -128,6 +133,8 @@ App::~App()
     if (curWindow != nullptr)
         delete curWindow;
 
+    if (settings != nullptr)
+        delete settings;
 }
 
 void App::run()
@@ -154,6 +161,9 @@ void App::update()
         updateWindow();
 
     curWindow->update();
+
+    if (settingsEnabled)
+        settings->update();
 
 }
 

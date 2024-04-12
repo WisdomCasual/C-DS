@@ -24,14 +24,16 @@ void MainMenu::updateMenuBar()
         if (ImGui::BeginMenu("View"))
         {
             if (ImGui::MenuItem("Zoom in", "Ctrl+=")) {
-                //scale = scale * 1.2f;
-                //ImGui::GetIO().FontGlobalScale = scale;
+                scale = scale * 1.2f;
+                ImGui::GetIO().FontGlobalScale = scale;
             }
             if (ImGui::MenuItem("Zoom out", "Ctrl+-")) {
-                //scale = scale * 0.8f;
-                //ImGui::GetIO().FontGlobalScale = scale;
+                scale = scale * 0.8f;
+                ImGui::GetIO().FontGlobalScale = scale;
             }
-            if (ImGui::MenuItem("Settings")) {}
+            if (ImGui::MenuItem("Settings")) {
+                settingsEnabled = true;
+            }
             ImGui::EndMenu();
         }
 
@@ -39,8 +41,8 @@ void MainMenu::updateMenuBar()
     }
 }
 
-MainMenu::MainMenu(std::string name, int& state, float& scale)
-	: GrandWindow(name, state, scale)
+MainMenu::MainMenu(std::string name, int& state, float& scale, bool& settingsEnabled)
+	: GrandWindow(name, state, scale, settingsEnabled)
 {
 	static ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
 	const ImGuiViewport* viewport = ImGui::GetMainViewport();

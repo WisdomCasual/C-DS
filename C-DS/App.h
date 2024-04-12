@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string>
 
+#include "Settings.h"
 #include "MainMenu.h"
 #include "CodeVisualizer.h"
 
@@ -31,13 +32,17 @@ private:
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 	GrandWindow* curWindow = nullptr;
+	Settings* settings = nullptr;
 
 	ImGuiIO* io;
+	bool settingsEnabled = false;
+	int colorMode = 0;
 	int state = 0;
 	float scale = 1;
 
 	// private methods:
 	void initWindow(int, int, std::string, bool);
+	void initStyle();
 	void updateWindow();
 
 public:
