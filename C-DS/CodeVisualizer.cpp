@@ -30,7 +30,9 @@ void CodeVisualizer::updateMenuBar()
                 //scale = scale * 0.8f;
                 //ImGui::GetIO().FontGlobalScale = scale;
             }
-            if (ImGui::MenuItem("Settings")) {}
+            if (ImGui::MenuItem("Settings")) {
+                settingsEnabled = true;
+            }
             ImGui::EndMenu();
         }
 
@@ -38,8 +40,8 @@ void CodeVisualizer::updateMenuBar()
     }
 }
 
-CodeVisualizer::CodeVisualizer(std::string name, int& state, float& scale)
-	: GrandWindow(name, state,  scale)
+CodeVisualizer::CodeVisualizer(std::string name, int& state, float& scale, bool& settingsEnabled)
+	: GrandWindow(name, state, scale, settingsEnabled)
 {
     docking_area = new DockingArea("Docking_Area");
     text_area = new TextArea("Text_Area");

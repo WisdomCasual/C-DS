@@ -16,7 +16,7 @@ private:
 
 public:
 
-    MainMenu(std::string, int&, float&);
+    MainMenu(std::string, int&, float&, bool&);
     ~MainMenu();
 
     // public methods:
