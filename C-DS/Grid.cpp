@@ -8,7 +8,7 @@ void Grid::updateMenuBar()
 
 void Grid::controlsUpdate()
 {
-	ImVec2 controlsWinSize(std::min(315 * scale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(610 * scale, viewport->WorkSize.y - ImGui::GetStyle().WindowPadding.y));
+	ImVec2 controlsWinSize(std::min(315 * scale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(650 * scale, viewport->WorkSize.y - ImGui::GetStyle().WindowPadding.y));
 	ImVec2 controlsWinPos(viewport->Size.x - controlsWinSize.x - ImGui::GetStyle().WindowPadding.x, viewport->Size.y - controlsWinSize.y - ImGui::GetStyle().WindowPadding.y);
 	bool disabled = false;
 
@@ -456,7 +456,7 @@ void Grid::a_star()
 
 					Node new_node = { node.x + dir[i], node.y + dir[j] };
 					if (inbounds(new_node.x, new_node.y) && !is_obstacle[new_node.x][new_node.y] && vis[new_node.x][new_node.y] == 0) {
-						if (dir[i] != 0 && dir[j] != 0 && is_obstacle[new_node.x][new_node.y] && is_obstacle[new_node.x][new_node.y])
+						if (dir[i] != 0 && dir[j] != 0 && is_obstacle[new_node.x][node.y] && is_obstacle[node.x][new_node.y])
 							continue;
 						vis[new_node.x][new_node.y] = -1;
 						par[new_node.x][new_node.y].first = node.x;
