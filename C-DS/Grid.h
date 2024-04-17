@@ -38,11 +38,50 @@ private:
     const int dx[4] = { 1, 0, -1, 0 };
     const int dy[4] = { 0, 1, 0, -1 };
     const int dir[3] = { 0, 1, -1 };
-    double diagonal_cost = sqrt(2);
+    const double diagonal_cost = sqrt(2);
+
+    struct Node {
+        int x = -1, y = -1;
+        Node() {};
+        Node(int x, int y){
+            this->x = x;
+            this->y = y;
+        }
+        Node(std::pair<int, int> node) {
+            x = node.first;
+            y = node.second;
+        }
+    };
+    struct djskNode {
+        Node coordinates = {};
+        double cost = 0;
+        djskNode() {};
+        djskNode(Node coordinates, double cost) {
+            this->coordinates = coordinates;
+            this->cost = cost;
+        }
+        friend bool operator<(const djskNode& l, const djskNode &r){
+            return l.cost > r.cost;
+        }
+    };
+    struct aStarNode {
+        double gVal = 0;
+        djskNode curNode = {};
+
+        aStarNode() {};
+        aStarNode(Node coordinates, double cost, double gVal){
+            this->curNode = djskNode(coordinates, cost+gVal);
+            this->gVal = gVal;
+        }
+        friend bool operator<(const aStarNode& l, const aStarNode& r) {
+            return l.curNode < r.curNode;
+        }
+    };
 
     std::stack<std::pair<int, int>> dfs_stack;
     std::queue<std::pair<int, int>> bfs_queue;
     std::priority_queue<std::pair<double, std::pair<int, int>>> dijkstra_queue;
+    std::priority_queue<aStarNode> astar_queue;
 
 
     std::vector<std::vector<int>> vis = std::vector<std::vector<int>>(X_MAX, std::vector<int>(Y_MAX));
@@ -61,6 +100,8 @@ private:
     void dfs();
     void bfs();
     void dijkstra();
+    double g_val(Node a);
+    void a_star();
 
 public:
 

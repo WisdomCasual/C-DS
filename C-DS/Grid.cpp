@@ -116,6 +116,12 @@ void Grid::controlsUpdate()
 		dijkstra_queue.push({ 0, { start_pos.first, start_pos.second } });
 	}
 
+	if (ImGui::Button("A* (A-star)")) {
+		activeAlgo = 4;
+		clearVisited();
+		astar_queue.push(aStarNode(Node(start_pos), 0, g_val(Node(start_pos))));
+	}
+
 	ImGui::Checkbox("Diagonal Movement", &diagonal_movement);
 
 	if (disabled) {
@@ -222,6 +228,9 @@ void Grid::clearVisited()
 
 	while (!dijkstra_queue.empty())
 		dijkstra_queue.pop();
+
+	while (!astar_queue.empty())
+		astar_queue.pop();
 
 	while (!dfs_stack.empty())
 		dfs_stack.pop();
@@ -412,6 +421,79 @@ void Grid::dijkstra()
 	}
 }
 
+double Grid::g_val(Node cur)
+{
+	double dx = abs(end_pos.first - cur.x);
+	double dy = abs(end_pos.second - cur.y);
+	if (!diagonal_movement) {
+		return dx+dy;
+	}
+	else {
+		if (dx > dy) std::swap(dx, dy);
+		return (dy + dx * (diagonal_cost-1));
+	}
+}
+
+void Grid::a_star()
+{
+	if (!found && !astar_queue.empty()) {
+
+		double distance = astar_queue.top().curNode.cost - astar_queue.top().gVal;
+		Node node = astar_queue.top().curNode.coordinates;
+		vis[node.x][node.y] = 1;
+		astar_queue.pop();
+
+		if (node.x == end_pos.first && node.y == end_pos.second) {
+			cur_node.first = node.x;
+			cur_node.second = node.y;
+			found = true;
+			return;
+		}
+
+		if (diagonal_movement) {
+			for (int i = 0; i < 3; i++) {
+				for (int j = 0; j < 3; j++) {
+
+					Node new_node = { node.x + dir[i], node.y + dir[j] };
+					if (inbounds(new_node.x, new_node.y) && !is_obstacle[new_node.x][new_node.y] && vis[new_node.x][new_node.y] == 0) {
+						if (dir[i] != 0 && dir[j] != 0 && is_obstacle[new_node.x][new_node.y] && is_obstacle[new_node.x][new_node.y])
+							continue;
+						vis[new_node.x][new_node.y] = -1;
+						par[new_node.x][new_node.y].first = node.x;
+						par[new_node.x][new_node.y].second = node.y;
+						double g = g_val(new_node);
+						double cost = getCost(dir[i], dir[j]);
+						astar_queue.push(aStarNode(new_node, distance + cost + g, g));
+					}
+				}
+			}
+		}
+		else {
+			for (int i = 0; i < 4; i++) {
+				Node new_node = {node.x + dx[i], node.y + dy[i]};
+				if (inbounds(new_node.x, new_node.y) && !is_obstacle[new_node.x][new_node.y] && vis[new_node.x][new_node.y] == 0) {
+					vis[new_node.x][new_node.y] = -1;
+					par[new_node.x][new_node.y].first = node.x;
+					par[new_node.x][new_node.y].second = node.y;
+					double g = g_val(new_node);
+					astar_queue.push(aStarNode(new_node, distance + 1 + g , g));
+				}
+			}
+		}
+	}
+	else if (found && cur_node != start_pos) {
+		vis[cur_node.first][cur_node.second] = 2;
+		cur_node = par[cur_node.first][cur_node.second];
+	}
+	else {
+		if (found)
+			vis[cur_node.first][cur_node.second] = 2;
+		activeAlgo = 0;
+		curTime = 0;
+		found = false;
+	}
+}
+
 Grid::Grid(std::string name, int& state, float& scale, bool& settingEnabled)
 	: GrandWindow(name, state, scale, settingsEnabled)
 {
@@ -452,6 +534,9 @@ void Grid::update()
 			}
 			else if (activeAlgo == 3) {
 				dijkstra();
+			}
+			else if (activeAlgo == 4) {
+				a_star();
 			}
 
 		}
