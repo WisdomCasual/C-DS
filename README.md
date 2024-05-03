@@ -1,1 +1,9 @@
 # C-DS
+
+## About
+**C-DS** is a data structure visualization app designed to help users understand and interact with various data structures. Whether you're a student learning about algorithms and data structures or a professional looking to analyze and optimize your code, **C-DS** provides a comprehensive set of tools and features to make your data structure exploration seamless and insightful.
+
+## Features
+* Interactive Visualizations: Dive into the world of data structures with interactive visualizations that bring algorithms to life. Explore how data is organized, accessed, and manipulated in real-time.
+* Multiple Data Structure Support: From stacks, queues and linked lists to trees, graphs, grids, and beyond, **C-DS** supports a wide range of data structures commonly used in programming and computer science.
+* Algorithm Simulation: Step through algorithms and see how they interact with data structures. Visualize sorting algorithms, search algorithms, traversal techniques, and more to grasp their inner workings.
