@@ -8,7 +8,7 @@ void Grid::updateMenuBar()
 
 void Grid::controlsUpdate()
 {
-	ImVec2 controlsWinSize(std::min(315 * scale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(650 * scale, viewport->WorkSize.y - ImGui::GetStyle().WindowPadding.y));
+	ImVec2 controlsWinSize(std::min(315.f * scale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(650.f * scale, viewport->WorkSize.y - ImGui::GetStyle().WindowPadding.y));
 	ImVec2 controlsWinPos(viewport->Size.x - controlsWinSize.x - ImGui::GetStyle().WindowPadding.x, viewport->Size.y - controlsWinSize.y - ImGui::GetStyle().WindowPadding.y);
 	bool disabled = false;
 
@@ -52,10 +52,10 @@ void Grid::controlsUpdate()
 
 	ImGui::Text("Tools:");
 	ImGui::RadioButton("Move Camera", &cur_tool, 0);
-	if (offset.x != 0 || offset.y != 0) {
+	if (camTarget.x != 0 || camTarget.y != 0) {
 		ImGui::SameLine();
 		if (ImGui::Button("Reset"))
-			offset = { 0, 0 };
+			camTarget = { 0, 0 };
 	}
 	ImGui::RadioButton("Set Start Position", &cur_tool, 1);
 	ImGui::RadioButton("Set End Position", &cur_tool, 2);
@@ -67,7 +67,7 @@ void Grid::controlsUpdate()
 
 	if (!cleared && activeAlgo == 0) {
 		ImGui::SameLine();
-		if (ImGui::Button("reset"))
+		if (ImGui::Button("Reset"))
 			clearVisited();
 	}
 	else if (activeAlgo != 0) {
@@ -138,8 +138,10 @@ void Grid::gridUpdate()
 {
 
 	if (ImGui::IsWindowFocused() && ImGui::IsMouseDown(0) && cur_tool == 0) {
-		offset.x += io->MouseDelta.x;
-		offset.y += io->MouseDelta.y;
+		camPos.x += io->MouseDelta.x;
+		camPos.y += io->MouseDelta.y;
+		camTarget.x += io->MouseDelta.x;
+		camTarget.y += io->MouseDelta.y;
 	}
 
 	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
@@ -150,8 +152,8 @@ void Grid::gridUpdate()
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	ImVec2 s_pos(center.x + offset.x - x_size * (cell_size + separator_size) / 2.f,
-					    center.y + offset.y - y_size * (cell_size + separator_size) / 2.f);
+	ImVec2 s_pos(center.x + camPos.x - x_size * (cell_size + separator_size) / 2.f,
+					    center.y + camPos.y - y_size * (cell_size + separator_size) / 2.f);
 	ImVec2 cur_pos(s_pos);
 
 	for (int y = 0; y < y_size; y++) {
@@ -515,7 +517,6 @@ void Grid::update()
 
 	ImGui::PopStyleVar();
 
-	controlsUpdate();
 	gridUpdate();
 
 	if (!paused && activeAlgo != 0) {
@@ -543,5 +544,9 @@ void Grid::update()
 	}
 
 	ImGui::End();
+
+	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
+	camPos.y += (camTarget.y - camPos.y) * 10.f * io->DeltaTime;
 	
+	controlsUpdate();
 }

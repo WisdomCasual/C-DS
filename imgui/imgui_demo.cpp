@@ -2910,7 +2910,7 @@ static void ShowDemoWindowLayout()
             static bool override_bg_color = true;
             static ImGuiChildFlags child_flags = ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX | ImGuiChildFlags_ResizeY;
             ImGui::SetNextItemWidth(ImGui::GetFontSize() * 8);
-            ImGui::DragInt("Offset X", &offset_x, 1.0f, -1000, 1000);
+            ImGui::DragInt("camPos X", &offset_x, 1.0f, -1000, 1000);
             ImGui::Checkbox("Override ChildBg color", &override_bg_color);
             ImGui::CheckboxFlags("ImGuiChildFlags_Border", &child_flags, ImGuiChildFlags_Border);
             ImGui::CheckboxFlags("ImGuiChildFlags_AlwaysUseWindowPadding", &child_flags, ImGuiChildFlags_AlwaysUseWindowPadding);
@@ -3045,7 +3045,7 @@ static void ShowDemoWindowLayout()
         ImGui::Text("can fit within a text block.");
 
         // Aligned to arbitrary position. Easy/cheap column.
-        IMGUI_DEMO_MARKER("Layout/Basic Horizontal Layout/SameLine (with offset)");
+        IMGUI_DEMO_MARKER("Layout/Basic Horizontal Layout/SameLine (with camPos)");
         ImGui::Text("Aligned");
         ImGui::SameLine(150); ImGui::Text("x=150");
         ImGui::SameLine(300); ImGui::Text("x=300");
@@ -3298,7 +3298,7 @@ static void ShowDemoWindowLayout()
         ImGui::PushItemWidth(100);
         ImGui::SameLine(140); enable_track |= ImGui::DragInt("##item", &track_item, 0.25f, 0, 99, "Item = %d");
 
-        bool scroll_to_off = ImGui::Button("Scroll Offset");
+        bool scroll_to_off = ImGui::Button("Scroll camPos");
         ImGui::SameLine(140); scroll_to_off |= ImGui::DragFloat("##off", &scroll_to_off_px, 1.00f, 0, FLT_MAX, "+%.0f px");
 
         bool scroll_to_pos = ImGui::Button("Scroll To Pos");
@@ -3570,7 +3570,7 @@ static void ShowDemoWindowLayout()
     if (ImGui::TreeNode("Clipping"))
     {
         static ImVec2 size(100.0f, 100.0f);
-        static ImVec2 offset(30.0f, 30.0f);
+        static ImVec2 camPos(30.0f, 30.0f);
         ImGui::DragFloat2("size", (float*)&size, 0.5f, 1.0f, 200.0f, "%.0f");
         ImGui::TextWrapped("(Click and drag to scroll)");
 
@@ -3594,8 +3594,8 @@ static void ShowDemoWindowLayout()
             ImGui::InvisibleButton("##canvas", size);
             if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
             {
-                offset.x += ImGui::GetIO().MouseDelta.x;
-                offset.y += ImGui::GetIO().MouseDelta.y;
+                camPos.x += ImGui::GetIO().MouseDelta.x;
+                camPos.y += ImGui::GetIO().MouseDelta.y;
             }
             ImGui::PopID();
             if (!ImGui::IsItemVisible()) // Skip rendering as ImDrawList elements are not clipped.
@@ -3604,7 +3604,7 @@ static void ShowDemoWindowLayout()
             const ImVec2 p0 = ImGui::GetItemRectMin();
             const ImVec2 p1 = ImGui::GetItemRectMax();
             const char* text_str = "Line 1 hello\nLine 2 clip me!";
-            const ImVec2 text_pos = ImVec2(p0.x + offset.x, p0.y + offset.y);
+            const ImVec2 text_pos = ImVec2(p0.x + camPos.x, p0.y + camPos.y);
             ImDrawList* draw_list = ImGui::GetWindowDrawList();
             switch (n)
             {
@@ -6079,7 +6079,7 @@ static void ShowDemoWindowColumns()
             ImGui::Text("%c%c%c", 'a' + i, 'a' + i, 'a' + i);
             ImGui::Text("Width %.2f", ImGui::GetColumnWidth());
             ImGui::Text("Avail %.2f", ImGui::GetContentRegionAvail().x);
-            ImGui::Text("Offset %.2f", ImGui::GetColumnOffset());
+            ImGui::Text("camPos %.2f", ImGui::GetColumnOffset());
             ImGui::Text("Long text that is likely to clip");
             ImGui::Button("Button", ImVec2(-FLT_MIN, 0.0f));
             ImGui::NextColumn();
@@ -7443,7 +7443,7 @@ struct ExampleAppLog
 {
     ImGuiTextBuffer     Buf;
     ImGuiTextFilter     Filter;
-    ImVector<int>       LineOffsets; // Index to lines offset. We maintain this with AddLog() calls.
+    ImVector<int>       LineOffsets; // Index to lines camPos. We maintain this with AddLog() calls.
     bool                AutoScroll;  // Keep scrolling if already at the bottom.
 
     ExampleAppLog()

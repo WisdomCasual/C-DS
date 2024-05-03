@@ -108,6 +108,11 @@ void App::updateWindow()
             curWindow = new Grid("Grid", state, scale, settingsEnabled);
             break;
         }
+    case 2:
+    {
+        curWindow = new GraphTools("Graph_Tools", state, scale, settingsEnabled);
+        break;
+    }
     case 10:
         {
             curWindow = new CodeVisualizer("Code_Visualizer", state, scale, settingsEnabled);
