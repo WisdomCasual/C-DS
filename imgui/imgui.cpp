@@ -433,9 +433,9 @@ CODE
 (Docking/Viewport Branch)
  - 2024/XX/XX (1.XXXX) - when multi-viewports are enabled, all positions will be in your natural OS coordinates space. It means that:
                           - reference to hard-coded positions such as in SetNextWindowPos(ImVec2(0,0)) are probably not what you want anymore.
-                            you may use GetMainViewport()->Pos to offset hard-coded positions, e.g. SetNextWindowPos(GetMainViewport()->Pos)
+                            you may use GetMainViewport()->Pos to camPos hard-coded positions, e.g. SetNextWindowPos(GetMainViewport()->Pos)
                           - likewise io.MousePos and GetMousePos() will use OS coordinates.
-                            If you query mouse positions to interact with non-imgui coordinates you will need to offset them, e.g. subtract GetWindowViewport()->Pos.
+                            If you query mouse positions to interact with non-imgui coordinates you will need to camPos them, e.g. subtract GetWindowViewport()->Pos.
 
  - 2024/01/15 (1.90.2) - commented out obsolete ImGuiIO::ImeWindowHandle marked obsolete in 1.87, favor of writing to 'void* ImGuiViewport::PlatformHandleRaw'.
  - 2023/12/19 (1.90.1) - commented out obsolete ImGuiKey_KeyPadEnter redirection to ImGuiKey_KeypadEnter.
@@ -1066,7 +1066,7 @@ static const float WINDOWS_HOVER_PADDING                    = 4.0f;     // Exten
 static const float WINDOWS_RESIZE_FROM_EDGES_FEEDBACK_TIMER = 0.04f;    // Reduce visual noise by only highlighting the border after a certain time.
 static const float WINDOWS_MOUSE_WHEEL_SCROLL_LOCK_TIMER    = 0.70f;    // Lock scrolled window (so it doesn't pick child windows that are scrolling through) for a certain time, unless mouse moved.
 
-// Tooltip offset
+// Tooltip camPos
 static const ImVec2 TOOLTIP_DEFAULT_OFFSET = ImVec2(16, 10);            // Multiplied by g.Style.MouseCursorScale
 
 // Docking
@@ -1241,7 +1241,7 @@ ImGuiStyle::ImGuiStyle()
     SelectableTextAlign     = ImVec2(0.0f,0.0f);// Alignment of selectable text. Defaults to (0.0f, 0.0f) (top-left aligned). It's generally important to keep this left-aligned if you want to lay multiple items on a same line.
     SeparatorTextBorderSize = 3.0f;             // Thickkness of border in SeparatorText()
     SeparatorTextAlign      = ImVec2(0.0f,0.5f);// Alignment of text within the separator. Defaults to (0.0f, 0.5f) (left aligned, center).
-    SeparatorTextPadding    = ImVec2(20.0f,3.f);// Horizontal offset of text from each edge of the separator + spacing on other axis. Generally small values. .y is recommended to be == FramePadding.y.
+    SeparatorTextPadding    = ImVec2(20.0f,3.f);// Horizontal camPos of text from each edge of the separator + spacing on other axis. Generally small values. .y is recommended to be == FramePadding.y.
     DisplayWindowPadding    = ImVec2(19,19);    // Window position are clamped to be visible within the display area or monitors by at least this amount. Only applies to regular windows.
     DisplaySafeAreaPadding  = ImVec2(3,3);      // If you cannot see the edge of your screen (e.g. on a TV) increase the safe area padding. Covers popups/tooltips as well regular windows.
     DockingSeparatorSize    = 2.0f;             // Thickness of resizing border between docked windows
@@ -2784,7 +2784,7 @@ void ImGuiTextIndex::append(const char* base, int old_size, int new_size)
         LineOffsets.push_back(EndOffset);
     const char* base_end = base + new_size;
     for (const char* p = base + old_size; (p = (const char*)memchr(p, '\n', base_end - p)) != 0; )
-        if (++p < base_end) // Don't push a trailing offset on last \n
+        if (++p < base_end) // Don't push a trailing camPos on last \n
             LineOffsets.push_back((int)(intptr_t)(p - base));
     EndOffset = ImMax(EndOffset, new_size);
 }
@@ -2801,19 +2801,19 @@ static bool GetSkipItemForListClipping()
     return (g.CurrentTable ? g.CurrentTable->HostSkipItems : g.CurrentWindow->SkipItems);
 }
 
-static void ImGuiListClipper_SortAndFuseRanges(ImVector<ImGuiListClipperRange>& ranges, int offset = 0)
+static void ImGuiListClipper_SortAndFuseRanges(ImVector<ImGuiListClipperRange>& ranges, int camPos = 0)
 {
-    if (ranges.Size - offset <= 1)
+    if (ranges.Size - camPos <= 1)
         return;
 
     // Helper to order ranges and fuse them together if possible (bubble sort is fine as we are only sorting 2-3 entries)
-    for (int sort_end = ranges.Size - offset - 1; sort_end > 0; --sort_end)
-        for (int i = offset; i < sort_end + offset; ++i)
+    for (int sort_end = ranges.Size - camPos - 1; sort_end > 0; --sort_end)
+        for (int i = camPos; i < sort_end + camPos; ++i)
             if (ranges[i].Min > ranges[i + 1].Min)
                 ImSwap(ranges[i], ranges[i + 1]);
 
     // Now fuse ranges together as much as possible.
-    for (int i = 1 + offset; i < ranges.Size; i++)
+    for (int i = 1 + camPos; i < ranges.Size; i++)
     {
         IM_ASSERT(!ranges[i].PosToIndexConvert && !ranges[i - 1].PosToIndexConvert);
         if (ranges[i - 1].Max < ranges[i].Min)
@@ -3556,10 +3556,10 @@ void ImGui::RenderMouseCursor(ImVec2 base_pos, float base_scale, ImGuiMouseCurso
     for (ImGuiViewportP* viewport : g.Viewports)
     {
         // We scale cursor with current viewport/monitor, however Windows 10 for its own hardware cursor seems to be using a different scale factor.
-        ImVec2 offset, size, uv[4];
-        if (!font_atlas->GetMouseCursorTexData(mouse_cursor, &offset, &size, &uv[0], &uv[2]))
+        ImVec2 camPos, size, uv[4];
+        if (!font_atlas->GetMouseCursorTexData(mouse_cursor, &camPos, &size, &uv[0], &uv[2]))
             continue;
-        const ImVec2 pos = base_pos - offset;
+        const ImVec2 pos = base_pos - camPos;
         const float scale = base_scale * viewport->DpiScale;
         if (!viewport->GetMainRect().Overlaps(ImRect(pos, pos + ImVec2(size.x + 2, size.y + 2) * scale)))
             continue;
@@ -4927,7 +4927,7 @@ void ImGui::NewFrame()
     UpdateMouseInputs();
 
     // Undocking
-    // (needs to be before UpdateMouseMovingWindowNewFrame so the window is already offset and following the mouse on the detaching frame)
+    // (needs to be before UpdateMouseMovingWindowNewFrame so the window is already camPos and following the mouse on the detaching frame)
     DockContextNewFrameUpdateUndocking(&g);
 
     // Find hovered window
@@ -7042,7 +7042,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         if (!window->DockIsActive && (flags & ImGuiWindowFlags_ChildWindow) && !(flags & ImGuiWindowFlags_Popup) && !(window->ChildFlags & ImGuiChildFlags_AlwaysUseWindowPadding) && window->WindowBorderSize == 0.0f)
             window->WindowPadding = ImVec2(0.0f, (flags & ImGuiWindowFlags_MenuBar) ? style.WindowPadding.y : 0.0f);
 
-        // Lock menu offset so size calculation can use it as menu-bar windows need a minimum size.
+        // Lock menu camPos so size calculation can use it as menu-bar windows need a minimum size.
         window->DC.MenuBarOffset.x = ImMax(ImMax(window->WindowPadding.x, style.ItemSpacing.x), g.NextWindowData.MenuBarOffsetMinVal.x);
         window->DC.MenuBarOffset.y = g.NextWindowData.MenuBarOffsetMinVal.y;
 
@@ -7842,13 +7842,13 @@ void ImGui::FocusTopMostWindowUnderOne(ImGuiWindow* under_this_window, ImGuiWind
     if (under_this_window != NULL)
     {
         // Aim at root window behind us, if we are in a child window that's our own root (see #4640)
-        int offset = -1;
+        int camPos = -1;
         while (under_this_window->Flags & ImGuiWindowFlags_ChildWindow)
         {
             under_this_window = under_this_window->ParentWindow;
-            offset = 0;
+            camPos = 0;
         }
-        start_idx = FindWindowFocusIndex(under_this_window) + offset;
+        start_idx = FindWindowFocusIndex(under_this_window) + camPos;
     }
     for (int i = start_idx; i >= 0; i--)
     {
@@ -8185,15 +8185,15 @@ void ImGui::SetWindowPos(ImGuiWindow* window, const ImVec2& pos, ImGuiCond cond)
     // Set
     const ImVec2 old_pos = window->Pos;
     window->Pos = ImTrunc(pos);
-    ImVec2 offset = window->Pos - old_pos;
-    if (offset.x == 0.0f && offset.y == 0.0f)
+    ImVec2 camPos = window->Pos - old_pos;
+    if (camPos.x == 0.0f && camPos.y == 0.0f)
         return;
     MarkIniSettingsDirty(window);
     // FIXME: share code with TranslateWindow(), need to confirm whether the 3 rect modified by TranslateWindow() are desirable here.
-    window->DC.CursorPos += offset;         // As we happen to move the window while it is being appended to (which is a bad idea - will smear) let's at least offset the cursor
-    window->DC.CursorMaxPos += offset;      // And more importantly we need to offset CursorMaxPos/CursorStartPos this so ContentSize calculation doesn't get affected.
-    window->DC.IdealMaxPos += offset;
-    window->DC.CursorStartPos += offset;
+    window->DC.CursorPos += camPos;         // As we happen to move the window while it is being appended to (which is a bad idea - will smear) let's at least camPos the cursor
+    window->DC.CursorMaxPos += camPos;      // And more importantly we need to camPos CursorMaxPos/CursorStartPos this so ContentSize calculation doesn't get affected.
+    window->DC.IdealMaxPos += camPos;
+    window->DC.CursorStartPos += camPos;
 }
 
 void ImGui::SetWindowPos(const ImVec2& pos, ImGuiCond cond)
@@ -8533,12 +8533,12 @@ void ImGui::ActivateItemByID(ImGuiID id)
 
 // Note: this will likely be called ActivateItem() once we rework our Focus/Activation system!
 // But ActivateItem() should function without altering scroll/focus?
-void ImGui::SetKeyboardFocusHere(int offset)
+void ImGui::SetKeyboardFocusHere(int camPos)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
-    IM_ASSERT(offset >= -1);    // -1 is allowed but not below
-    IMGUI_DEBUG_LOG_FOCUS("SetKeyboardFocusHere(%d) in window \"%s\"\n", offset, window->Name);
+    IM_ASSERT(camPos >= -1);    // -1 is allowed but not below
+    IMGUI_DEBUG_LOG_FOCUS("SetKeyboardFocusHere(%d) in window \"%s\"\n", camPos, window->Name);
 
     // It makes sense in the vast majority of cases to never interrupt a drag and drop.
     // When we refactor this function into ActivateItem() we may want to make this an option.
@@ -8554,15 +8554,15 @@ void ImGui::SetKeyboardFocusHere(int offset)
 
     ImGuiNavMoveFlags move_flags = ImGuiNavMoveFlags_IsTabbing | ImGuiNavMoveFlags_Activate | ImGuiNavMoveFlags_FocusApi | ImGuiNavMoveFlags_NoSetNavHighlight;
     ImGuiScrollFlags scroll_flags = window->Appearing ? ImGuiScrollFlags_KeepVisibleEdgeX | ImGuiScrollFlags_AlwaysCenterY : ImGuiScrollFlags_KeepVisibleEdgeX | ImGuiScrollFlags_KeepVisibleEdgeY;
-    NavMoveRequestSubmit(ImGuiDir_None, offset < 0 ? ImGuiDir_Up : ImGuiDir_Down, move_flags, scroll_flags); // FIXME-NAV: Once we refactor tabbing, add LegacyApi flag to not activate non-inputable.
-    if (offset == -1)
+    NavMoveRequestSubmit(ImGuiDir_None, camPos < 0 ? ImGuiDir_Up : ImGuiDir_Down, move_flags, scroll_flags); // FIXME-NAV: Once we refactor tabbing, add LegacyApi flag to not activate non-inputable.
+    if (camPos == -1)
     {
         NavMoveRequestResolveWithLastItem(&g.NavMoveResultLocal);
     }
     else
     {
         g.NavTabbingDir = 1;
-        g.NavTabbingCounter = offset + 1;
+        g.NavTabbingCounter = camPos + 1;
     }
 }
 
@@ -9763,8 +9763,8 @@ void ImGui::UpdateMouseWheel()
         window->FontWindowScale = new_font_scale;
         if (window == window->RootWindow)
         {
-            const ImVec2 offset = window->Size * (1.0f - scale) * (g.IO.MousePos - window->Pos) / window->Size;
-            SetWindowPos(window, window->Pos + offset, 0);
+            const ImVec2 camPos = window->Size * (1.0f - scale) * (g.IO.MousePos - window->Pos) / window->Size;
+            SetWindowPos(window, window->Pos + camPos, 0);
             window->Size = ImTrunc(window->Size * scale);
             window->SizeFull = ImTrunc(window->SizeFull * scale);
         }
@@ -10630,7 +10630,7 @@ void ImGui::ItemSize(const ImVec2& size, float text_baseline_y)
     if (window->SkipItems)
         return;
 
-    // We increase the height in this function to accommodate for baseline offset.
+    // We increase the height in this function to accommodate for baseline camPos.
     // In theory we should be offsetting the starting position (window->DC.CursorPos), that will be the topic of a larger refactor,
     // but since ItemSize() is not yet an API that moves the cursor (to handle e.g. wrapping) enlarging the height has the same effect.
     const float offset_to_match_baseline_y = (text_baseline_y >= 0) ? ImMax(0.0f, window->DC.CurrLineTextBaseOffset - text_baseline_y) : 0.0f;
@@ -10986,7 +10986,7 @@ void ImGui::EndGroup()
         return;
     }
 
-    window->DC.CurrLineTextBaseOffset = ImMax(window->DC.PrevLineTextBaseOffset, group_data.BackupCurrLineTextBaseOffset);      // FIXME: Incorrect, we should grab the base offset from the *first line* of the group but it is hard to obtain now.
+    window->DC.CurrLineTextBaseOffset = ImMax(window->DC.PrevLineTextBaseOffset, group_data.BackupCurrLineTextBaseOffset);      // FIXME: Incorrect, we should grab the base camPos from the *first line* of the group but it is hard to obtain now.
     ItemSize(group_bb.GetSize());
     ItemAdd(group_bb, 0, NULL, ImGuiItemFlags_NoTabStop);
 
@@ -11212,7 +11212,7 @@ void ImGui::SetScrollY(float scroll_y)
 void ImGui::SetScrollFromPosX(ImGuiWindow* window, float local_x, float center_x_ratio)
 {
     IM_ASSERT(center_x_ratio >= 0.0f && center_x_ratio <= 1.0f);
-    window->ScrollTarget.x = IM_TRUNC(local_x - window->DecoOuterSizeX1 - window->DecoInnerSizeX1 + window->Scroll.x); // Convert local position to scroll offset
+    window->ScrollTarget.x = IM_TRUNC(local_x - window->DecoOuterSizeX1 - window->DecoInnerSizeX1 + window->Scroll.x); // Convert local position to scroll camPos
     window->ScrollTargetCenterRatio.x = center_x_ratio;
     window->ScrollTargetEdgeSnapDist.x = 0.0f;
 }
@@ -11220,7 +11220,7 @@ void ImGui::SetScrollFromPosX(ImGuiWindow* window, float local_x, float center_x
 void ImGui::SetScrollFromPosY(ImGuiWindow* window, float local_y, float center_y_ratio)
 {
     IM_ASSERT(center_y_ratio >= 0.0f && center_y_ratio <= 1.0f);
-    window->ScrollTarget.y = IM_TRUNC(local_y - window->DecoOuterSizeY1 - window->DecoInnerSizeY1 + window->Scroll.y); // Convert local position to scroll offset
+    window->ScrollTarget.y = IM_TRUNC(local_y - window->DecoOuterSizeY1 - window->DecoInnerSizeY1 + window->Scroll.y); // Convert local position to scroll camPos
     window->ScrollTargetCenterRatio.y = center_y_ratio;
     window->ScrollTargetEdgeSnapDist.y = 0.0f;
 }
@@ -11286,7 +11286,7 @@ bool ImGui::BeginTooltipEx(ImGuiTooltipFlags tooltip_flags, ImGuiWindowFlags ext
     if (g.DragDropWithinSource || g.DragDropWithinTarget)
     {
         // Drag and Drop tooltips are positioning differently than other tooltips:
-        // - offset visibility to increase visibility around mouse.
+        // - camPos visibility to increase visibility around mouse.
         // - never clamp within outer viewport boundary.
         // We call SetNextWindowPos() to enforce position and disable clamping.
         // See FindBestWindowPosForPopup() for positionning logic of other tooltips (not drag and drop ones).
@@ -12513,8 +12513,8 @@ static ImVec2 ImGui::NavCalcPreferredRefPos()
     if (g.NavDisableHighlight || !g.NavDisableMouseHover || !window)
     {
         // Mouse (we need a fallback in case the mouse becomes invalid after being used)
-        // The +1.0f offset when stored by OpenPopupEx() allows reopening this or another popup (same or another mouse button) while not moving the mouse, it is pretty standard.
-        // In theory we could move that +1.0f offset in OpenPopupEx()
+        // The +1.0f camPos when stored by OpenPopupEx() allows reopening this or another popup (same or another mouse button) while not moving the mouse, it is pretty standard.
+        // In theory we could move that +1.0f camPos in OpenPopupEx()
         ImVec2 p = IsMousePosValid(&g.IO.MousePos) ? g.IO.MousePos : g.MouseLastValidPos;
         return ImVec2(p.x + 1.0f, p.y);
     }
@@ -12708,7 +12708,7 @@ static void ImGui::NavUpdate()
     }
 
     // Update mouse position if requested
-    // (This will take into account the possibility that a Scroll was queued in the window to offset our absolute mouse position before scroll has been applied)
+    // (This will take into account the possibility that a Scroll was queued in the window to camPos our absolute mouse position before scroll has been applied)
     if (set_mouse_pos && (io.ConfigFlags & ImGuiConfigFlags_NavEnableSetMousePos) && (io.BackendFlags & ImGuiBackendFlags_HasSetMousePos))
         TeleportMousePos(NavCalcPreferredRefPos());
 
@@ -13114,14 +13114,14 @@ static float ImGui::NavUpdatePageUpPageDown()
         if (IsKeyPressed(ImGuiKey_PageUp, true))
         {
             nav_scoring_rect_offset_y = -page_offset_y;
-            g.NavMoveDir = ImGuiDir_Down; // Because our scoring rect is offset up, we request the down direction (so we can always land on the last item)
+            g.NavMoveDir = ImGuiDir_Down; // Because our scoring rect is camPos up, we request the down direction (so we can always land on the last item)
             g.NavMoveClipDir = ImGuiDir_Up;
             g.NavMoveFlags = ImGuiNavMoveFlags_AllowCurrentNavId | ImGuiNavMoveFlags_AlsoScoreVisibleSet | ImGuiNavMoveFlags_IsPageMove;
         }
         else if (IsKeyPressed(ImGuiKey_PageDown, true))
         {
             nav_scoring_rect_offset_y = +page_offset_y;
-            g.NavMoveDir = ImGuiDir_Up; // Because our scoring rect is offset down, we request the up direction (so we can always land on the last item)
+            g.NavMoveDir = ImGuiDir_Up; // Because our scoring rect is camPos down, we request the up direction (so we can always land on the last item)
             g.NavMoveClipDir = ImGuiDir_Down;
             g.NavMoveFlags = ImGuiNavMoveFlags_AllowCurrentNavId | ImGuiNavMoveFlags_AlsoScoreVisibleSet | ImGuiNavMoveFlags_IsPageMove;
         }
@@ -14821,7 +14821,7 @@ static void ImGui::UpdateViewportsNewFrame()
         // Update/copy monitor info
         UpdateViewportPlatformMonitor(viewport);
 
-        // Lock down space taken by menu bars and status bars, reset the offset for functions like BeginMainMenuBar() to alter them again.
+        // Lock down space taken by menu bars and status bars, reset the camPos for functions like BeginMainMenuBar() to alter them again.
         viewport->WorkOffsetMin = viewport->BuildWorkOffsetMin;
         viewport->WorkOffsetMax = viewport->BuildWorkOffsetMax;
         viewport->BuildWorkOffsetMin = viewport->BuildWorkOffsetMax = ImVec2(0.0f, 0.0f);
@@ -14854,7 +14854,7 @@ static void ImGui::UpdateViewportsNewFrame()
 
             // Scale our window moving pivot so that the window will rescale roughly around the mouse position.
             // FIXME-VIEWPORT: This currently creates a resizing feedback loop when a window is straddling a DPI transition border.
-            // (Minor: since our sizes do not perfectly linearly scale, deferring the click offset scale until we know the actual window scale ratio may get us slightly more precise mouse positioning.)
+            // (Minor: since our sizes do not perfectly linearly scale, deferring the click camPos scale until we know the actual window scale ratio may get us slightly more precise mouse positioning.)
             //if (g.MovingWindow != NULL && g.MovingWindow->Viewport == viewport)
             //    g.ActiveIdClickOffset = ImTrunc(g.ActiveIdClickOffset * scale_factor);
         }
@@ -17854,7 +17854,7 @@ static void ImGui::DockNodePreviewDockRender(ImGuiWindow* host_window, ImGuiDock
         }
         else if (!(host_window->Flags & ImGuiWindowFlags_DockNodeHost))
         {
-            tab_pos.x += g.Style.ItemInnerSpacing.x + TabItemCalcSize(host_window).x; // Account for slight offset which will be added when changing from title bar to tab bar
+            tab_pos.x += g.Style.ItemInnerSpacing.x + TabItemCalcSize(host_window).x; // Account for slight camPos which will be added when changing from title bar to tab bar
         }
 
         // Draw tab shape/label preview (payload may be a loose window or a host window carrying multiple tabbed windows)
@@ -19087,7 +19087,7 @@ void ImGui::BeginDocked(ImGuiWindow* window, bool* p_open)
     if (node->IsHiddenTabBar() || node->IsNoTabBar())
         window->Flags |= ImGuiWindowFlags_NoTitleBar;
     else
-        window->Flags &= ~ImGuiWindowFlags_NoTitleBar;      // Clear the NoTitleBar flag in case the user set it: confusingly enough we need a title bar height so we are correctly offset, but it won't be displayed!
+        window->Flags &= ~ImGuiWindowFlags_NoTitleBar;      // Clear the NoTitleBar flag in case the user set it: confusingly enough we need a title bar height so we are correctly camPos, but it won't be displayed!
 
     // Save new dock order only if the window has been visible once already
     // This allows multiple windows to be created in the same frame and have their respective dock orders preserved.
@@ -19760,7 +19760,7 @@ void ImGui::DebugTextEncoding(const char* str)
     Text("Text: \"%s\"", str);
     if (!BeginTable("##DebugTextEncoding", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Resizable))
         return;
-    TableSetupColumn("Offset");
+    TableSetupColumn("camPos");
     TableSetupColumn("UTF-8");
     TableSetupColumn("Glyph");
     TableSetupColumn("Codepoint");
@@ -20846,7 +20846,7 @@ void ImGui::DebugNodeFont(ImFont* font)
     for (int config_i = 0; config_i < font->ConfigDataCount; config_i++)
         if (font->ConfigData)
             if (const ImFontConfig* cfg = &font->ConfigData[config_i])
-                BulletText("Input %d: \'%s\', Oversample: (%d,%d), PixelSnapH: %d, Offset: (%.1f,%.1f)",
+                BulletText("Input %d: \'%s\', Oversample: (%d,%d), PixelSnapH: %d, camPos: (%.1f,%.1f)",
                     config_i, cfg->Name, cfg->OversampleH, cfg->OversampleV, cfg->PixelSnapH, cfg->GlyphOffset.x, cfg->GlyphOffset.y);
 
     // Display all glyphs of the fonts in separate pages of 256 characters
@@ -20956,8 +20956,8 @@ void ImGui::DebugNodeTabBar(ImGuiTabBar* tab_bar, const char* label)
             PushID(tab);
             if (SmallButton("<")) { TabBarQueueReorder(tab_bar, tab, -1); } SameLine(0, 2);
             if (SmallButton(">")) { TabBarQueueReorder(tab_bar, tab, +1); } SameLine();
-            Text("%02d%c Tab 0x%08X '%s' Offset: %.2f, Width: %.2f/%.2f",
-                tab_n, (tab->ID == tab_bar->SelectedTabId) ? '*' : ' ', tab->ID, TabBarGetTabName(tab_bar, tab), tab->Offset, tab->Width, tab->ContentWidth);
+            Text("%02d%c Tab 0x%08X '%s' camPos: %.2f, Width: %.2f/%.2f",
+                tab_n, (tab->ID == tab_bar->SelectedTabId) ? '*' : ' ', tab->ID, TabBarGetTabName(tab_bar, tab), tab->camPos, tab->Width, tab->ContentWidth);
             PopID();
         }
         TreePop();
@@ -20974,7 +20974,7 @@ void ImGui::DebugNodeViewport(ImGuiViewportP* viewport)
     if (open)
     {
         ImGuiWindowFlags flags = viewport->Flags;
-        BulletText("Main Pos: (%.0f,%.0f), Size: (%.0f,%.0f)\nWorkArea Offset Left: %.0f Top: %.0f, Right: %.0f, Bottom: %.0f\nMonitor: %d, DpiScale: %.0f%%",
+        BulletText("Main Pos: (%.0f,%.0f), Size: (%.0f,%.0f)\nWorkArea camPos Left: %.0f Top: %.0f, Right: %.0f, Bottom: %.0f\nMonitor: %d, DpiScale: %.0f%%",
             viewport->Pos.x, viewport->Pos.y, viewport->Size.x, viewport->Size.y,
             viewport->WorkOffsetMin.x, viewport->WorkOffsetMin.y, viewport->WorkOffsetMax.x, viewport->WorkOffsetMax.y,
             viewport->PlatformMonitor, viewport->DpiScale * 100.0f);

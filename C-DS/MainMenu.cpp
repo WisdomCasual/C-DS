@@ -64,6 +64,9 @@ void MainMenu::update()
 
     if (ImGui::Button("Grid"))
         state = 1;
+    
+    if (ImGui::Button("Graph"))
+        state = 2;
 
     if (ImGui::Button("Code Visualier"))
         state = 10;

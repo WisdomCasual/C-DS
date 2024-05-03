@@ -535,7 +535,7 @@ typedef struct
    float xoff,yoff,xadvance;
 } stbtt_bakedchar;
 
-STBTT_DEF int stbtt_BakeFontBitmap(const unsigned char *data, int offset,  // font location (use offset=0 for plain .ttf)
+STBTT_DEF int stbtt_BakeFontBitmap(const unsigned char *data, int camPos,  // font location (use camPos=0 for plain .ttf)
                                 float pixel_height,                     // height of font in pixels
                                 unsigned char *pixels, int pw, int ph,  // bitmap to be filled in
                                 int first_char, int num_chars,          // characters to bake
@@ -708,9 +708,9 @@ STBTT_DEF int stbtt_GetNumberOfFonts(const unsigned char *data);
 
 STBTT_DEF int stbtt_GetFontOffsetForIndex(const unsigned char *data, int index);
 // Each .ttf/.ttc file may have more than one font. Each font has a sequential
-// index number starting from 0. Call this function to get the font offset for
+// index number starting from 0. Call this function to get the font camPos for
 // a given index; it returns -1 if the index is out of range. A regular .ttf
-// file will only define one font and it always be at offset 0, so it will
+// file will only define one font and it always be at camPos 0, so it will
 // return '0' for index 0, and -1 for all other indices.
 
 // The following structure is defined publicly so you can declare one on
@@ -719,11 +719,11 @@ struct stbtt_fontinfo
 {
    void           * userdata;
    unsigned char  * data;              // pointer to .ttf file
-   int              fontstart;         // offset of start of font
+   int              fontstart;         // camPos of start of font
 
    int numGlyphs;                     // number of glyphs, needed for range checking
 
-   int loca,head,glyf,hhea,hmtx,kern,gpos,svg; // table locations as offset from start of .ttf
+   int loca,head,glyf,hhea,hmtx,kern,gpos,svg; // table locations as camPos from start of .ttf
    int index_map;                     // a cmap mapping for our chosen character encoding
    int indexToLocFormat;              // format needed to map from glyph index to glyph
 
@@ -735,8 +735,8 @@ struct stbtt_fontinfo
    stbtt__buf fdselect;               // map from glyph to fontdict
 };
 
-STBTT_DEF int stbtt_InitFont(stbtt_fontinfo *info, const unsigned char *data, int offset);
-// Given an offset into the file that defines a font, this function builds
+STBTT_DEF int stbtt_InitFont(stbtt_fontinfo *info, const unsigned char *data, int camPos);
+// Given an camPos into the file that defines a font, this function builds
 // the necessary cached info for the rest of the system. You must allocate
 // the stbtt_fontinfo yourself, and stbtt_InitFont will fill it out. You don't
 // need to do anything special to free it, because the contents are pure
@@ -791,8 +791,8 @@ STBTT_DEF void stbtt_GetFontBoundingBox(const stbtt_fontinfo *info, int *x0, int
 // the bounding box around all possible characters
 
 STBTT_DEF void stbtt_GetCodepointHMetrics(const stbtt_fontinfo *info, int codepoint, int *advanceWidth, int *leftSideBearing);
-// leftSideBearing is the offset from the current horizontal position to the left edge of the character
-// advanceWidth is the offset from the current horizontal position to the next horizontal position
+// leftSideBearing is the camPos from the current horizontal position to the left edge of the character
+// advanceWidth is the camPos from the current horizontal position to the next horizontal position
 //   these are expressed in unscaled coordinates
 
 STBTT_DEF int  stbtt_GetCodepointKernAdvance(const stbtt_fontinfo *info, int ch1, int ch2);
@@ -883,7 +883,7 @@ STBTT_DEF unsigned char *stbtt_GetCodepointBitmap(const stbtt_fontinfo *info, fl
 // *width & *height are filled out with the width & height of the bitmap,
 // which is stored left-to-right, top-to-bottom.
 //
-// xoff/yoff are the offset it pixel space from the glyph origin to the top-left of the bitmap
+// xoff/yoff are the camPos it pixel space from the glyph origin to the top-left of the bitmap
 
 STBTT_DEF unsigned char *stbtt_GetCodepointBitmapSubpixel(const stbtt_fontinfo *info, float scale_x, float scale_y, float shift_x, float shift_y, int codepoint, int *width, int *height, int *xoff, int *yoff);
 // the same as stbtt_GetCodepoitnBitmap, but you can specify a subpixel
@@ -982,7 +982,7 @@ STBTT_DEF unsigned char * stbtt_GetCodepointSDF(const stbtt_fontinfo *info, floa
 //      shape, sample the SDF at each pixel and fill the pixel if the SDF value
 //      is greater than or equal to 180/255. (You'll actually want to antialias,
 //      which is beyond the scope of this example.) Additionally, you can compute
-//      offset outlines (e.g. to stroke the character border inside & outside,
+//      camPos outlines (e.g. to stroke the character border inside & outside,
 //      or only outside). For example, to fill outside the character up to 3 SDF
 //      pixels, you would compare against (180-36.0*3)/255 = 72/255. The above
 //      choice of variables maps a range from 5 pixels outside the shape to
@@ -1024,7 +1024,7 @@ STBTT_DEF unsigned char * stbtt_GetCodepointSDF(const stbtt_fontinfo *info, floa
 
 
 STBTT_DEF int stbtt_FindMatchingFont(const unsigned char *fontdata, const char *name, int flags);
-// returns the offset (not index) of the font that matches, or -1 if none
+// returns the camPos (not index) of the font that matches, or -1 if none
 //   if you use STBTT_MACSTYLE_DONTCARE, use a font name like "Arial Bold".
 //   if you use any other flag, use a font name like "Arial"; this checks
 //     the 'macStyle' header field; i don't know if fonts set this consistently
@@ -1376,8 +1376,8 @@ static int stbtt__get_svg(stbtt_fontinfo *info)
    if (info->svg < 0) {
       t = stbtt__find_table(info->data, info->fontstart, "SVG ");
       if (t) {
-         stbtt_uint32 offset = ttULONG(info->data + t + 2);
-         info->svg = t + offset;
+         stbtt_uint32 camPos = ttULONG(info->data + t + 2);
+         info->svg = t + camPos;
       } else {
          info->svg = 0;
       }
@@ -1549,7 +1549,7 @@ STBTT_DEF int stbtt_FindGlyphIndex(const stbtt_fontinfo *info, int unicode_codep
       search += 2;
 
       {
-         stbtt_uint16 offset, start, last;
+         stbtt_uint16 camPos, start, last;
          stbtt_uint16 item = (stbtt_uint16) ((search - endCount) >> 1);
 
          start = ttUSHORT(data + index_map + 14 + segcount*2 + 2 + 2*item);
@@ -1557,11 +1557,11 @@ STBTT_DEF int stbtt_FindGlyphIndex(const stbtt_fontinfo *info, int unicode_codep
          if (unicode_codepoint < start || unicode_codepoint > last)
             return 0;
 
-         offset = ttUSHORT(data + index_map + 14 + segcount*6 + 2 + 2*item);
-         if (offset == 0)
+         camPos = ttUSHORT(data + index_map + 14 + segcount*6 + 2 + 2*item);
+         if (camPos == 0)
             return (stbtt_uint16) (unicode_codepoint + ttSHORT(data + index_map + 14 + segcount*4 + 2 + 2*item));
 
-         return ttUSHORT(data + offset + (unicode_codepoint-start)*2 + index_map + 14 + segcount*6 + 2 + 2*item);
+         return ttUSHORT(data + camPos + (unicode_codepoint-start)*2 + index_map + 14 + segcount*6 + 2 + 2*item);
       }
    } else if (format == 12 || format == 13) {
       stbtt_uint32 ngroups = ttULONG(data+index_map+12);
@@ -1714,7 +1714,7 @@ static int stbtt__GetGlyphShapeTT(const stbtt_fontinfo *info, int glyph_index, s
       // above, shifted to the end of the array so we won't overwrite it when
       // we create our final data starting from the front
 
-      off = m - n; // starting offset for uninterpreted data, regardless of how m ends up being calculated
+      off = m - n; // starting camPos for uninterpreted data, regardless of how m ends up being calculated
 
       // first load flags
 
@@ -2850,7 +2850,7 @@ static stbtt__active_edge *stbtt__new_active(stbtt__hheap *hh, stbtt__edge *e, i
    else
       z->dx = STBTT_ifloor(STBTT_FIX * dxdy);
 
-   z->x = STBTT_ifloor(STBTT_FIX * e->x0 + z->dx * (start_point - e->y0)); // use z->dx so when we offset later it's by the same amount
+   z->x = STBTT_ifloor(STBTT_FIX * e->x0 + z->dx * (start_point - e->y0)); // use z->dx so when we camPos later it's by the same amount
    z->x -= off_x * STBTT_FIX;
 
    z->ey = e->y1;
@@ -3818,7 +3818,7 @@ STBTT_DEF void stbtt_MakeCodepointBitmap(const stbtt_fontinfo *info, unsigned ch
 //
 // This is SUPER-CRAPPY packing to keep source code small
 
-static int stbtt_BakeFontBitmap_internal(unsigned char *data, int offset,  // font location (use offset=0 for plain .ttf)
+static int stbtt_BakeFontBitmap_internal(unsigned char *data, int camPos,  // font location (use camPos=0 for plain .ttf)
                                 float pixel_height,                     // height of font in pixels
                                 unsigned char *pixels, int pw, int ph,  // bitmap to be filled in
                                 int first_char, int num_chars,          // characters to bake
@@ -3828,7 +3828,7 @@ static int stbtt_BakeFontBitmap_internal(unsigned char *data, int offset,  // fo
    int x,y,bottom_y, i;
    stbtt_fontinfo f;
    f.userdata = NULL;
-   if (!stbtt_InitFont(&f, data, offset))
+   if (!stbtt_InitFont(&f, data, camPos))
       return -1;
    STBTT_memset(pixels, 0, pw*ph); // background of 0 around pixels
    x=y=1;
@@ -4831,8 +4831,8 @@ STBTT_DEF const char *stbtt_GetFontNameString(const stbtt_fontinfo *font, int *l
 {
    stbtt_int32 i,count,stringOffset;
    stbtt_uint8 *fc = font->data;
-   stbtt_uint32 offset = font->fontstart;
-   stbtt_uint32 nm = stbtt__find_table(fc, offset, "name");
+   stbtt_uint32 camPos = font->fontstart;
+   stbtt_uint32 nm = stbtt__find_table(fc, camPos, "name");
    if (!nm) return NULL;
 
    count = ttUSHORT(fc+nm+2);
@@ -4895,19 +4895,19 @@ static int stbtt__matchpair(stbtt_uint8 *fc, stbtt_uint32 nm, stbtt_uint8 *name,
    return 0;
 }
 
-static int stbtt__matches(stbtt_uint8 *fc, stbtt_uint32 offset, stbtt_uint8 *name, stbtt_int32 flags)
+static int stbtt__matches(stbtt_uint8 *fc, stbtt_uint32 camPos, stbtt_uint8 *name, stbtt_int32 flags)
 {
    stbtt_int32 nlen = (stbtt_int32) STBTT_strlen((char *) name);
    stbtt_uint32 nm,hd;
-   if (!stbtt__isfont(fc+offset)) return 0;
+   if (!stbtt__isfont(fc+camPos)) return 0;
 
    // check italics/bold/underline flags in macStyle...
    if (flags) {
-      hd = stbtt__find_table(fc, offset, "head");
+      hd = stbtt__find_table(fc, camPos, "head");
       if ((ttUSHORT(fc+hd+44) & 7) != (flags & 7)) return 0;
    }
 
-   nm = stbtt__find_table(fc, offset, "name");
+   nm = stbtt__find_table(fc, camPos, "name");
    if (!nm) return 0;
 
    if (flags) {
@@ -4940,11 +4940,11 @@ static int stbtt_FindMatchingFont_internal(unsigned char *font_collection, char 
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #endif
 
-STBTT_DEF int stbtt_BakeFontBitmap(const unsigned char *data, int offset,
+STBTT_DEF int stbtt_BakeFontBitmap(const unsigned char *data, int camPos,
                                 float pixel_height, unsigned char *pixels, int pw, int ph,
                                 int first_char, int num_chars, stbtt_bakedchar *chardata)
 {
-   return stbtt_BakeFontBitmap_internal((unsigned char *) data, offset, pixel_height, pixels, pw, ph, first_char, num_chars, chardata);
+   return stbtt_BakeFontBitmap_internal((unsigned char *) data, camPos, pixel_height, pixels, pw, ph, first_char, num_chars, chardata);
 }
 
 STBTT_DEF int stbtt_GetFontOffsetForIndex(const unsigned char *data, int index)
@@ -4957,9 +4957,9 @@ STBTT_DEF int stbtt_GetNumberOfFonts(const unsigned char *data)
    return stbtt_GetNumberOfFonts_internal((unsigned char *) data);
 }
 
-STBTT_DEF int stbtt_InitFont(stbtt_fontinfo *info, const unsigned char *data, int offset)
+STBTT_DEF int stbtt_InitFont(stbtt_fontinfo *info, const unsigned char *data, int camPos)
 {
-   return stbtt_InitFont_internal(info, (unsigned char *) data, offset);
+   return stbtt_InitFont_internal(info, (unsigned char *) data, camPos);
 }
 
 STBTT_DEF int stbtt_FindMatchingFont(const unsigned char *fontdata, const char *name, int flags)
