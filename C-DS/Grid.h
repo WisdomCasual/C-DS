@@ -85,6 +85,7 @@ private:
 
 
     std::vector<std::vector<int>> vis = std::vector<std::vector<int>>(X_MAX, std::vector<int>(Y_MAX));
+    std::vector<std::vector<double>> cost = std::vector<std::vector<double>>(X_MAX, std::vector<double>(Y_MAX, FLT_MAX));
     std::vector<std::vector<bool>> is_obstacle = std::vector<std::vector<bool>>(X_MAX, std::vector<bool>(Y_MAX));
     std::vector<std::vector<std::pair<int, int>>> par = std::vector<std::vector<std::pair<int, int>>>(X_MAX, std::vector<std::pair<int, int>>(Y_MAX));
 
