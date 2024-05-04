@@ -1,7 +1,6 @@
 #include "GraphTools.h"
 #include <imgui_internal.h>
-#include <iostream>
-#include <iomanip>
+#include <sstream>
 
 void GraphTools::updateMenuBar()
 {
@@ -10,7 +9,7 @@ void GraphTools::updateMenuBar()
 
 void GraphTools::controlsUpdate()
 {
-	ImVec2 controlsWinSize(std::min(315.f * scale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(650.f * scale, viewport->WorkSize.y - ImGui::GetStyle().WindowPadding.y));
+	ImVec2 controlsWinSize(std::min(400.f * scale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(990.f * scale, viewport->WorkSize.y - ImGui::GetStyle().WindowPadding.y));
 	ImVec2 controlsWinPos(viewport->Size.x - controlsWinSize.x - ImGui::GetStyle().WindowPadding.x, viewport->Size.y - controlsWinSize.y - ImGui::GetStyle().WindowPadding.y);
 	bool disabled = false;
 
@@ -39,6 +38,7 @@ void GraphTools::controlsUpdate()
 			camTarget = { 0, 0 };
 	}
 
+	ImGui::RadioButton("View Adjacent", &cur_tool, 4);
 	ImGui::RadioButton("Set Starting Node", &cur_tool, 2);
 	ImGui::RadioButton("Set Ending Node", &cur_tool, 3);
 	ImGui::Dummy(ImVec2(0.0f, 10.0f));
@@ -49,10 +49,49 @@ void GraphTools::controlsUpdate()
 
 	ImGui::Text("Graph Data:");
 
-	static char text[int(1e4)];
-	ImGui::InputTextMultiline(" ", text, IM_ARRAYSIZE(text), ImVec2(-FLT_MIN, 300));
+	ImGui::InputTextMultiline(" ", graphText, IM_ARRAYSIZE(graphText), ImVec2(-FLT_MIN, 300));
 
+	std::string curStr;
+	char* curChar = graphText;
+	std::map<std::string, Vertex> temp_nodes;
+	std::map<Edge, ImVec2> temp_w_pos;
+	edges.clear();
 
+	do {
+		if (*curChar == '\n' || *curChar == '\0') {
+			std::stringstream ss(curStr);
+			std::string u, v;
+			int w;
+			if (!(ss >> u)) {
+
+			}
+			else if (!(ss >> v)) {
+				temp_nodes[u] = nodes[u];
+			}
+			else if (!(ss >> w)) {
+				temp_nodes[u] = nodes[u];
+				temp_nodes[v] = nodes[v];
+				edges.insert(Edge(u, v));
+			}
+			else {
+				auto& u_node = nodes[u];
+				auto& v_node = nodes[v];
+				temp_nodes[u] = u_node;
+				temp_nodes[v] = v_node;
+				edges.insert(Edge(u, v, w));
+				if (w_pos.count(Edge(u, v, w)))
+					temp_w_pos[Edge(u, v, w)] = w_pos[Edge(u, v, w)];
+				else 
+					temp_w_pos[Edge(u, v, w)] = ImVec2((u_node.x + v_node.x) / 2, (u_node.y + v_node.y) / 2);
+			}
+
+			curStr.clear();
+		}
+		curStr.push_back(*curChar);
+	} while (*curChar++ != '\0');
+
+	nodes = temp_nodes;
+	w_pos = temp_w_pos;
 
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f));
@@ -126,8 +165,12 @@ float GraphTools::calcDist(float x1, float y1, float x2, float y2)
 	return sqrtf((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 }
 
-void GraphTools::DrawEdge(ImDrawList* drawList, ImVec2 from, ImVec2 to) {
+void GraphTools::DrawEdge(ImDrawList* draw_list, const Edge& edge) {
 
+	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+
+	ImVec2 from = ImVec2(center.x + camPos.x + nodes[edge.u].x, center.y + camPos.y + nodes[edge.u].y);
+	ImVec2 to = ImVec2(center.x + camPos.x + nodes[edge.v].x, center.y + camPos.y + nodes[edge.v].y);
 	const ImU32 color = ImGui::GetColorU32(IM_COL32(200, 200, 200, 255));
 	const float thickness = 5.f * scale;
 
@@ -142,10 +185,11 @@ void GraphTools::DrawEdge(ImDrawList* drawList, ImVec2 from, ImVec2 to) {
 	from.x += dir.x * VERTEX_RADIUS;
 	from.y += dir.y * VERTEX_RADIUS;
 
+
 	if (directed) {
 		ImVec2 p1 = ImVec2(to.x - dir.x * headSize - dir.y * headSize, to.y - dir.y * headSize + dir.x * headSize);
 		ImVec2 p2 = ImVec2(to.x - dir.x * headSize + dir.y * headSize, to.y - dir.y * headSize - dir.x * headSize);
-		drawList->AddTriangleFilled(p1, p2, to, color);
+		draw_list->AddTriangleFilled(p1, p2, to, color);
 	}
 
 	to.x -= dir.x * headSize / 2;
@@ -153,7 +197,40 @@ void GraphTools::DrawEdge(ImDrawList* drawList, ImVec2 from, ImVec2 to) {
 	from.x += dir.x * headSize / 2;
 	from.y += dir.y * headSize / 2;
 
-	drawList->AddLine(from, to, color, thickness);
+	draw_list->AddLine(from, to, color, thickness);
+
+	if (edge.weighted) {
+
+		length = calcDist(from.x, from.y, to.x, to.y);
+		std::string w_label = std::to_string(edge.w);
+
+		ImVec2 textSize = ImGui::CalcTextSize(w_label.c_str());
+		
+		if (directed) {
+			to.x -= dir.x * length / 4.f;
+			to.y -= dir.y * length / 4.f;
+		}
+		else {
+			to.x -= dir.x * length / 2.f;
+			to.y -= dir.y * length / 2.f;
+		}
+
+		if ((dir.x > 0 && dir.y > 0) || (dir.x < 0 && dir.y < 0)) {
+			to.y -= textSize.y + 10.f * scale;
+			to.x += 10.f * scale;
+		}
+		else {
+			to.x -= textSize.x + 10.f * scale;
+			to.y -= textSize.y + 10.f * scale;
+		}
+
+		auto& pos = w_pos[edge];
+
+		pos.x += (to.x - pos.x - camPos.x - center.x) * 20.f * io->DeltaTime;
+		pos.y += (to.y - pos.y - camPos.y - center.y) * 20.f * io->DeltaTime;
+
+		draw_list->AddText(ImVec2(pos.x + camPos.x + center.x, pos.y + camPos.y + center.y), ImGui::GetColorU32(IM_COL32(255, 255, 255, 255)), w_label.c_str());
+	}
 
 }
 
@@ -190,6 +267,10 @@ void GraphTools::graphUpdate()
 	}
 
 	for (auto& edge : edges) {
+
+		if (edge.u == edge.v)
+			continue;
+
 		auto& u = nodes[edge.u];
 		auto& v = nodes[edge.v];
 
@@ -220,10 +301,18 @@ void GraphTools::graphUpdate()
 			dragging.clear();
 		}
 
+		if (ImGui::IsMouseDoubleClicked(0) && dist <= VERTEX_RADIUS && ImGui::IsWindowFocused() && cur_tool == 0) {
+			node.second.fixed = !node.second.fixed;
+		}
+
 		if (dragging == node.first) {
 			node.second.fx = node.second.fy = 0;
 			node.second.x += io->MouseDelta.x;
 			node.second.y += io->MouseDelta.y;
+			continue;
+		}
+		if (node.second.fixed) {
+			node.second.fx = node.second.fy = 0;
 			continue;
 		}
 		node.second.x += node.second.fx * io->DeltaTime;
@@ -237,13 +326,15 @@ void GraphTools::graphUpdate()
 	}
 
 	for (auto& edge : edges)
-		DrawEdge(draw_list, ImVec2(center.x + camPos.x + nodes[edge.u].x, center.y + camPos.y + nodes[edge.u].y), ImVec2(center.x + camPos.x + nodes[edge.v].x, center.y + camPos.y + nodes[edge.v].y));
+		DrawEdge(draw_list, edge);
 
 	for (auto& node : nodes) {
 		ImVec2 textCenter = ImGui::CalcTextSize(node.first.c_str());
 		textCenter.x /= 2.f;
 		textCenter.y /= 2.f;
 		draw_list->AddCircleFilled(ImVec2(center.x + camPos.x + node.second.x, center.y + camPos.y + node.second.y), VERTEX_RADIUS, ImGui::GetColorU32(IM_COL32(150, 150, 150, 255)));
+		if (node.second.fixed)
+			draw_list->AddCircle(ImVec2(center.x + camPos.x + node.second.x, center.y + camPos.y + node.second.y), VERTEX_RADIUS, ImGui::GetColorU32(IM_COL32(70, 70, 70, 255)), 100, 5.f*scale);
 		draw_list->AddText(ImVec2(center.x + camPos.x + node.second.x - textCenter.x, center.y + camPos.y + node.second.y - textCenter.y), ImGui::GetColorU32(IM_COL32(255, 255, 255, 255)), node.first.c_str());
 	}
 
@@ -268,25 +359,6 @@ GraphTools::GraphTools(std::string name, int& state, float& scale, bool& setting
 	: GrandWindow(name, state, scale, settingsEnabled)
 {
 	io = &ImGui::GetIO(); (void)io;
-
-
-	// for testing only:
-	edges.insert(Edge("1", "2"));
-	edges.insert(Edge("2", "1"));
-
-	edges.insert(Edge("1", "5"));
-	edges.insert(Edge("3", "4"));
-
-	nodes["1"];
-	nodes["2"];
-	nodes["3"];
-	nodes["4"];
-	nodes["5"];
-	nodes["6"];
-
-	nodes["baka"].x = -100;
-	nodes["baka"].y = 100;
-
 }
 
 GraphTools::~GraphTools()

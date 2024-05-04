@@ -8,7 +8,7 @@ void Grid::updateMenuBar()
 
 void Grid::controlsUpdate()
 {
-	ImVec2 controlsWinSize(std::min(315.f * scale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(650.f * scale, viewport->WorkSize.y - ImGui::GetStyle().WindowPadding.y));
+	ImVec2 controlsWinSize(std::min(400.f * scale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(810.f * scale, viewport->WorkSize.y - ImGui::GetStyle().WindowPadding.y));
 	ImVec2 controlsWinPos(viewport->Size.x - controlsWinSize.x - ImGui::GetStyle().WindowPadding.x, viewport->Size.y - controlsWinSize.y - ImGui::GetStyle().WindowPadding.y);
 	bool disabled = false;
 

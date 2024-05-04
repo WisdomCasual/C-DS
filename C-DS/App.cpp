@@ -76,7 +76,7 @@ void App::initStyle()
     //    ImGui::StyleColorsLight();
 
     // load custom font
-    ImFont* customFont = io->Fonts->AddFontFromFileTTF("Resources/font.ttf", 20.0f);
+    ImFont* customFont = io->Fonts->AddFontFromFileTTF("Resources/font.ttf", 30.0f);
 
     // Set custom font as default
     io->FontDefault = customFont;

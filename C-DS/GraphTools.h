@@ -22,15 +22,16 @@ private:
     struct Vertex {
         float x, y;
         float fx = 0, fy = 0;
+        bool fixed = false;
         Vertex() {
-            x = (rand() % 1000) / 100.f;
-            y = (rand() % 1000) / 100.f;
+            x = (rand() % 10000) / 100.f;
+            y = (rand() % 10000) / 100.f;
         }
     };
 
     struct Edge {
         std::string u, v;
-        int w;
+        long long w;
         bool weighted;
         Edge(std::string u, std::string v) {
             this->u = u;
@@ -38,7 +39,7 @@ private:
             w = 0;
             weighted = false;
         }
-        Edge(std::string u, std::string v, int w) {
+        Edge(std::string u, std::string v, long long w) {
             this->u = u;
             this->v = v;
             this->w = w;
@@ -55,8 +56,11 @@ private:
     };
 
     std::map<std::string, Vertex> nodes;
+    std::map<Edge, ImVec2> w_pos;
 
     std::set<Edge> edges;
+
+    char graphText[1000];
 
     // private fields:
     ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
@@ -74,7 +78,7 @@ private:
     // private methods:
     void updateMenuBar();
     void controlsUpdate();
-    void DrawEdge(ImDrawList*, ImVec2, ImVec2);
+    void DrawEdge(ImDrawList*, const Edge&);
     float calcDist(float, float, float, float);
     void graphUpdate();
     void dfs();
