@@ -65,13 +65,11 @@ private:
         }
     };
     struct aStarNode {
-        double gVal = 0;
         djskNode curNode = {};
 
         aStarNode() {};
         aStarNode(Node coordinates, double cost, double gVal){
             this->curNode = djskNode(coordinates, cost+gVal);
-            this->gVal = gVal;
         }
         friend bool operator<(const aStarNode& l, const aStarNode& r) {
             return l.curNode < r.curNode;
