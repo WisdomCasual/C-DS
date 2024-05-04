@@ -76,7 +76,7 @@ void App::initStyle()
     //    ImGui::StyleColorsLight();
 
     // load custom font
-    ImFont* customFont = io->Fonts->AddFontFromFileTTF("Resources/font.ttf", 20.0f);
+    ImFont* customFont = io->Fonts->AddFontFromFileTTF("Resources/font.ttf", 30.0f);
 
     // Set custom font as default
     io->FontDefault = customFont;
@@ -108,6 +108,11 @@ void App::updateWindow()
             curWindow = new Grid("Grid", state, scale, settingsEnabled);
             break;
         }
+    case 2:
+    {
+        curWindow = new GraphTools("Graph_Tools", state, scale, settingsEnabled);
+        break;
+    }
     case 10:
         {
             curWindow = new CodeVisualizer("Code_Visualizer", state, scale, settingsEnabled);
