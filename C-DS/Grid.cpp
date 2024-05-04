@@ -119,6 +119,7 @@ void Grid::controlsUpdate()
 	if (ImGui::Button("A* (A-star)")) {
 		activeAlgo = 4;
 		clearVisited();
+		cost[start_pos.first][start_pos.second] = 0.0;
 		astar_queue.push(aStarNode(Node(start_pos), 0, g_val(Node(start_pos))));
 	}
 
@@ -432,16 +433,15 @@ double Grid::g_val(Node cur)
 	}
 	else {
 		if (dx > dy) std::swap(dx, dy);
-		return (dy + dx * (diagonal_cost-1));
+		return (dy + dx * (diagonal_cost-1.0));
 	}
 }
 
 void Grid::a_star()
 {
 	if (!found && !astar_queue.empty()) {
-
-		double distance = astar_queue.top().curNode.cost - astar_queue.top().gVal;
 		Node node = astar_queue.top().curNode.coordinates;
+		double distance = cost[node.x][node.y];
 		vis[node.x][node.y] = 1;
 		astar_queue.pop();
 
@@ -453,42 +453,47 @@ void Grid::a_star()
 		}
 
 		if (diagonal_movement) {
+
 			for (int i = 0; i < 3; i++) {
 				for (int j = 0; j < 3; j++) {
-
-					Node new_node = { node.x + dir[i], node.y + dir[j] };
+					if (i == j && dir[i] == 0)
+						continue;
+					Node new_node = {node.x + dir[i], node.y + dir[j] };
 					if (inbounds(new_node.x, new_node.y) && !is_obstacle[new_node.x][new_node.y]) {
 						if (dir[i] != 0 && dir[j] != 0 && is_obstacle[new_node.x][node.y] && is_obstacle[node.x][new_node.y])
 							continue;
-						distance += getCost(dir[i], dir[j]);
-						if (distance < cost[new_node.x][new_node.y]) {
-							cost[new_node.x][new_node.y] = distance;
+						double new_dist = distance + getCost(dir[i], dir[j]);
+						if (new_dist < cost[new_node.x][new_node.y]) {
+
+							cost[new_node.x][new_node.y] = new_dist;
 							par[new_node.x][new_node.y].first = node.x;
 							par[new_node.x][new_node.y].second = node.y;
 						}
 						if (vis[new_node.x][new_node.y] == 0) {
 							vis[new_node.x][new_node.y] = -1;
 							double g = g_val(new_node);
-							astar_queue.push(aStarNode(new_node, distance, g));
+							astar_queue.push(aStarNode(new_node, new_dist, g));
 						}
+						
 					}
 				}
 			}
+
 		}
 		else {
 			for (int i = 0; i < 4; i++) {
 				Node new_node = {node.x + dx[i], node.y + dy[i]};
-				distance += 1;
+				double new_dist = distance + 1;
 				if (inbounds(new_node.x, new_node.y) && !is_obstacle[new_node.x][new_node.y]) {
-					if (distance < cost[new_node.x][new_node.y]) {
-						cost[new_node.x][new_node.y] = distance;
+					if (new_dist < cost[new_node.x][new_node.y]) {
+						cost[new_node.x][new_node.y] = new_dist;
 						par[new_node.x][new_node.y].first = node.x;
 						par[new_node.x][new_node.y].second = node.y;
 					}
 					if (vis[new_node.x][new_node.y] == 0) {
 						vis[new_node.x][new_node.y] = -1;
 						double g = g_val(new_node);
-						astar_queue.push(aStarNode(new_node, distance, g));
+						astar_queue.push(aStarNode(new_node, new_dist, g));
 					}
 				}
 			}
