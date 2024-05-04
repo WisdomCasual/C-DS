@@ -238,7 +238,7 @@ void Grid::clearVisited()
 	cleared = true;
 	for (int x = 0; x < X_MAX; x++)
 		for (int y = 0; y < Y_MAX; y++)
-			vis[x][y] = 0;
+			vis[x][y] = 0, cost[x][y] = FLT_MAX;
 }
 
 bool Grid::inbounds(int x, int y)
@@ -455,15 +455,20 @@ void Grid::a_star()
 				for (int j = 0; j < 3; j++) {
 
 					Node new_node = { node.x + dir[i], node.y + dir[j] };
-					if (inbounds(new_node.x, new_node.y) && !is_obstacle[new_node.x][new_node.y] && vis[new_node.x][new_node.y] == 0) {
-						if (dir[i] != 0 && dir[j] != 0 && is_obstacle[new_node.x][new_node.y] && is_obstacle[new_node.x][new_node.y])
+					if (inbounds(new_node.x, new_node.y) && !is_obstacle[new_node.x][new_node.y]) {
+						if (dir[i] != 0 && dir[j] != 0 && is_obstacle[new_node.x][node.y] && is_obstacle[node.x][new_node.y])
 							continue;
-						vis[new_node.x][new_node.y] = -1;
-						par[new_node.x][new_node.y].first = node.x;
-						par[new_node.x][new_node.y].second = node.y;
-						double g = g_val(new_node);
-						double cost = getCost(dir[i], dir[j]);
-						astar_queue.push(aStarNode(new_node, distance + cost + g, g));
+						distance += getCost(dir[i], dir[j]);
+						if (distance < cost[new_node.x][new_node.y]) {
+							cost[new_node.x][new_node.y] = distance;
+							par[new_node.x][new_node.y].first = node.x;
+							par[new_node.x][new_node.y].second = node.y;
+						}
+						if (vis[new_node.x][new_node.y] == 0) {
+							vis[new_node.x][new_node.y] = -1;
+							double g = g_val(new_node);
+							astar_queue.push(aStarNode(new_node, distance, g));
+						}
 					}
 				}
 			}
@@ -471,12 +476,18 @@ void Grid::a_star()
 		else {
 			for (int i = 0; i < 4; i++) {
 				Node new_node = {node.x + dx[i], node.y + dy[i]};
-				if (inbounds(new_node.x, new_node.y) && !is_obstacle[new_node.x][new_node.y] && vis[new_node.x][new_node.y] == 0) {
-					vis[new_node.x][new_node.y] = -1;
-					par[new_node.x][new_node.y].first = node.x;
-					par[new_node.x][new_node.y].second = node.y;
-					double g = g_val(new_node);
-					astar_queue.push(aStarNode(new_node, distance + 1 + g , g));
+				distance += 1;
+				if (inbounds(new_node.x, new_node.y) && !is_obstacle[new_node.x][new_node.y]) {
+					if (distance < cost[new_node.x][new_node.y]) {
+						cost[new_node.x][new_node.y] = distance;
+						par[new_node.x][new_node.y].first = node.x;
+						par[new_node.x][new_node.y].second = node.y;
+					}
+					if (vis[new_node.x][new_node.y] == 0) {
+						vis[new_node.x][new_node.y] = -1;
+						double g = g_val(new_node);
+						astar_queue.push(aStarNode(new_node, distance, g));
+					}
 				}
 			}
 		}
