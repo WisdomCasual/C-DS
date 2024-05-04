@@ -21,6 +21,7 @@
 #include "Settings.h"
 #include "MainMenu.h"
 #include "Grid.h"
+#include "GraphTools.h"
 #include "CodeVisualizer.h"
 
 class App
