@@ -24,11 +24,13 @@ void MainMenu::updateMenuBar()
         if (ImGui::BeginMenu("View"))
         {
             if (ImGui::MenuItem("Zoom in", "Ctrl+=")) {
-                GuiScale = GuiScale * 1.2f;
+                GuiScale += 0.2f;
+                GuiScale = std::min(GuiScale, 2.f);
                 ImGui::GetIO().FontGlobalScale = GuiScale / 1.5f;
             }
             if (ImGui::MenuItem("Zoom out", "Ctrl+-")) {
-                GuiScale = GuiScale * 0.8f;
+                GuiScale -= 0.2f;
+                GuiScale = std::max(GuiScale, 0.6f);
                 ImGui::GetIO().FontGlobalScale = GuiScale / 1.5f;
             }
             if (ImGui::MenuItem("Settings")) {
