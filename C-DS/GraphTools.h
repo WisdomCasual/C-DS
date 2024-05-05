@@ -14,6 +14,11 @@ private:
     #define EDGE_LENGTH 200.f
     #define VERTEX_RADIUS 30.f * zoomScale
 
+    #define FIXED_NODE_COLOR ImGui::GetColorU32(IM_COL32(70, 70, 70, 255))
+
+    #define DEFAULT_VERT_COL ImGui::GetColorU32(IM_COL32(150, 150, 150, 255))
+    #define DEFAULT_EDGE_COL ImGui::GetColorU32(IM_COL32(200, 200, 200, 255))
+
     // speed constraints:
     #define MAX_SPEED 100.0f
     #define MIN_SPEED 0.1f
@@ -23,9 +28,11 @@ private:
         float x, y;
         float fx = 0, fy = 0;
         bool fixed = false;
+        ImU32 color;
         Vertex() {
             x = (rand() % 10000) / 100.f;
             y = (rand() % 10000) / 100.f;
+            color = DEFAULT_VERT_COL;
         }
     };
 
@@ -33,15 +40,17 @@ private:
         std::string u, v;
         long long w;
         bool weighted;
+        ImU32 color;
         Edge(std::string u, std::string v) {
             this->u = u;
             this->v = v;
             w = 0;
+            color = DEFAULT_EDGE_COL;
             weighted = false;
         }
-        Edge(std::string u, std::string v, long long w) {
-            this->u = u;
-            this->v = v;
+        Edge(std::string u, std::string v, long long w)
+            : Edge(u, v)
+        {
             this->w = w;
             weighted = true;
         }
@@ -78,6 +87,8 @@ private:
     // private methods:
     void updateMenuBar();
     void controlsUpdate();
+    void clearStates();
+    ImU32 ContrastingColor(ImU32);
     void DrawEdge(ImDrawList*, const Edge&);
     float calcDist(float, float, float, float);
     void graphUpdate();

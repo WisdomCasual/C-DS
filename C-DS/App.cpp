@@ -85,9 +85,11 @@ void App::initStyle()
     // Set window rounding radius
     style->WindowRounding = 10.0f;
 
+
     style->WindowPadding = ImVec2(14, 14);
     style->ItemSpacing = ImVec2(10, 8);
 
+    style->GrabRounding = style->FrameRounding = 8.f;
 
 }
 

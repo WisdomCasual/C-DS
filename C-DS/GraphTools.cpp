@@ -1,6 +1,7 @@
 #include "GraphTools.h"
 #include <imgui_internal.h>
 #include <sstream>
+#include <iostream>
 
 void GraphTools::updateMenuBar()
 {
@@ -165,13 +166,52 @@ float GraphTools::calcDist(float x1, float y1, float x2, float y2)
 	return sqrtf((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 }
 
+void GraphTools::clearStates()
+{
+	if (cleared)
+		return;
+
+	//while (!bfs_queue.empty())
+	//	bfs_queue.pop();
+
+	//while (!dijkstra_queue.empty())
+	//	dijkstra_queue.pop();
+
+	//while (!astar_queue.empty())
+	//	astar_queue.pop();
+
+	//while (!dfs_stack.empty())
+	//	dfs_stack.pop();
+
+	cleared = true;
+
+	for (auto node : nodes) 
+		node.second.color = DEFAULT_VERT_COL;
+
+	for (auto edge : edges)
+		edge.color = DEFAULT_EDGE_COL;
+
+}
+
+ImU32 GraphTools::ContrastingColor(ImU32 col)
+{
+	ImVec4 ret = ImGui::ColorConvertU32ToFloat4(col);
+
+	ret.x = std::min(ret.x + 120.f, 255.f);
+	ret.y = std::min(ret.y + 120.f, 255.f);
+	ret.z = std::min(ret.z + 120.f, 255.f);
+
+	return ImGui::ColorConvertFloat4ToU32(ret);
+}
+
 void GraphTools::DrawEdge(ImDrawList* draw_list, const Edge& edge) {
 
 	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
 
 	ImVec2 from = ImVec2(center.x + (camPos.x + nodes[edge.u].x) * zoomScale, center.y + (camPos.y + nodes[edge.u].y) * zoomScale);
 	ImVec2 to = ImVec2(center.x + (camPos.x + nodes[edge.v].x) * zoomScale, center.y + (camPos.y + nodes[edge.v].y) * zoomScale);
-	const ImU32 color = ImGui::GetColorU32(IM_COL32(200, 200, 200, 255));
+	std::swap(to, from);
+	const ImU32 color = edge.color;
 	const float thickness = 5.f * zoomScale;
 
 	ImVec2 dir = ImVec2(to.x - from.x, to.y - from.y);
@@ -200,36 +240,46 @@ void GraphTools::DrawEdge(ImDrawList* draw_list, const Edge& edge) {
 	draw_list->AddLine(from, to, color, thickness);
 
 	if (edge.weighted) {
-
+		
 		length = calcDist(from.x, from.y, to.x, to.y);
+
 		std::string w_label = std::to_string(edge.w);
 
 		ImVec2 textSize = ImGui::CalcTextSize(w_label.c_str());
+		textSize.x -= 10.f * zoomScale;
 		
 		if (directed) {
-			to.x -= dir.x * length / 4.f;
-			to.y -= dir.y * length / 4.f;
+			if (dir.x < 0)
+				to.x -= dir.x * (length / 4.f - textSize.x / 2.f);
+			else
+				to.x -= dir.x * (length / 4.f + textSize.x / 2.f);
+
+			if (dir.y < 0)
+				to.y -= dir.y * (length / 4.f - textSize.y / 2.f);
+			else
+				to.y -= dir.y * (length / 4.f + textSize.y / 2.f);
 		}
 		else {
-			to.x -= dir.x * length / 2.f;
-			to.y -= dir.y * length / 2.f;
+			if(dir.x < 0)
+				to.x -= dir.x * (length / 2.f - textSize.x / 2.f);
+			else
+				to.x -= dir.x * (length / 2.f + textSize.x / 2.f);
+
+			if (dir.y < 0)
+				to.y -= dir.y * (length / 2.f - textSize.y / 2.f);
+			else
+				to.y -= dir.y * (length / 2.f + textSize.y / 2.f);
 		}
 
-		if ((dir.x > 0 && dir.y > 0) || (dir.x < 0 && dir.y < 0)) {
-			to.y -= textSize.y + 10.f * zoomScale;
-			to.x += 10.f * zoomScale;
-		}
-		else {
-			to.x -= textSize.x + 10.f * zoomScale;
-			to.y -= textSize.y + 10.f * zoomScale;
-		}
+		to.x += std::min(0.27f, dir.y) * (textSize.x);
+		to.y -= std::max(-0.27f, dir.x) * (textSize.y);
 
 		auto& pos = w_pos[edge];
 
 		pos.x += (to.x - pos.x - center.x - camPos.x * zoomScale) * 20.f * io->DeltaTime;
 		pos.y += (to.y - pos.y - center.y - camPos.y * zoomScale) * 20.f * io->DeltaTime;
 
-		draw_list->AddText(ImVec2(center.x + pos.x + camPos.x * zoomScale, center.y + pos.y + camPos.y * zoomScale), ImGui::GetColorU32(IM_COL32(255, 255, 255, 255)), w_label.c_str());
+		draw_list->AddText(ImVec2(center.x + pos.x + camPos.x * zoomScale, center.y + pos.y + camPos.y * zoomScale), ContrastingColor(edge.color), w_label.c_str());
 	}
 
 }
@@ -241,7 +291,7 @@ void GraphTools::graphUpdate()
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	const float cf = 0.5f; // center attraction
-	const float k = 0.75f; // Spring constant
+	const float k = 1.f; // Spring constant
 	const float c = 5000.f; // Repulsion constant
 	const float dampening = 0.9f; // Dampening factor
 
@@ -332,10 +382,10 @@ void GraphTools::graphUpdate()
 		ImVec2 textCenter = ImGui::CalcTextSize(node.first.c_str());
 		textCenter.x /= 2.f;
 		textCenter.y /= 2.f;
-		draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale, center.y + (camPos.y + node.second.y) * zoomScale), VERTEX_RADIUS, ImGui::GetColorU32(IM_COL32(150, 150, 150, 255)));
+		draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale, center.y + (camPos.y + node.second.y) * zoomScale), VERTEX_RADIUS, node.second.color);
 		if (node.second.fixed)
-			draw_list->AddCircle(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale, center.y + (camPos.y + node.second.y) * zoomScale), VERTEX_RADIUS, ImGui::GetColorU32(IM_COL32(70, 70, 70, 255)), 100, 5.f * zoomScale);
-		draw_list->AddText(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale - textCenter.x, center.y + (camPos.y + node.second.y) * zoomScale - textCenter.y), ImGui::GetColorU32(IM_COL32(255, 255, 255, 255)), node.first.c_str());
+			draw_list->AddCircle(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale, center.y + (camPos.y + node.second.y) * zoomScale), VERTEX_RADIUS, FIXED_NODE_COLOR, 100, 5.f * zoomScale);
+		draw_list->AddText(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale - textCenter.x, center.y + (camPos.y + node.second.y) * zoomScale - textCenter.y), ContrastingColor(node.second.color), node.first.c_str());
 	}
 
 }
@@ -365,6 +415,8 @@ GraphTools::~GraphTools()
 {
 
 }
+
+
 
 void GraphTools::update()
 {
