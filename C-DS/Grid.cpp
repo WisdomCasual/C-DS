@@ -1,5 +1,6 @@
 #include "Grid.h"
 #include <imgui_internal.h>
+#include <iostream>
 
 void Grid::updateMenuBar()
 {
@@ -8,7 +9,7 @@ void Grid::updateMenuBar()
 
 void Grid::controlsUpdate()
 {
-	ImVec2 controlsWinSize(std::min(400.f * scale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(810.f * scale, viewport->WorkSize.y - ImGui::GetStyle().WindowPadding.y));
+	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(850.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
 	ImVec2 controlsWinPos(viewport->Size.x - controlsWinSize.x - ImGui::GetStyle().WindowPadding.x, viewport->Size.y - controlsWinSize.y - ImGui::GetStyle().WindowPadding.y);
 	bool disabled = false;
 
@@ -26,7 +27,7 @@ void Grid::controlsUpdate()
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 	}
 
-	ImGui::Dummy(ImVec2(0.0f, 10.0f));
+	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
 	ImGui::Text("Grid Size:");
 
@@ -37,6 +38,8 @@ void Grid::controlsUpdate()
 			is_obstacle[0][0] = false;
 			is_obstacle[x_size - 1][y_size - 1] = false;
 		}
+
+		zoomScale = std::min(zoomScale, viewport->WorkSize.x / x_size / (CELL_SIZE + SEPARATOR_SIZE));
 	}
 	if(ImGui::SliderInt("Y", &y_size, Y_MIN, Y_MAX, NULL, ImGuiSliderFlags_AlwaysClamp)) {
 		clearVisited();
@@ -45,29 +48,30 @@ void Grid::controlsUpdate()
 			is_obstacle[0][0] = false;
 			is_obstacle[x_size - 1][y_size - 1] = false;
 		}
+		zoomScale = std::min(zoomScale, viewport->WorkSize.y / y_size / (CELL_SIZE + SEPARATOR_SIZE));
 	}
 
-	ImGui::Dummy(ImVec2(0.0f, 10.0f));
+	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
 
 	ImGui::Text("Tools:");
 	ImGui::RadioButton("Move Camera", &cur_tool, 0);
 	if (camTarget.x != 0 || camTarget.y != 0) {
 		ImGui::SameLine();
-		if (ImGui::Button("Reset"))
+		if (ImGui::Button("Reset##Cam"))
 			camTarget = { 0, 0 };
 	}
 	ImGui::RadioButton("Set Start Position", &cur_tool, 1);
 	ImGui::RadioButton("Set End Position", &cur_tool, 2);
 	ImGui::RadioButton("Add Obstacles", &cur_tool, 3);
 	ImGui::RadioButton("Remove Obstacles", &cur_tool, 4);
-	ImGui::Dummy(ImVec2(0.0f, 10.0f));
+	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
 	ImGui::Text("Traversal Algorithms:");
 
 	if (!cleared && activeAlgo == 0) {
 		ImGui::SameLine();
-		if (ImGui::Button("Reset"))
+		if (ImGui::Button("Reset##Grid"))
 			clearVisited();
 	}
 	else if (activeAlgo != 0) {
@@ -130,7 +134,18 @@ void Grid::controlsUpdate()
 		ImGui::PopStyleVar();
 	}
 
+	ImGui::Checkbox("Camera Follow", &camFollow);
+
+	if (camFollow) {
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+	}
 	ImGui::SliderFloat("Speed", &speed, MIN_SPEED, MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
+	if (camFollow) {
+		ImGui::PopItemFlag();
+		ImGui::PopStyleVar();
+	}
+
 
 	ImGui::End();
 }
@@ -138,23 +153,15 @@ void Grid::controlsUpdate()
 void Grid::gridUpdate()
 {
 
-	if (ImGui::IsWindowFocused() && ImGui::IsMouseDown(0) && cur_tool == 0) {
-		camPos.x += io->MouseDelta.x;
-		camPos.y += io->MouseDelta.y;
-		camTarget.x += io->MouseDelta.x;
-		camTarget.y += io->MouseDelta.y;
-	}
-
 	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
 
-	float separator_size = 5 * scale;
-	float cell_size = std::min({ 70 * scale, (viewport->WorkSize.x - separator_size * x_size) / x_size,
-											  (viewport->WorkSize.y - separator_size * y_size) / y_size });
+	float separator_size = std::max(SEPARATOR_SIZE * zoomScale, 1.f);
+	float cell_size = CELL_SIZE * zoomScale;
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	ImVec2 s_pos(center.x + camPos.x - x_size * (cell_size + separator_size) / 2.f,
-					    center.y + camPos.y - y_size * (cell_size + separator_size) / 2.f);
+	ImVec2 s_pos(center.x + camPos.x * zoomScale - x_size * (cell_size + separator_size) / 2.f,
+					    center.y + camPos.y * zoomScale - y_size * (cell_size + separator_size) / 2.f);
 	ImVec2 cur_pos(s_pos);
 
 	for (int y = 0; y < y_size; y++) {
@@ -257,6 +264,16 @@ double Grid::getCost(int x, int y)
 		return 1.0;
 }
 
+void Grid::followCell(int x, int y)
+{
+	float separator_size = std::max(SEPARATOR_SIZE * zoomScale, 1.f);
+	float cell_size = CELL_SIZE * zoomScale;
+	camTarget = ImVec2(x_size * (cell_size + separator_size) / 2.f - (cell_size + separator_size) * x,
+					   y_size * (cell_size + separator_size) / 2.f - (cell_size + separator_size) * y);
+	camTarget.x /= zoomScale;
+	camTarget.y /= zoomScale;
+}
+
 void Grid::dfs()
 {
 
@@ -264,6 +281,9 @@ void Grid::dfs()
 
 		std::pair<int, int> node = dfs_stack.top();
 		vis[node.first][node.second] = 1;
+
+		if (camFollow)
+			followCell(node.first, node.second);
 
 		if (node == end_pos) {
 			cur_node = node;
@@ -302,11 +322,16 @@ void Grid::dfs()
 	}
 	else if (found && cur_node != start_pos) {
 		vis[cur_node.first][cur_node.second] = 2;
+		if (camFollow)
+			followCell(cur_node.first, cur_node.second);
 		cur_node = par[cur_node.first][cur_node.second];
 	}
 	else {
-		if(found)
+		if (found) {
 			vis[cur_node.first][cur_node.second] = 2;
+			if (camFollow)
+				followCell(cur_node.first, cur_node.second);
+		}
 		activeAlgo = 0;
 		curTime = 0;
 		found = false;
@@ -321,6 +346,9 @@ void Grid::bfs()
 		std::pair<int, int> node = bfs_queue.front();
 		vis[node.first][node.second] = 1;
 		bfs_queue.pop();
+
+		if(camFollow)
+			followCell(node.first, node.second);
 
 		if (node == end_pos) {
 			cur_node = node;
@@ -356,12 +384,17 @@ void Grid::bfs()
 		}
 	}
 	else if (found && cur_node != start_pos) {
+		if(camFollow)
+			followCell(cur_node.first, cur_node.second);
 		vis[cur_node.first][cur_node.second] = 2;
 		cur_node = par[cur_node.first][cur_node.second];
 	}
 	else {
-		if (found)
+		if (found) {
 			vis[cur_node.first][cur_node.second] = 2;
+			if (camFollow)
+				followCell(cur_node.first, cur_node.second);
+		}
 		activeAlgo = 0;
 		curTime = 0;
 		found = false;
@@ -377,6 +410,9 @@ void Grid::dijkstra()
 		std::pair<int, int> node = dijkstra_queue.top().second;
 		vis[node.first][node.second] = 1;
 		dijkstra_queue.pop();
+
+		if (camFollow)
+			followCell(node.first, node.second);
 
 		if (node == end_pos) {
 			cur_node = node;
@@ -413,11 +449,16 @@ void Grid::dijkstra()
 	}
 	else if (found && cur_node != start_pos) {
 		vis[cur_node.first][cur_node.second] = 2;
+		if (camFollow)
+			followCell(cur_node.first, cur_node.second);
 		cur_node = par[cur_node.first][cur_node.second];
 	}
 	else {
-		if (found)
+		if (found) {
 			vis[cur_node.first][cur_node.second] = 2;
+			if (camFollow)
+				followCell(cur_node.first, cur_node.second);
+		}
 		activeAlgo = 0;
 		curTime = 0;
 		found = false;
@@ -444,6 +485,9 @@ void Grid::a_star()
 		double distance = cost[node.x][node.y];
 		vis[node.x][node.y] = 1;
 		astar_queue.pop();
+
+		if (camFollow)
+			followCell(node.x, node.y);
 
 		if (node.x == end_pos.first && node.y == end_pos.second) {
 			cur_node.first = node.x;
@@ -501,11 +545,16 @@ void Grid::a_star()
 	}
 	else if (found && cur_node != start_pos) {
 		vis[cur_node.first][cur_node.second] = 2;
+		if (camFollow)
+			followCell(cur_node.first, cur_node.second);
 		cur_node = par[cur_node.first][cur_node.second];
 	}
 	else {
-		if (found)
+		if (found) {
 			vis[cur_node.first][cur_node.second] = 2;
+			if (camFollow)
+				followCell(cur_node.first, cur_node.second);
+		}
 		activeAlgo = 0;
 		curTime = 0;
 		found = false;
@@ -539,9 +588,9 @@ void Grid::update()
 
 		curTime += io->DeltaTime;
 
-		while (curTime * speed >= DELAY_TIME) {
+		while (curTime * (camFollow ? 0.7f : speed) >= DELAY_TIME) {
 			cleared = false;
-			curTime -= DELAY_TIME / speed;
+			curTime -= DELAY_TIME / (camFollow ? 0.7f : speed);
 
 			if (activeAlgo == 1) {
 				dfs();
@@ -555,14 +604,26 @@ void Grid::update()
 			else if (activeAlgo == 4) {
 				a_star();
 			}
-
 		}
+	}
+
+	if (ImGui::IsWindowHovered() && (!camFollow || !activeAlgo) && ((ImGui::IsMouseDown(0) && cur_tool == 0) || ImGui::IsMouseDown(2))) {
+		camPos.x += io->MouseDelta.x / zoomScale;
+		camPos.y += io->MouseDelta.y / zoomScale;
+		camTarget.x += io->MouseDelta.x / zoomScale;
+		camTarget.y += io->MouseDelta.y / zoomScale;
+	}
+
+	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
+	camPos.y += (camTarget.y - camPos.y) * 10.f * io->DeltaTime;
+
+	if (ImGui::IsWindowHovered() && io->MouseWheel != 0.0f) {
+		zoomScale += io->MouseWheel * 0.15f;
+		zoomScale = std::min(std::max(zoomScale, std::min(0.5f, std::min(viewport->WorkSize.x / x_size, viewport->WorkSize.y / y_size) / (CELL_SIZE + SEPARATOR_SIZE))), 3.f);
 	}
 
 	ImGui::End();
 
-	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
-	camPos.y += (camTarget.y - camPos.y) * 10.f * io->DeltaTime;
 	
 	controlsUpdate();
 }

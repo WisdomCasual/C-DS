@@ -1,7 +1,7 @@
 #include "App.h"
 #include <imgui_internal.h>
 
-void App::initWindow(int x, int y, std::string title, bool vSyncEnabled)
+void App::initWindow(std::string title)
 {
 
     // Decide GL+GLSL versions
@@ -28,7 +28,7 @@ void App::initWindow(int x, int y, std::string title, bool vSyncEnabled)
     #endif
 
     // Create window with graphics context
-    window = glfwCreateWindow(x, y, title.c_str(), nullptr, nullptr);
+    window = glfwCreateWindow(windowWidth, windowHeight, title.c_str(), nullptr, nullptr);
     if (window == nullptr)
         exit(1);
     glfwMakeContextCurrent(window);
@@ -76,7 +76,8 @@ void App::initStyle()
     //    ImGui::StyleColorsLight();
 
     // load custom font
-    ImFont* customFont = io->Fonts->AddFontFromFileTTF("Resources/font.ttf", 30.0f);
+    ImFont* customFont = io->Fonts->AddFontFromFileTTF("Resources/font.ttf", 45.0f);
+    ImGui::GetIO().FontGlobalScale = scale / 1.5f;
 
     // Set custom font as default
     io->FontDefault = customFont;
@@ -88,6 +89,23 @@ void App::initStyle()
     style->ItemSpacing = ImVec2(10, 8);
 
 
+}
+
+void App::toggleFullscreen()
+{
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+    if (isFullscreen)
+        glfwSetWindowMonitor(window, nullptr, windowPosX, windowPosY, windowWidth, windowHeight, GLFW_DONT_CARE);
+    else {
+        glfwGetWindowPos(window, &windowPosX, &windowPosY);
+        glfwGetWindowSize(window, &windowWidth, &windowHeight);
+        glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, GLFW_DONT_CARE);
+    }
+    glfwSwapInterval(vSyncEnabled);
+
+    isFullscreen = !isFullscreen;
 }
 
 void App::updateWindow()
@@ -124,9 +142,65 @@ void App::updateWindow()
 
 }
 
-App::App(int x, int y, std::string title, bool vSyncEnabled)
+void App::overlay()
 {
-    initWindow(x, y, title, vSyncEnabled);
+    static int location = 1;
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    if (location >= 0)
+    {
+        const float PAD = 10.0f;
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImVec2 work_pos = viewport->WorkPos;
+        ImVec2 work_size = viewport->WorkSize;
+        ImVec2 window_pos, window_pos_pivot;
+        window_pos.x = (location & 1) ? (work_pos.x + work_size.x - PAD) : (work_pos.x + PAD);
+        window_pos.y = (location & 2) ? (work_pos.y + work_size.y - PAD) : (work_pos.y + PAD);
+        window_pos_pivot.x = (location & 1) ? 1.0f : 0.0f;
+        window_pos_pivot.y = (location & 2) ? 1.0f : 0.0f;
+        ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+        ImGui::SetNextWindowViewport(viewport->ID);
+        window_flags |= ImGuiWindowFlags_NoMove;
+    }
+    else if (location == -2)
+    {
+        ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+        window_flags |= ImGuiWindowFlags_NoMove;
+    }
+
+    ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
+
+    if (ImGui::Begin("Debugging overlay", &overlayEndabled, window_flags))
+    {
+        ImGui::Text("Debugging overlay\n" "(right-click to change position)");
+        ImGui::Separator();
+
+        ImGui::Text("Frames/Second: %.f", io->Framerate);
+
+        if (ImGui::IsMousePosValid())
+            ImGui::Text("Mouse Position: (%.f,%.f)", io->MousePos.x, io->MousePos.y);
+        else
+            ImGui::Text("Mouse Position: <invalid>");
+
+        ImGui::Text(isFullscreen ? "Window Mode: Fullscreen" : "Window Mode: Windowed");
+
+        if (ImGui::BeginPopupContextWindow())
+        {
+            if (ImGui::MenuItem("Custom", NULL, location == -1)) location = -1;
+            if (ImGui::MenuItem("Center", NULL, location == -2)) location = -2;
+            if (ImGui::MenuItem("Top-left", NULL, location == 0)) location = 0;
+            if (ImGui::MenuItem("Top-right", NULL, location == 1)) location = 1;
+            if (ImGui::MenuItem("Bottom-left", NULL, location == 2)) location = 2;
+            if (ImGui::MenuItem("Bottom-right", NULL, location == 3)) location = 3;
+            if (overlayEndabled && ImGui::MenuItem("Close")) overlayEndabled = false;
+            ImGui::EndPopup();
+        }
+    }
+    ImGui::End();
+}
+
+App::App(std::string title)
+{
+    initWindow(title);
     settings = new Settings("settings", state, scale, settingsEnabled, colorMode);
 }
 
@@ -175,6 +249,26 @@ void App::update()
     if (settingsEnabled)
         settings->update();
 
+    if(overlayEndabled)
+        overlay();
+
+    if (io->KeysDown[ImGuiKey_F3]) {
+        if(!f3Pressed)
+            overlayEndabled = !overlayEndabled;
+        f3Pressed = true;
+    }
+    else {
+        f3Pressed = false;
+    }
+
+    if (io->KeysDown[ImGuiKey_F11] || (isFullscreen && io->KeysDown[ImGuiKey_Escape])) {
+        if (!f11Pressed)
+            toggleFullscreen();
+        f11Pressed = true;
+    }
+    else {
+        f11Pressed = false;
+    }
 }
 
 void App::render()

@@ -20,6 +20,9 @@ private:
     #define MIN_SPEED 0.1f
     #define DELAY_TIME 0.2f
 
+    #define CELL_SIZE 70.f
+    #define SEPARATOR_SIZE 5.f
+
     // private fields:
     ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
     ImGuiWindowFlags controls_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
@@ -29,7 +32,7 @@ private:
 
     int cur_tool = 0, x_size = 5, y_size = 5, activeAlgo = 0;
     float speed = 1.f, curTime = 0;
-    bool diagonal_movement = false, found = false, cleared = true, paused = false;
+    bool diagonal_movement = false, found = false, cleared = true, paused = false, camFollow = false;
     ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
 
     std::pair<int, int> start_pos = { 0, 0 }, end_pos = { x_size - 1, y_size - 1 };
@@ -96,6 +99,7 @@ private:
     void clearVisited();
     bool inbounds(int, int);
     double getCost(int x, int y);
+    void followCell(int, int);
     void dfs();
     void bfs();
     void dijkstra();
