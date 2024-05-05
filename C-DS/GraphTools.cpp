@@ -245,39 +245,26 @@ void GraphTools::DrawEdge(ImDrawList* draw_list, const Edge& edge) {
 
 		std::string w_label = std::to_string(edge.w);
 
-		ImVec2 textSize = ImGui::CalcTextSize(w_label.c_str());
-		textSize.x -= 10.f * zoomScale;
+		ImVec2 textSize = ImGui::CalcTextSize(w_label .c_str());
 		
 		if (directed) {
-			if (dir.x < 0)
-				to.x -= dir.x * (length / 4.f - textSize.x / 2.f);
-			else
-				to.x -= dir.x * (length / 4.f + textSize.x / 2.f);
-
-			if (dir.y < 0)
-				to.y -= dir.y * (length / 4.f - textSize.y / 2.f);
-			else
-				to.y -= dir.y * (length / 4.f + textSize.y / 2.f);
+			to.x -= dir.x * length / 4.f;
+			to.y -= dir.y * length / 4.f;
 		}
 		else {
-			if(dir.x < 0)
-				to.x -= dir.x * (length / 2.f - textSize.x / 2.f);
-			else
-				to.x -= dir.x * (length / 2.f + textSize.x / 2.f);
-
-			if (dir.y < 0)
-				to.y -= dir.y * (length / 2.f - textSize.y / 2.f);
-			else
-				to.y -= dir.y * (length / 2.f + textSize.y / 2.f);
+			to.x -= dir.x * length / 2.f;
+			to.y -= dir.y * length / 2.f;
 		}
+		to.x -= textSize.x / 2.f;
+		to.y -= textSize.y / 2.f;
 
-		to.x += std::min(0.27f, dir.y) * (textSize.x);
-		to.y -= std::max(-0.27f, dir.x) * (textSize.y);
+		to.x += dir.y * (textSize.x / 2.f + 12.f * zoomScale);
+		to.y -= dir.x * (textSize.y / 2.f + 10.f * zoomScale);
 
 		auto& pos = w_pos[edge];
 
-		pos.x += (to.x - pos.x - center.x - camPos.x * zoomScale) * 20.f * io->DeltaTime;
-		pos.y += (to.y - pos.y - center.y - camPos.y * zoomScale) * 20.f * io->DeltaTime;
+		pos.x += (to.x - pos.x - center.x - camPos.x * zoomScale) * 40.f * io->DeltaTime;
+		pos.y += (to.y - pos.y - center.y - camPos.y * zoomScale) * 40.f * io->DeltaTime;
 
 		draw_list->AddText(ImVec2(center.x + pos.x + camPos.x * zoomScale, center.y + pos.y + camPos.y * zoomScale), ContrastingColor(edge.color), w_label.c_str());
 	}
