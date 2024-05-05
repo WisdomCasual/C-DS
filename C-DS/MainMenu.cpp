@@ -24,12 +24,12 @@ void MainMenu::updateMenuBar()
         if (ImGui::BeginMenu("View"))
         {
             if (ImGui::MenuItem("Zoom in", "Ctrl+=")) {
-                scale = scale * 1.2f;
-                ImGui::GetIO().FontGlobalScale = scale;
+                GuiScale = GuiScale * 1.2f;
+                ImGui::GetIO().FontGlobalScale = GuiScale / 1.5f;
             }
             if (ImGui::MenuItem("Zoom out", "Ctrl+-")) {
-                scale = scale * 0.8f;
-                ImGui::GetIO().FontGlobalScale = scale;
+                GuiScale = GuiScale * 0.8f;
+                ImGui::GetIO().FontGlobalScale = GuiScale / 1.5f;
             }
             if (ImGui::MenuItem("Settings")) {
                 settingsEnabled = true;

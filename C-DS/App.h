@@ -37,19 +37,25 @@ private:
 	Settings* settings = nullptr;
 
 	ImGuiIO* io;
-	bool settingsEnabled = false;
+	bool vSyncEnabled = true;
+	int windowPosX = 100, windowPosY = 100;
+	int windowWidth = 1280, windowHeight = 720;
+	bool settingsEnabled = false, overlayEndabled = false, f3Pressed = false;
+	bool isFullscreen = false, f11Pressed = false;
 	int colorMode = 0;
 	int state = 0;
 	float scale = 1;
 
 	// private methods:
-	void initWindow(int, int, std::string, bool);
+	void initWindow(std::string);
 	void initStyle();
+	void toggleFullscreen();
 	void updateWindow();
+	void overlay();
 
 public:
 
-	App(int, int, std::string, bool);
+	App(std::string);
 	~App();
 	
 

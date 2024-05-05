@@ -8,14 +8,16 @@ Settings::Settings(std::string name, int& state, float& scale, bool& settingsEna
 
 Settings::~Settings()
 {
+
 }
 
 void Settings::update()
 {
 	ImGui::Begin("Settings", &settingsEnabled, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoCollapse);
 
-	if(ImGui::SliderFloat("Scale", &scale, 0.3f, 3.0f, "Scale = %.3f"))
-		ImGui::GetIO().FontGlobalScale = scale;
+    if (ImGui::SliderFloat("GUI Scale", &GuiScale, 0.6f, 2.0f, "Scale = %.3f")) {
+        ImGui::GetIO().FontGlobalScale = GuiScale / 1.5f;
+    }
 
 	//if(ImGui::RadioButton("Light Mode", &colorMode, 1))
 	//	ImGui::StyleColorsLight();

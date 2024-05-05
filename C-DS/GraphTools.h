@@ -11,8 +11,8 @@ class GraphTools :
 {
 private:
     // graph settings:
-    #define EDGE_LENGTH 200.f * scale
-    #define VERTEX_RADIUS 30.f * scale
+    #define EDGE_LENGTH 200.f
+    #define VERTEX_RADIUS 30.f * zoomScale
 
     // speed constraints:
     #define MAX_SPEED 100.0f
