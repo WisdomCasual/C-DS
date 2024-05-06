@@ -31,7 +31,7 @@ void GraphTools::updateMenuBar()
 
 void GraphTools::controlsUpdate()
 {
-	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(1040.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
+	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(1080.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
 	ImVec2 controlsWinPos(viewport->Size.x - controlsWinSize.x - ImGui::GetStyle().WindowPadding.x, viewport->Size.y - controlsWinSize.y - ImGui::GetStyle().WindowPadding.y);
 	bool disabled = false;
 
@@ -67,9 +67,8 @@ void GraphTools::controlsUpdate()
 			camTarget = { 0, 0 };
 	}
 
-	if (ImGui::RadioButton("View Adjacent", &cur_tool, 4)) {
-		clearStates();
-	}
+	ImGui::RadioButton("View Adjacent", &cur_tool, 4);
+
 	ImGui::RadioButton("Set Starting Node", &cur_tool, 2);
 	if (startNode.size()) {
 		ImGui::SameLine();
@@ -83,6 +82,9 @@ void GraphTools::controlsUpdate()
 			endNode.clear();
 	}
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
+
+	if (ImGui::Button("Generate Random"))
+		generateGraph();
 
 	if (ImGui::RadioButton("Undirected", &directed, 0))
 		clearStates();
@@ -329,6 +331,31 @@ ImU32 GraphTools::ContrastingColor(ImU32 col)
 	return ImGui::ColorConvertFloat4ToU32(ret);
 }
 
+void GraphTools::generateGraph()
+{
+	memset(graphText, 0, sizeof graphText);
+	clearStates();
+
+	std::string gen;
+	int n = std::max(rand() % 20, 3);
+	for (int i = 0; i < n; i++)
+		gen += std::to_string(i + 1) + '\n';
+
+	int m = rand() % (2*n);
+
+	for (int i = 0; i < m; i++) {
+		std::string u = std::to_string(rand() % n + 1), v = std::to_string(rand() % n + 1);
+		while (edge_vis.count({ u, v }))
+			u = rand() % n + 1, v = rand() % n + 1;
+		gen += u + ' ' + v + '\n';
+	}
+	edge_vis.clear();
+
+	for (int i = 0; i < gen.size(); i++)
+		graphText[i] = gen[i];
+
+}
+
 void GraphTools::DrawEdge(ImDrawList* draw_list, const std::string u, const std::string v, Edge& edge) {
 
 	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
@@ -459,18 +486,18 @@ void GraphTools::graphUpdate()
 
 		float dist = calcDist(pos.x, pos.y, io->MousePos.x, io->MousePos.y);
 		
-		if (ImGui::IsMouseDown(0) && dragging.empty() && dist <= VERTEX_RADIUS && ImGui::IsWindowFocused() && cur_tool == 0) {
+		if (ImGui::IsMouseDown(0) && dragging.empty() && dist <= VERTEX_RADIUS && ImGui::IsWindowHovered() && cur_tool == 0) {
 			dragging = node.first;
 		}
 		else if ((!ImGui::IsWindowFocused() || !ImGui::IsMouseDown(0 || cur_tool != 0)) && !dragging.empty()) {
 			dragging.clear();
 		}
 
-		if (ImGui::IsMouseDoubleClicked(0) && dist <= VERTEX_RADIUS && ImGui::IsWindowFocused() && cur_tool == 0) {
+		if (ImGui::IsMouseDoubleClicked(0) && dist <= VERTEX_RADIUS && ImGui::IsWindowHovered() && cur_tool == 0) {
 			node.second.fixed = !node.second.fixed;
 		}
 
-		if (ImGui::IsMouseDown(0) && !leftClickPressed && dist <= VERTEX_RADIUS && ImGui::IsWindowHovered() && ImGui::IsWindowFocused() && (cur_tool == 2 || cur_tool == 3)) {
+		if (ImGui::IsMouseDown(0) && !leftClickPressed && dist <= VERTEX_RADIUS && ImGui::IsWindowHovered() && (cur_tool == 2 || cur_tool == 3)) {
 			(cur_tool == 2 ? startNode : endNode) = node.first;
 			clearStates();
 			leftClickPressed = true;
@@ -479,8 +506,7 @@ void GraphTools::graphUpdate()
 			leftClickPressed = false;
 		}
 
-
-		if (ImGui::IsMouseDown(0) && dist <= VERTEX_RADIUS && viewAdjacent != node.first && ImGui::IsWindowFocused() && cur_tool == 4) {
+		if (ImGui::IsMouseDown(0) && dist <= VERTEX_RADIUS && viewAdjacent != node.first && ImGui::IsWindowHovered() && cur_tool == 4) {
 			clearStates();
 			cleared = false;
 			node.second.color = ADJ_ROOT_COL;
@@ -603,7 +629,7 @@ void GraphTools::dfs()
 					edge_vis[{child.first, node}] = 1;
 					changed = true;
 				}
-				if (changed = true && i + 1 < adj[node].size()) {
+				if (changed == true && i + 1 < adj[node].size()) {
 					dfs_stack.push({ node, i + 1 });
 					break;
 				}
@@ -733,6 +759,7 @@ GraphTools::GraphTools(std::string name, int& state, float& GuiScale, bool& sett
 	: GrandWindow(name, state, GuiScale, settingsEnabled)
 {
 	io = &ImGui::GetIO(); (void)io;
+	generateGraph();
 }
 
 GraphTools::~GraphTools()
@@ -774,11 +801,15 @@ void GraphTools::update()
 		}
 	}
 
-	if (ImGui::IsWindowHovered() && ((ImGui::IsMouseDown(0) && cur_tool == 1) || ImGui::IsMouseDown(2))) {
+	if ((ImGui::IsWindowHovered() || movingCam) && ((ImGui::IsMouseDown(0) && cur_tool == 1) || ImGui::IsMouseDown(2))) {
+		movingCam = true;
 		camPos.x += io->MouseDelta.x / zoomScale;
 		camPos.y += io->MouseDelta.y / zoomScale;
 		camTarget.x += io->MouseDelta.x / zoomScale;
 		camTarget.y += io->MouseDelta.y / zoomScale;
+	}
+	else if (!(ImGui::IsMouseDown(0) && cur_tool == 1) && !ImGui::IsMouseDown(2)) {
+		movingCam = false;
 	}
 
 	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;

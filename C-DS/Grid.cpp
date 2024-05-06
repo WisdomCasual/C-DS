@@ -191,7 +191,7 @@ void Grid::gridUpdate()
 
 void Grid::useTool(int x, int y)
 {
-	if (cur_tool == 0 || !ImGui::IsWindowFocused() || activeAlgo != 0)
+	if (cur_tool == 0 || !ImGui::IsWindowHovered() || activeAlgo != 0)
 		return;
 
 	clearVisited();
@@ -628,11 +628,15 @@ void Grid::update()
 		}
 	}
 
-	if (ImGui::IsWindowHovered() && (!camFollow || !activeAlgo) && ((ImGui::IsMouseDown(0) && cur_tool == 0) || ImGui::IsMouseDown(2))) {
+	if ((ImGui::IsWindowHovered() || movingCam) && ((ImGui::IsMouseDown(0) && cur_tool == 1) || ImGui::IsMouseDown(2))) {
+		movingCam = true;
 		camPos.x += io->MouseDelta.x / zoomScale;
 		camPos.y += io->MouseDelta.y / zoomScale;
 		camTarget.x += io->MouseDelta.x / zoomScale;
 		camTarget.y += io->MouseDelta.y / zoomScale;
+	}
+	else if (!(ImGui::IsMouseDown(0) && cur_tool == 1) && !ImGui::IsMouseDown(2)) {
+		movingCam = false;
 	}
 
 	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
