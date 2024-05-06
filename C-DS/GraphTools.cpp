@@ -592,15 +592,18 @@ void GraphTools::dfs()
 				break;
 			}
 			else {
+				bool changed = false;
 				if (!edge_vis.count({ node, child.first }) && edges.count({ node, child.first })) {
 					edges[{node, child.first}].color = CANCELED_EDGE_COL;
 					edge_vis[{ node, child.first }] = 1;
+					changed = true;
 				}
 				if (!edge_vis.count({ child.first, node }) && edges.count({ child.first, node })) {
 					edges[{child.first, node}].color = CANCELED_EDGE_COL;
 					edge_vis[{child.first, node}] = 1;
+					changed = true;
 				}
-				if (i + 1 < adj[node].size()) {
+				if (changed = true && i + 1 < adj[node].size()) {
 					dfs_stack.push({ node, i + 1 });
 					break;
 				}
