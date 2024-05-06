@@ -84,12 +84,12 @@ void GraphTools::controlsUpdate()
 	}
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
-	if (ImGui::RadioButton("Directed", &directed, 0))
+	if (ImGui::RadioButton("Undirected", &directed, 0))
 		clearStates();
 
 	ImGui::SameLine();
 
-	if(ImGui::RadioButton("Undirected", &directed, 1))
+	if(ImGui::RadioButton("Directed", &directed, 1))
 		clearStates();
 
 	ImGui::Text("Graph Data:   [u], [v], [w]");
