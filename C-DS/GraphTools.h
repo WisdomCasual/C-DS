@@ -14,9 +14,16 @@ private:
     #define EDGE_LENGTH 200.f
     #define VERTEX_RADIUS 30.f * zoomScale
 
-    #define FIXED_NODE_COLOR ImGui::GetColorU32(IM_COL32(70, 70, 70, 255))
+    #define FIXED_NODE_COLOR ImGui::GetColorU32(IM_COL32(30, 30, 70, 255))
 
     #define DEFAULT_VERT_COL ImGui::GetColorU32(IM_COL32(150, 150, 150, 255))
+    #define ADJ_ROOT_COL ImGui::GetColorU32(IM_COL32(60, 60, 150, 255))
+    #define ADJ_CHILD_COL ImGui::GetColorU32(IM_COL32(80, 80, 160, 255))
+    #define ADJ_EDGE_COL ImGui::GetColorU32(IM_COL32(120, 120, 200, 255))
+
+    #define START_POINT_COL ImGui::GetColorU32(IM_COL32(50, 50, 150, 255))
+    #define END_POINT_COL ImGui::GetColorU32(IM_COL32(150, 50, 50, 255))
+
     #define DEFAULT_EDGE_COL ImGui::GetColorU32(IM_COL32(200, 200, 200, 255))
 
     // speed constraints:
@@ -37,37 +44,15 @@ private:
     };
 
     struct Edge {
-        std::string u, v;
-        long long w;
-        bool weighted;
-        ImU32 color;
-        Edge(std::string u, std::string v) {
-            this->u = u;
-            this->v = v;
-            w = 0;
-            color = DEFAULT_EDGE_COL;
-            weighted = false;
-        }
-        Edge(std::string u, std::string v, long long w)
-            : Edge(u, v)
-        {
-            this->w = w;
-            weighted = true;
-        }
-        bool operator < (const Edge& other) const{
-            if(w != other.w)
-                return w < other.w;
-            else if (u != other.u)
-                return u < other.u;
-            else
-                return v < other.v;
-        }
+        int w = 0;
+        bool weighted = false;
+        ImVec2 pos = {0, 0};
+        ImU32 color = DEFAULT_EDGE_COL;
     };
 
     std::map<std::string, Vertex> nodes;
-    std::map<Edge, ImVec2> w_pos;
-
-    std::set<Edge> edges;
+    std::map<std::pair<std::string, std::string>, Edge> edges;
+    std::map<std::string, std::set<std::pair<std::string, std::pair<int, bool>>>> adj;
 
     char graphText[1000];
 
@@ -80,8 +65,9 @@ private:
 
     int cur_tool = 0, activeAlgo = 0, directed = 0;
     float speed = 1.f, curTime = 0;
-    bool found = false, cleared = true, paused = false;
+    bool found = false, cleared = true, paused = false, leftClickPressed = false, camFollow = false;
     std::string dragging;
+    std::string viewAdjacent, startNode = "", endNode = "";
     ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
 
     // private methods:
@@ -89,7 +75,8 @@ private:
     void controlsUpdate();
     void clearStates();
     ImU32 ContrastingColor(ImU32);
-    void DrawEdge(ImDrawList*, const Edge&);
+    void pointToNode(const std::string, ImU32);
+    void DrawEdge(ImDrawList*, const std::string, const std::string, Edge&);
     float calcDist(float, float, float, float);
     void graphUpdate();
     void dfs();
