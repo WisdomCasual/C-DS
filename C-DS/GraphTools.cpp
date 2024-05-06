@@ -95,81 +95,88 @@ void GraphTools::controlsUpdate()
 	ImGui::Text("Graph Data:   [u], [v], [w]");
 
 	ImGui::InputTextMultiline(" ", graphText, IM_ARRAYSIZE(graphText), ImVec2(-FLT_MIN, 300));
+	
+	if (activeAlgo == 0){
+		std::string curStr;
+		char* curChar = graphText;
+		std::map<std::string, Vertex> temp_nodes;
+		std::map<std::pair<std::string, std::string>, Edge> temp_edges;
+		std::map<std::string, std::vector<std::pair<std::string, std::pair<int, bool>>>> temp_adj;
 
-	std::string curStr;
-	char* curChar = graphText;
-	std::map<std::string, Vertex> temp_nodes;
-	std::map<std::pair<std::string, std::string>, Edge> temp_edges;
-	std::map<std::string, std::set<std::pair<std::string, std::pair<int, bool>>>> temp_adj;
+		do {
+			if (*curChar == '\n' || *curChar == '\0') {
+				std::stringstream ss(curStr);
+				std::string u, v;
+				int w;
+				if (!(ss >> u)) {
 
-	do {
-		if (*curChar == '\n' || *curChar == '\0') {
-			std::stringstream ss(curStr);
-			std::string u, v;
-			int w;
-			if (!(ss >> u)) {
+				}
+				else if (!(ss >> v)) {
+					temp_nodes[u] = nodes[u];
+					temp_adj[u];
+				}
+				else if (!(ss >> w)) {
+					temp_nodes[u] = nodes[u];
+					temp_nodes[v] = nodes[v];
 
-			}
-			else if (!(ss >> v)) {
-				temp_nodes[u] = nodes[u];
-				temp_adj[u];
-			}
-			else if (!(ss >> w)) {
-				temp_nodes[u] = nodes[u];
-				temp_nodes[v] = nodes[v];
+					if (temp_edges.count({ u, v })) {
+						curStr.clear();
+						continue;
+					}
 
-				if (temp_edges.count({ u, v })) {
-					curStr.clear();
-					continue;
+					auto& newEdge = temp_edges[{u, v}];
+					newEdge.color = edges[{u, v}].color;
+					newEdge.weighted = false;
+					newEdge.w = 0;
+
+					temp_adj[u].push_back({ v, {0, false} });
+					if (!directed)
+						temp_adj[v].push_back({ u, {0, false} });
+				}
+				else {
+					auto& u_node = nodes[u];
+					auto& v_node = nodes[v];
+					temp_nodes[u] = u_node;
+					temp_nodes[v] = v_node;
+
+					if (temp_edges.count({ u, v })) {
+						curStr.clear();
+						continue;
+					}
+
+					auto& newEdge = temp_edges[{u, v}];
+					auto& oldEdge = edges[{u, v}];
+
+					if (edges.count({ u, v })) {
+						newEdge.pos = oldEdge.pos;
+						newEdge.color = oldEdge.color;
+					}
+					else
+						newEdge.pos = ImVec2((u_node.x + v_node.x) / 2, (u_node.y + v_node.y) / 2);
+
+					newEdge.weighted = true;
+					newEdge.w = w;
+
+					temp_adj[u].push_back({ v, {w, true} });
+					if (!directed)
+						temp_adj[v].push_back({ u, {w, true} });
 				}
 
-				auto& newEdge = temp_edges[{u, v}];
-				newEdge.color = edges[{u, v}].color;
-				newEdge.weighted = false;
-				newEdge.w = 0;
-
-				temp_adj[u].insert({ v, {0, false} });
-				if(!directed)
-					temp_adj[v].insert({ u, {0, false} });
+				curStr.clear();
 			}
-			else {
-				auto& u_node = nodes[u];
-				auto& v_node = nodes[v];
-				temp_nodes[u] = u_node;
-				temp_nodes[v] = v_node;
+			curStr.push_back(*curChar);
+		} while (*curChar++ != '\0');
 
-				if (temp_edges.count({ u, v })) {
-					curStr.clear();
-					continue;
-				}
+		nodes = temp_nodes;
+		edges = temp_edges;
+		adj = temp_adj;
 
-				auto& newEdge = temp_edges[{u, v}];
-				auto& oldEdge = edges[{u, v}];
+		if (!nodes.count(startNode))
+			startNode.clear();
 
-				if (edges.count({ u, v })) {
-					newEdge.pos = oldEdge.pos;
-					newEdge.color = oldEdge.color;
-				}
-				else
-					newEdge.pos = ImVec2((u_node.x + v_node.x) / 2, (u_node.y + v_node.y) / 2);
-
-				newEdge.weighted = true;
-				newEdge.w = w;
-
-				temp_adj[u].insert({ v, {w, true} });
-				if (!directed)
-					temp_adj[v].insert({ u, {w, true} });
-			}
-
-			curStr.clear();
-		}
-		curStr.push_back(*curChar);
-	} while (*curChar++ != '\0');
-
-	nodes = temp_nodes;
-	edges = temp_edges;
-	adj = temp_adj;
-
+		if (!nodes.count(endNode))
+			endNode.clear();
+	}
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
@@ -194,7 +201,7 @@ void GraphTools::controlsUpdate()
 
 		if (ImGui::Button("Stop")) {
 			activeAlgo = 0;
-			found = false;
+			found = 0;
 			paused = false;
 			curTime = 0;
 		}
@@ -206,19 +213,55 @@ void GraphTools::controlsUpdate()
 	if (ImGui::Button("DFS (Depth First Search)")) {
 		activeAlgo = 1;
 		clearStates();
-		//dfs_stack.push({ start_pos.first, start_pos.second });
+		if (startNode.size()) {
+			vis[startNode] = 1;
+			nodes[startNode].color = INQUE_VERT_COL;
+			dfs_stack.push(startNode);
+		}
+		else if (nodes.size()) {
+			vis[nodes.begin()->first] = 1;
+			nodes[nodes.begin()->first].color = INQUE_VERT_COL;
+			dfs_stack.push(nodes.begin()->first);
+		}
+		else {
+			activeAlgo = 0;
+		}
 	}
 
 	if (ImGui::Button("BFS (Breadth First Search)")) {
 		activeAlgo = 2;
 		clearStates();
-		//bfs_queue.push({ start_pos.first, start_pos.second });
+		if (startNode.size()) {
+			vis[startNode] = 1;
+			nodes[startNode].color = INQUE_VERT_COL;
+			bfs_queue.push(startNode);
+		}
+		else if (nodes.size()) {
+			vis[nodes.begin()->first] = 1;
+			nodes[nodes.begin()->first].color = INQUE_VERT_COL;
+			bfs_queue.push(nodes.begin()->first);
+		}
+		else {
+			activeAlgo = 0;
+		}
 	}
 
 	if (ImGui::Button("Dijkstra")) {
 		activeAlgo = 3;
 		clearStates();
-		//dijkstra_queue.push({ 0, { start_pos.first, start_pos.second } });
+		if (startNode.size()) {
+			vis[startNode] = 0;
+			nodes[startNode].color = INQUE_VERT_COL;
+			dijkstra_queue.push({ 0, startNode });
+		}
+		else if (nodes.size()) {
+			vis[nodes.begin()->first] = 0;
+			nodes[nodes.begin()->first].color = INQUE_VERT_COL;
+			dijkstra_queue.push({ 0, nodes.begin()->first });
+		}
+		else {
+			activeAlgo = 0;
+		}
 	}
 
 
@@ -251,20 +294,20 @@ void GraphTools::clearStates()
 	if (cleared)
 		return;
 
-	//while (!bfs_queue.empty())
-	//	bfs_queue.pop();
+	while (!bfs_queue.empty())
+		bfs_queue.pop();
 
-	//while (!dijkstra_queue.empty())
-	//	dijkstra_queue.pop();
+	while (!dijkstra_queue.empty())
+		dijkstra_queue.pop();
 
-	//while (!astar_queue.empty())
-	//	astar_queue.pop();
-
-	//while (!dfs_stack.empty())
-	//	dfs_stack.pop();
+	while (!dfs_stack.empty())
+		dfs_stack.pop();
 
 	cleared = true;
 
+	vis.clear();
+	edge_vis.clear();
+	par.clear();
 	viewAdjacent.clear();
 
 	for (auto& node : nodes) 
@@ -429,6 +472,7 @@ void GraphTools::graphUpdate()
 
 		if (ImGui::IsMouseDown(0) && !leftClickPressed && dist <= VERTEX_RADIUS && ImGui::IsWindowHovered() && ImGui::IsWindowFocused() && (cur_tool == 2 || cur_tool == 3)) {
 			(cur_tool == 2 ? startNode : endNode) = node.first;
+			clearStates();
 			leftClickPressed = true;
 		}
 		else if(!ImGui::IsMouseDown(0)){
@@ -494,6 +538,14 @@ void GraphTools::graphUpdate()
 
 }
 
+void GraphTools::followNode(const std::string u)
+{
+	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	auto& node = nodes[u];
+
+	camTarget = ImVec2(-node.x, -node.y);
+}
+
 void GraphTools::dfs()
 {
 
@@ -501,6 +553,84 @@ void GraphTools::dfs()
 
 void GraphTools::bfs()
 {
+
+	if (found == 0 && !bfs_queue.empty()) {
+
+		auto node = bfs_queue.front();
+		nodes[node].color = VIS_VERT_COL;
+		if (par.count(node)) {
+			auto& p = par[node];
+			if (edges.count({ node, p }))
+				edges[{node, p}].color = VIS_EDGE_COL;
+			if (edges.count({ p, node }))
+				edges[{p, node}].color = VIS_EDGE_COL;
+		}
+		bfs_queue.pop();
+
+		if (camFollow)
+			followNode(node);
+
+		if (node == endNode) {
+			cur_node = node;
+			found = 1;
+			return;
+		}
+
+		for (auto& child : adj[node]) {
+			if (!vis.count(child.first)) {
+				vis[child.first] = 1;
+				par[child.first] = node;
+				nodes[child.first].color = INQUE_VERT_COL;
+				if (edges.count({ node, child.first })) {
+					edges[{node, child.first}].color = INQUE_EDGE_COL;
+					edge_vis[{ node, child.first }] = 1;
+				}
+				if (edges.count({ child.first, node })) {
+					edges[{child.first, node}].color = INQUE_EDGE_COL;
+					edge_vis[{child.first, node}] = 1;
+				}
+				bfs_queue.push(child.first);
+			}
+			else {
+				if (!edge_vis.count({ node, child.first }) && edges.count({ node, child.first })) {
+					edges[{node, child.first}].color = CANCELED_EDGE_COL;
+					edge_vis[{ node, child.first }] = 1;
+				}
+				if (!edge_vis.count({ child.first, node }) && edges.count({ child.first, node })) {
+					edges[{child.first, node}].color = CANCELED_EDGE_COL;
+					edge_vis[{child.first, node}] = 1;
+				}
+			}
+		}
+
+	}
+	else if (found == 1) {
+		nodes[cur_node].color = PATH_VERT_COL;
+		if (camFollow)
+			followNode(cur_node);
+		found = 2;
+	}
+	else if (found == 2 && par.count(cur_node)) {
+
+		auto p = par[cur_node];
+		if (edges.count({ cur_node, p }))
+			edges[{cur_node, p}].color = PATH_EDGE_COL;
+		if (edges.count({ p, cur_node }))
+			edges[{p, cur_node}].color = PATH_EDGE_COL;
+
+		cur_node = p;
+
+		nodes[cur_node].color = PATH_VERT_COL;
+
+		if (camFollow)
+			followNode(cur_node);
+
+	}
+	else {
+		activeAlgo = 0;
+		curTime = 0;
+		found = 0;
+	}
 
 }
 
@@ -537,9 +667,9 @@ void GraphTools::update()
 
 		curTime += io->DeltaTime;
 
-		while (curTime * (camFollow ? 0.7f : speed) >= DELAY_TIME) {
+		while (curTime * (camFollow ? 0.9f : speed) >= DELAY_TIME) {
 			cleared = false;
-			curTime -= DELAY_TIME / (camFollow ? 0.7f : speed);
+			curTime -= DELAY_TIME / (camFollow ? 0.9f : speed);
 
 			if (activeAlgo == 1) {
 				dfs();
