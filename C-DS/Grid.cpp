@@ -65,6 +65,17 @@ void Grid::controlsUpdate()
 	ImGui::RadioButton("Set End Position", &cur_tool, 2);
 	ImGui::RadioButton("Add Obstacles", &cur_tool, 3);
 	ImGui::RadioButton("Remove Obstacles", &cur_tool, 4);
+
+	if (obstaclesCnt > 0) {
+		ImGui::SameLine();
+		if (ImGui::Button("Remove All")) {
+			obstaclesCnt = 0;
+			for (int x = 0; x < X_MAX; x++)
+				for (int y = 0; y < Y_MAX; y++)
+					is_obstacle[x][y] = false;
+		}
+	}
+
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
 	ImGui::Text("Traversal Algorithms:");
@@ -187,23 +198,33 @@ void Grid::useTool(int x, int y)
 
 	if (cur_tool == 1) {
 		if (end_pos.first != x || end_pos.second != y) {
+			if (is_obstacle[x][y])
+				obstaclesCnt--;
 			is_obstacle[x][y] = 0;
 			start_pos = { x, y };
 		}
 	}
 	else if (cur_tool == 2) {
 		if (start_pos.first != x || start_pos.second != y) {
+			if (is_obstacle[x][y])
+				obstaclesCnt--;
 			is_obstacle[x][y] = 0;
 			end_pos = { x, y };
 		}
 	}
 	else if (cur_tool == 3) {
-		if((start_pos.first != x || start_pos.second != y) && (end_pos.first != x || end_pos.second != y))
+		if ((start_pos.first != x || start_pos.second != y) && (end_pos.first != x || end_pos.second != y)) {
+			if (!is_obstacle[x][y])
+				obstaclesCnt++;
 			is_obstacle[x][y] = 1;
+		}
 	}
 	else if (cur_tool == 4) {
-		if ((start_pos.first != x || start_pos.second != y) && (end_pos.first != x || end_pos.second != y))
+		if ((start_pos.first != x || start_pos.second != y) && (end_pos.first != x || end_pos.second != y)) {
+			if (is_obstacle[x][y])
+				obstaclesCnt--;
 			is_obstacle[x][y] = 0;
+		}
 	}
 
 }
