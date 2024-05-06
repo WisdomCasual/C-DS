@@ -15,7 +15,7 @@ private:
     #define EDGE_LENGTH 200.f
     #define VERTEX_RADIUS 30.f * zoomScale
 
-    #define FIXED_NODE_COLOR ImGui::GetColorU32(IM_COL32(30, 30, 70, 255))
+    #define FIXED_NODE_COLOR ImGui::GetColorU32(IM_COL32(40, 40, 40, 255))
 
     #define DEFAULT_VERT_COL ImGui::GetColorU32(IM_COL32(150, 150, 150, 255))
     #define ADJ_ROOT_COL ImGui::GetColorU32(IM_COL32(60, 60, 150, 255))
@@ -38,7 +38,7 @@ private:
     // speed constraints:
     #define MAX_SPEED 100.0f
     #define MIN_SPEED 0.1f
-    #define DELAY_TIME 1.f
+    #define DELAY 1.f
 
     struct Vertex {
         float x, y;
@@ -79,7 +79,7 @@ private:
     std::string viewAdjacent, startNode = "", endNode = "";
     ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
 
-    std::stack<std::string> dfs_stack;
+    std::stack<std::pair< std::string, int>> dfs_stack;
     std::queue<std::string> bfs_queue;
     std::priority_queue<std::pair<long long, std::string>> dijkstra_queue;
     std::map<std::string, long long> vis;

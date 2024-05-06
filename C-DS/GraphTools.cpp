@@ -216,12 +216,12 @@ void GraphTools::controlsUpdate()
 		if (startNode.size()) {
 			vis[startNode] = 1;
 			nodes[startNode].color = INQUE_VERT_COL;
-			dfs_stack.push(startNode);
+			dfs_stack.push({ startNode, 0 });
 		}
 		else if (nodes.size()) {
 			vis[nodes.begin()->first] = 1;
 			nodes[nodes.begin()->first].color = INQUE_VERT_COL;
-			dfs_stack.push(nodes.begin()->first);
+			dfs_stack.push({ nodes.begin()->first, 0 });
 		}
 		else {
 			activeAlgo = 0;
@@ -548,6 +548,93 @@ void GraphTools::followNode(const std::string u)
 
 void GraphTools::dfs()
 {
+	if (found == 0 && !dfs_stack.empty()) {
+
+		std::string node = dfs_stack.top().first;
+		int i = dfs_stack.top().second;
+		nodes[node].color = VIS_VERT_COL;
+		dfs_stack.pop();
+
+		if (par.count(node)) {
+			auto& p = par[node];
+			if (edges.count({ node, p }))
+				edges[{node, p}].color = VIS_EDGE_COL;
+			if (edges.count({ p, node }))
+				edges[{p, node}].color = VIS_EDGE_COL;
+		}
+
+		if (camFollow)
+			followNode(node);
+
+		if (node == endNode) {
+			cur_node = node;
+			found = 1;
+			return;
+		}
+
+		for (; i < adj[node].size(); i++) {
+			auto& child = adj[node][i];
+			if (!vis.count(child.first)) {
+				vis[child.first] = 1;
+				par[child.first] = node;
+				nodes[child.first].color = INQUE_VERT_COL;
+				if (edges.count({ node, child.first })) {
+					edges[{node, child.first}].color = INQUE_EDGE_COL;
+					edge_vis[{ node, child.first }] = 1;
+				}
+				if (edges.count({ child.first, node })) {
+					edges[{child.first, node}].color = INQUE_EDGE_COL;
+					edge_vis[{child.first, node}] = 1;
+				}
+				if (i + 1 < adj[node].size())
+					dfs_stack.push({ node, i + 1 });
+				dfs_stack.push({ child.first, 0 });
+				break;
+			}
+			else {
+				if (!edge_vis.count({ node, child.first }) && edges.count({ node, child.first })) {
+					edges[{node, child.first}].color = CANCELED_EDGE_COL;
+					edge_vis[{ node, child.first }] = 1;
+				}
+				if (!edge_vis.count({ child.first, node }) && edges.count({ child.first, node })) {
+					edges[{child.first, node}].color = CANCELED_EDGE_COL;
+					edge_vis[{child.first, node}] = 1;
+				}
+				if (i + 1 < adj[node].size()) {
+					dfs_stack.push({ node, i + 1 });
+					break;
+				}
+			}
+		}
+
+	}
+	else if (found == 1) {
+		nodes[cur_node].color = PATH_VERT_COL;
+		if (camFollow)
+			followNode(cur_node);
+		found = 2;
+	}
+	else if (found == 2 && par.count(cur_node)) {
+
+		auto p = par[cur_node];
+		if (edges.count({ cur_node, p }))
+			edges[{cur_node, p}].color = PATH_EDGE_COL;
+		if (edges.count({ p, cur_node }))
+			edges[{p, cur_node}].color = PATH_EDGE_COL;
+
+		cur_node = p;
+
+		nodes[cur_node].color = PATH_VERT_COL;
+
+		if (camFollow)
+			followNode(cur_node);
+
+	}
+	else {
+		activeAlgo = 0;
+		curTime = 0;
+		found = 0;
+	}
 
 }
 
@@ -667,9 +754,9 @@ void GraphTools::update()
 
 		curTime += io->DeltaTime;
 
-		while (curTime * (camFollow ? 0.9f : speed) >= DELAY_TIME) {
+		while (curTime * (camFollow ? 0.9f : speed) >= DELAY) {
 			cleared = false;
-			curTime -= DELAY_TIME / (camFollow ? 0.9f : speed);
+			curTime -= DELAY / (camFollow ? 0.9f : speed);
 
 			if (activeAlgo == 1) {
 				dfs();
