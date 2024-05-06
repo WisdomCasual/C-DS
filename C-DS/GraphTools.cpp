@@ -3,6 +3,27 @@
 #include <sstream>
 #include <iostream>
 
+void GraphTools::pointToNode(const std::string u, ImU32 color)
+{
+	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+	const float headSize = 12.f * zoomScale;
+	const float length = 30.f * zoomScale;
+	auto& node = nodes[u];
+
+	ImVec2 from = ImVec2(center.x + (camPos.x + node.x) * zoomScale, center.y + (camPos.y + node.y) * zoomScale - VERTEX_RADIUS - length);
+	ImVec2 to = ImVec2(center.x + (camPos.x + node.x) * zoomScale, center.y + (camPos.y + node.y) * zoomScale - VERTEX_RADIUS - headSize);
+
+	draw_list->AddLine(from, to, color, 5.f * zoomScale);
+	to.y += headSize / 2.f;
+
+	ImVec2 p1 = ImVec2(to.x + headSize, to.y - headSize);
+	ImVec2 p2 = ImVec2(to.x - headSize, to.y - headSize);
+
+	draw_list->AddTriangleFilled(p1, p2, to, color);
+
+}
+
 void GraphTools::updateMenuBar()
 {
 
@@ -10,7 +31,7 @@ void GraphTools::updateMenuBar()
 
 void GraphTools::controlsUpdate()
 {
-	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(990.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
+	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(1040.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
 	ImVec2 controlsWinPos(viewport->Size.x - controlsWinSize.x - ImGui::GetStyle().WindowPadding.x, viewport->Size.y - controlsWinSize.y - ImGui::GetStyle().WindowPadding.y);
 	bool disabled = false;
 
@@ -31,6 +52,13 @@ void GraphTools::controlsUpdate()
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
 	ImGui::Text("Tools:");
+
+	if (!cleared) {
+		ImGui::SameLine();
+		if (ImGui::Button("Reset Graph"))
+			clearStates();
+	}
+
 	ImGui::RadioButton("Move Nodes", &cur_tool, 0);
 	ImGui::RadioButton("Move Camera", &cur_tool, 1);
 	if (camTarget.x != 0 || camTarget.y != 0) {
@@ -39,14 +67,30 @@ void GraphTools::controlsUpdate()
 			camTarget = { 0, 0 };
 	}
 
-	ImGui::RadioButton("View Adjacent", &cur_tool, 4);
+	if (ImGui::RadioButton("View Adjacent", &cur_tool, 4)) {
+		clearStates();
+	}
 	ImGui::RadioButton("Set Starting Node", &cur_tool, 2);
+	if (startNode.size()) {
+		ImGui::SameLine();
+		if (ImGui::Button("Remove##Start"))
+			startNode.clear();
+	}
 	ImGui::RadioButton("Set Ending Node", &cur_tool, 3);
+	if (endNode.size()) {
+		ImGui::SameLine();
+		if (ImGui::Button("Remove##End"))
+			endNode.clear();
+	}
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
-	ImGui::RadioButton("Directed", &directed, 0);
+	if (ImGui::RadioButton("Directed", &directed, 0))
+		clearStates();
+
 	ImGui::SameLine();
-	ImGui::RadioButton("Undirected", &directed, 1);
+
+	if(ImGui::RadioButton("Undirected", &directed, 1))
+		clearStates();
 
 	ImGui::Text("Graph Data:   [u], [v], [w]");
 
@@ -55,8 +99,8 @@ void GraphTools::controlsUpdate()
 	std::string curStr;
 	char* curChar = graphText;
 	std::map<std::string, Vertex> temp_nodes;
-	std::map<Edge, ImVec2> temp_w_pos;
-	edges.clear();
+	std::map<std::pair<std::string, std::string>, Edge> temp_edges;
+	std::map<std::string, std::set<std::pair<std::string, std::pair<int, bool>>>> temp_adj;
 
 	do {
 		if (*curChar == '\n' || *curChar == '\0') {
@@ -68,22 +112,53 @@ void GraphTools::controlsUpdate()
 			}
 			else if (!(ss >> v)) {
 				temp_nodes[u] = nodes[u];
+				temp_adj[u];
 			}
 			else if (!(ss >> w)) {
 				temp_nodes[u] = nodes[u];
 				temp_nodes[v] = nodes[v];
-				edges.insert(Edge(u, v));
+
+				if (temp_edges.count({ u, v })) {
+					curStr.clear();
+					continue;
+				}
+
+				auto& newEdge = temp_edges[{u, v}];
+				newEdge.color = edges[{u, v}].color;
+				newEdge.weighted = false;
+				newEdge.w = 0;
+
+				temp_adj[u].insert({ v, {0, false} });
+				if(!directed)
+					temp_adj[v].insert({ u, {0, false} });
 			}
 			else {
 				auto& u_node = nodes[u];
 				auto& v_node = nodes[v];
 				temp_nodes[u] = u_node;
 				temp_nodes[v] = v_node;
-				edges.insert(Edge(u, v, w));
-				if (w_pos.count(Edge(u, v, w)))
-					temp_w_pos[Edge(u, v, w)] = w_pos[Edge(u, v, w)];
-				else 
-					temp_w_pos[Edge(u, v, w)] = ImVec2((u_node.x + v_node.x) / 2, (u_node.y + v_node.y) / 2);
+
+				if (temp_edges.count({ u, v })) {
+					curStr.clear();
+					continue;
+				}
+
+				auto& newEdge = temp_edges[{u, v}];
+				auto& oldEdge = edges[{u, v}];
+
+				if (edges.count({ u, v })) {
+					newEdge.pos = oldEdge.pos;
+					newEdge.color = oldEdge.color;
+				}
+				else
+					newEdge.pos = ImVec2((u_node.x + v_node.x) / 2, (u_node.y + v_node.y) / 2);
+
+				newEdge.weighted = true;
+				newEdge.w = w;
+
+				temp_adj[u].insert({ v, {w, true} });
+				if (!directed)
+					temp_adj[v].insert({ u, {w, true} });
 			}
 
 			curStr.clear();
@@ -92,20 +167,15 @@ void GraphTools::controlsUpdate()
 	} while (*curChar++ != '\0');
 
 	nodes = temp_nodes;
-	w_pos = temp_w_pos;
+	edges = temp_edges;
+	adj = temp_adj;
 
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
 	ImGui::Text("Traversal Algorithms:");
 
-	if (!cleared && activeAlgo == 0) {
-		ImGui::SameLine();
-		if (ImGui::Button("Reset")) {
-			//clearVisited();
-		}
-	}
-	else if (activeAlgo != 0) {
+	if (activeAlgo != 0) {
 		ImGui::PopItemFlag();
 		ImGui::PopStyleVar();
 
@@ -135,29 +205,39 @@ void GraphTools::controlsUpdate()
 
 	if (ImGui::Button("DFS (Depth First Search)")) {
 		activeAlgo = 1;
-		//clearVisited();
+		clearStates();
 		//dfs_stack.push({ start_pos.first, start_pos.second });
 	}
 
 	if (ImGui::Button("BFS (Breadth First Search)")) {
 		activeAlgo = 2;
-		//clearVisited();
+		clearStates();
 		//bfs_queue.push({ start_pos.first, start_pos.second });
 	}
 
 	if (ImGui::Button("Dijkstra")) {
 		activeAlgo = 3;
-		//clearVisited();
+		clearStates();
 		//dijkstra_queue.push({ 0, { start_pos.first, start_pos.second } });
 	}
+
 
 	if (disabled) {
 		ImGui::PopItemFlag();
 		ImGui::PopStyleVar();
 	}
 
-	ImGui::SliderFloat("Speed", &speed, MIN_SPEED, MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
+	ImGui::Checkbox("Camera Follow", &camFollow);
 
+	if (camFollow) {
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+	}
+	ImGui::SliderFloat("Speed", &speed, MIN_SPEED, MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
+	if (camFollow) {
+		ImGui::PopItemFlag();
+		ImGui::PopStyleVar();
+	}
 	ImGui::End();
 }
 
@@ -185,11 +265,13 @@ void GraphTools::clearStates()
 
 	cleared = true;
 
-	for (auto node : nodes) 
+	viewAdjacent.clear();
+
+	for (auto& node : nodes) 
 		node.second.color = DEFAULT_VERT_COL;
 
-	for (auto edge : edges)
-		edge.color = DEFAULT_EDGE_COL;
+	for (auto& edge : edges)
+		edge.second.color = DEFAULT_EDGE_COL;
 
 }
 
@@ -197,20 +279,20 @@ ImU32 GraphTools::ContrastingColor(ImU32 col)
 {
 	ImVec4 ret = ImGui::ColorConvertU32ToFloat4(col);
 
-	ret.x = std::min(ret.x + 120.f, 255.f);
-	ret.y = std::min(ret.y + 120.f, 255.f);
-	ret.z = std::min(ret.z + 120.f, 255.f);
+	ret.x = std::min(ret.x + 50.f, 255.f);
+	ret.y = std::min(ret.y + 50.f, 255.f);
+	ret.z = std::min(ret.z + 50.f, 255.f);
 
 	return ImGui::ColorConvertFloat4ToU32(ret);
 }
 
-void GraphTools::DrawEdge(ImDrawList* draw_list, const Edge& edge) {
+void GraphTools::DrawEdge(ImDrawList* draw_list, const std::string u, const std::string v, Edge& edge) {
 
 	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
 
-	ImVec2 from = ImVec2(center.x + (camPos.x + nodes[edge.u].x) * zoomScale, center.y + (camPos.y + nodes[edge.u].y) * zoomScale);
-	ImVec2 to = ImVec2(center.x + (camPos.x + nodes[edge.v].x) * zoomScale, center.y + (camPos.y + nodes[edge.v].y) * zoomScale);
-	std::swap(to, from);
+	ImVec2 from = ImVec2(center.x + (camPos.x + nodes[u].x) * zoomScale, center.y + (camPos.y + nodes[u].y) * zoomScale);
+	ImVec2 to = ImVec2(center.x + (camPos.x + nodes[v].x) * zoomScale, center.y + (camPos.y + nodes[v].y) * zoomScale);
+
 	const ImU32 color = edge.color;
 	const float thickness = 5.f * zoomScale;
 
@@ -261,7 +343,7 @@ void GraphTools::DrawEdge(ImDrawList* draw_list, const Edge& edge) {
 		to.x += dir.y * (textSize.x / 2.f + 12.f * zoomScale);
 		to.y -= dir.x * (textSize.y / 2.f + 10.f * zoomScale);
 
-		auto& pos = w_pos[edge];
+		auto& pos = edge.pos;
 
 		pos.x += (to.x - pos.x - center.x - camPos.x * zoomScale) * 40.f * io->DeltaTime;
 		pos.y += (to.y - pos.y - center.y - camPos.y * zoomScale) * 40.f * io->DeltaTime;
@@ -274,13 +356,13 @@ void GraphTools::DrawEdge(ImDrawList* draw_list, const Edge& edge) {
 void GraphTools::graphUpdate()
 {
 
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	const float cf = 0.5f; // center attraction
-	const float k = 1.f; // Spring constant
-	const float c = 5000.f; // Repulsion constant
-	const float dampening = 0.9f; // Dampening factor
+	const float cf = 0.55f; // center attraction
+	const float k = 3.f; // Spring constant
+	const float c = 8000.f; // Repulsion constant
+	const float dampening = 0.85f; // Dampening factor
 
 	for (auto& node : nodes) {
 
@@ -305,11 +387,14 @@ void GraphTools::graphUpdate()
 
 	for (auto& edge : edges) {
 
-		if (edge.u == edge.v)
+		const std::string& u_str = edge.first.first;
+		const std::string& v_str = edge.first.second;
+
+		if (u_str == v_str)
 			continue;
 
-		auto& u = nodes[edge.u];
-		auto& v = nodes[edge.v];
+		auto& u = nodes[u_str];
+		auto& v = nodes[v_str];
 
 		float dx = v.x - u.x;
 		float dy = v.y - u.y;
@@ -342,6 +427,29 @@ void GraphTools::graphUpdate()
 			node.second.fixed = !node.second.fixed;
 		}
 
+		if (ImGui::IsMouseDown(0) && !leftClickPressed && dist <= VERTEX_RADIUS && ImGui::IsWindowHovered() && ImGui::IsWindowFocused() && (cur_tool == 2 || cur_tool == 3)) {
+			(cur_tool == 2 ? startNode : endNode) = node.first;
+			leftClickPressed = true;
+		}
+		else if(!ImGui::IsMouseDown(0)){
+			leftClickPressed = false;
+		}
+
+
+		if (ImGui::IsMouseDown(0) && dist <= VERTEX_RADIUS && viewAdjacent != node.first && ImGui::IsWindowFocused() && cur_tool == 4) {
+			clearStates();
+			cleared = false;
+			node.second.color = ADJ_ROOT_COL;
+			viewAdjacent = node.first;
+			for (auto& child : adj[node.first]) {
+				nodes[child.first].color = ADJ_CHILD_COL;
+				if(edges.count({ node.first, child.first }))
+					edges[{node.first, child.first}].color = ADJ_EDGE_COL;
+				if (edges.count({ child.first, node.first }))
+					edges[{child.first, node.first}].color = ADJ_EDGE_COL;
+			}
+		}
+
 		if (dragging == node.first) {
 			node.second.fx = node.second.fy = 0;
 			node.second.x += io->MouseDelta.x / zoomScale;
@@ -363,7 +471,15 @@ void GraphTools::graphUpdate()
 	}
 
 	for (auto& edge : edges)
-		DrawEdge(draw_list, edge);
+		DrawEdge(draw_list, edge.first.first, edge.first.second, edge.second);
+
+	if (startNode.size()) {
+		pointToNode(startNode, START_POINT_COL);
+	}
+
+	if (endNode.size()) {
+		pointToNode(endNode, END_POINT_COL);
+	}
 
 	for (auto& node : nodes) {
 		ImVec2 textCenter = ImGui::CalcTextSize(node.first.c_str());
@@ -374,6 +490,7 @@ void GraphTools::graphUpdate()
 			draw_list->AddCircle(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale, center.y + (camPos.y + node.second.y) * zoomScale), VERTEX_RADIUS, FIXED_NODE_COLOR, 100, 5.f * zoomScale);
 		draw_list->AddText(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale - textCenter.x, center.y + (camPos.y + node.second.y) * zoomScale - textCenter.y), ContrastingColor(node.second.color), node.first.c_str());
 	}
+
 
 }
 
@@ -403,8 +520,6 @@ GraphTools::~GraphTools()
 
 }
 
-
-
 void GraphTools::update()
 {
 
@@ -422,22 +537,19 @@ void GraphTools::update()
 
 		curTime += io->DeltaTime;
 
-		while (curTime * speed >= DELAY_TIME) {
+		while (curTime * (camFollow ? 0.7f : speed) >= DELAY_TIME) {
 			cleared = false;
-			curTime -= DELAY_TIME / speed;
+			curTime -= DELAY_TIME / (camFollow ? 0.7f : speed);
 
-			//if (activeAlgo == 1) {
-			//	dfs();
-			//}
-			//else if (activeAlgo == 2) {
-			//	bfs();
-			//}
-			//else if (activeAlgo == 3) {
-			//	dijkstra();
-			//}
-			//else if (activeAlgo == 4) {
-			//	a_star();
-			//}
+			if (activeAlgo == 1) {
+				dfs();
+			}
+			else if (activeAlgo == 2) {
+				bfs();
+			}
+			else if (activeAlgo == 3) {
+				dijkstra();
+			}
 
 		}
 	}
