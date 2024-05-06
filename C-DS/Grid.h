@@ -30,7 +30,7 @@ private:
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGuiIO* io;
 
-    int cur_tool = 0, x_size = 5, y_size = 5, activeAlgo = 0;
+    int cur_tool = 0, x_size = 5, y_size = 5, activeAlgo = 0, obstaclesCnt = 0;
     float speed = 1.f, curTime = 0;
     bool diagonal_movement = false, found = false, cleared = true, paused = false, camFollow = false;
     ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
