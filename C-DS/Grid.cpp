@@ -628,14 +628,14 @@ void Grid::update()
 		}
 	}
 
-	if ((ImGui::IsWindowHovered() || movingCam) && ((ImGui::IsMouseDown(0) && cur_tool == 1) || ImGui::IsMouseDown(2))) {
+	if ((ImGui::IsWindowHovered() || movingCam) && ((ImGui::IsMouseDown(0) && cur_tool == 0) || ImGui::IsMouseDown(2))) {
 		movingCam = true;
 		camPos.x += io->MouseDelta.x / zoomScale;
 		camPos.y += io->MouseDelta.y / zoomScale;
 		camTarget.x += io->MouseDelta.x / zoomScale;
 		camTarget.y += io->MouseDelta.y / zoomScale;
 	}
-	else if (!(ImGui::IsMouseDown(0) && cur_tool == 1) && !ImGui::IsMouseDown(2)) {
+	else if (!(ImGui::IsMouseDown(0) && cur_tool == 0) && !ImGui::IsMouseDown(2)) {
 		movingCam = false;
 	}
 
