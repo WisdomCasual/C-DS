@@ -74,7 +74,7 @@ private:
 
     int cur_tool = 0, activeAlgo = 0, directed = 0, found = 0;
     float speed = 1.f, curTime = 0;
-    bool cleared = true, paused = false, leftClickPressed = false, camFollow = false;
+    bool cleared = true, paused = false, leftClickPressed = false, camFollow = false, movingCam = false;
     std::string dragging, cur_node;
     std::string viewAdjacent, startNode = "", endNode = "";
     ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
@@ -89,6 +89,7 @@ private:
     // private methods:
     void updateMenuBar();
     void controlsUpdate();
+    void generateGraph();
     void clearStates();
     ImU32 ContrastingColor(ImU32);
     void pointToNode(const std::string, ImU32);
