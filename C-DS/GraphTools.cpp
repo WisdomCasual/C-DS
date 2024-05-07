@@ -752,6 +752,102 @@ void GraphTools::bfs()
 
 void GraphTools::dijkstra()
 {
+	
+	
+if (found == 0 && ! dijkstra_queue.empty()) {
+
+	    auto cost = -dijkstra_queue.top().first;
+		auto node = dijkstra_queue.top().second;
+		nodes[nodes.begin()->first].color = INQUE_VERT_COL;
+		nodes[node].color = VIS_VERT_COL;
+		dijkstra_queue.pop();
+		if (vis[node] < cost)
+			return;
+		if (par.count(node)) {
+			auto& p = par[node];
+			if (edges.count({ node, p }))
+				edges[{node, p}].color = VIS_EDGE_COL;
+			if (edges.count({ p, node }))
+				edges[{p, node}].color = VIS_EDGE_COL;
+		}
+		
+		if (camFollow)
+			followNode(node);
+
+		if (node == endNode) {
+			cur_node = node;
+			found = 1;
+			return;
+		}
+
+		for (auto& child : adj[node]) {
+			auto edgeCost = (child.second.second == true ? child.second.first : 1) ;
+			if ( !vis.count(child.first) || vis[node]  + edgeCost < vis[child.first]) {
+				if (par.count(child.first)) {
+					if (edges.count({ par[child.first], child.first})) {
+						edges[{par[child.first], child.first}].color = CANCELED_EDGE_COL;
+						edge_vis[{ par[child.first], child.first }] = 1;
+					}
+					if (edges.count({ child.first, par[child.first] })) {
+						edges[{child.first, par[child.first]}].color = CANCELED_EDGE_COL;
+						edge_vis[{child.first, par[child.first]}] = 1;
+					}
+				}
+				par[child.first] = node;
+				vis[child.first] = vis[node]  + edgeCost;
+				nodes[child.first].color = INQUE_VERT_COL;
+				dijkstra_queue.push({ -vis[child.first] , child.first });
+				if (edges.count({ node, child.first })) {
+					edges[{node, child.first}].color = INQUE_EDGE_COL;
+					edge_vis[{ node, child.first }] = 1;
+				}
+				if (edges.count({ child.first, node })) {
+					edges[{child.first, node}].color = INQUE_EDGE_COL;
+					edge_vis[{child.first, node}] = 1;
+				}
+			}
+			else {
+				if (!edge_vis.count({ node, child.first }) && edges.count({ node, child.first })) {
+					edges[{node, child.first}].color = CANCELED_EDGE_COL;
+					edge_vis[{ node, child.first }] = 1;
+				}
+				if (!edge_vis.count({ child.first, node }) && edges.count({ child.first, node })) {
+					edges[{child.first, node}].color = CANCELED_EDGE_COL;
+					edge_vis[{child.first, node}] = 1;
+				}
+			}
+		}
+
+	}
+	else if (found == 1) {
+		nodes[cur_node].color = PATH_VERT_COL;
+		if (camFollow)
+			followNode(cur_node);
+		found = 2;
+	}
+	else if (found == 2 && par.count(cur_node)) {
+
+		auto p = par[cur_node];
+		if (edges.count({ cur_node, p }))
+			edges[{cur_node, p}].color = PATH_EDGE_COL;
+		if (edges.count({ p, cur_node }))
+			edges[{p, cur_node}].color = PATH_EDGE_COL;
+
+		cur_node = p;
+
+		nodes[cur_node].color = PATH_VERT_COL;
+
+		if (camFollow)
+			followNode(cur_node);
+
+	}
+	else {
+		activeAlgo = 0;
+		curTime = 0;
+		found = 0;
+	}
+	
+	
 
 }
 
