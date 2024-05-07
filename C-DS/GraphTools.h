@@ -60,13 +60,14 @@ private:
         ImU32 color = DEFAULT_EDGE_COL;
     };
 
+    // private fields:
+
     std::map<std::string, Vertex> nodes;
     std::map<std::pair<std::string, std::string>, Edge> edges;
     std::map<std::string, std::vector<std::pair<std::string, std::pair<int, bool>>>> adj;
 
     char graphText[1000];
 
-    // private fields:
     ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
     ImGuiWindowFlags controls_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
 

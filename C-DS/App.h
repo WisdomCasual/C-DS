@@ -22,6 +22,7 @@
 #include "MainMenu.h"
 #include "Grid.h"
 #include "GraphTools.h"
+#include "DSU.h"
 #include "CodeVisualizer.h"
 
 class App

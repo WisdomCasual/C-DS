@@ -70,6 +70,9 @@ void MainMenu::update()
     if (ImGui::Button("Graph"))
         state = 2;
 
+    if (ImGui::Button("DSU"))
+        state = 3;
+
     if (ImGui::Button("Code Visualier"))
         state = 10;
 

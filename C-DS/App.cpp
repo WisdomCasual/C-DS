@@ -132,6 +132,11 @@ void App::updateWindow()
     {
         curWindow = new GraphTools("Graph_Tools", state, scale, settingsEnabled);
         break;
+    case 3:
+    {
+        curWindow = new DSU("DESU?", state, scale, settingsEnabled);
+        break;
+    }
     }
     case 10:
         {

@@ -34,6 +34,7 @@ private:
     float speed = 1.f, curTime = 0;
     bool diagonal_movement = false, found = false, cleared = true, paused = false, camFollow = false, movingCam = false;
     ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
+    int prev_mouse_x = -1, prev_mouse_y = -1;
 
     std::pair<int, int> start_pos = { 0, 0 }, end_pos = { x_size - 1, y_size - 1 };
     std::pair<int, int> cur_node;
