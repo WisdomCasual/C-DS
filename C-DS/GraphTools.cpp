@@ -758,7 +758,6 @@ if (found == 0 && ! dijkstra_queue.empty()) {
 
 	    auto cost = -dijkstra_queue.top().first;
 		auto node = dijkstra_queue.top().second;
-		nodes[nodes.begin()->first].color = INQUE_VERT_COL;
 		nodes[node].color = VIS_VERT_COL;
 		dijkstra_queue.pop();
 		if (vis[node] < cost)
@@ -781,8 +780,8 @@ if (found == 0 && ! dijkstra_queue.empty()) {
 		}
 
 		for (auto& child : adj[node]) {
-			auto edgeCost = (child.second.second == true ? child.second.first : 1) ;
-			if ( !vis.count(child.first) || vis[node]  + edgeCost < vis[child.first]) {
+			auto edgeCost = (child.second.second == true ? child.second.first : 1);
+			if (!vis.count(child.first) || vis[node] + edgeCost < vis[child.first]) {
 				if (par.count(child.first)) {
 					if (edges.count({ par[child.first], child.first})) {
 						edges[{par[child.first], child.first}].color = CANCELED_EDGE_COL;
