@@ -24,12 +24,14 @@ void MainMenu::updateMenuBar()
         if (ImGui::BeginMenu("View"))
         {
             if (ImGui::MenuItem("Zoom in", "Ctrl+=")) {
-                scale = scale * 1.2f;
-                ImGui::GetIO().FontGlobalScale = scale;
+                GuiScale += 0.2f;
+                GuiScale = std::min(GuiScale, 2.f);
+                ImGui::GetIO().FontGlobalScale = GuiScale / 1.5f;
             }
             if (ImGui::MenuItem("Zoom out", "Ctrl+-")) {
-                scale = scale * 0.8f;
-                ImGui::GetIO().FontGlobalScale = scale;
+                GuiScale -= 0.2f;
+                GuiScale = std::max(GuiScale, 0.6f);
+                ImGui::GetIO().FontGlobalScale = GuiScale / 1.5f;
             }
             if (ImGui::MenuItem("Settings")) {
                 settingsEnabled = true;
@@ -67,6 +69,9 @@ void MainMenu::update()
     
     if (ImGui::Button("Graph"))
         state = 2;
+
+    if (ImGui::Button("DSU"))
+        state = 3;
 
     if (ImGui::Button("Code Visualier"))
         state = 10;
