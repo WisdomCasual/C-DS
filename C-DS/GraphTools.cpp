@@ -91,14 +91,14 @@ void GraphTools::controlsUpdate()
 
 	ImGui::SameLine();
 
-	if(ImGui::RadioButton("Directed", &directed, 1))
+	if (ImGui::RadioButton("Directed", &directed, 1))
 		clearStates();
 
 	ImGui::Text("Graph Data:   [u], [v], [w]");
 
 	ImGui::InputTextMultiline(" ", graphText, IM_ARRAYSIZE(graphText), ImVec2(-FLT_MIN, 300));
-	
-	if (activeAlgo == 0){
+
+	if (activeAlgo == 0) {
 		std::string curStr;
 		char* curChar = graphText;
 		std::map<std::string, Vertex> temp_nodes;
@@ -312,7 +312,7 @@ void GraphTools::clearStates()
 	par.clear();
 	viewAdjacent.clear();
 
-	for (auto& node : nodes) 
+	for (auto& node : nodes)
 		node.second.color = DEFAULT_VERT_COL;
 
 	for (auto& edge : edges)
@@ -341,7 +341,7 @@ void GraphTools::generateGraph()
 	for (int i = 0; i < n; i++)
 		gen += std::to_string(i + 1) + '\n';
 
-	int m = rand() % (2*n);
+	int m = rand() % (2 * n);
 
 	for (int i = 0; i < m; i++) {
 		std::string u = std::to_string(rand() % n + 1), v = std::to_string(rand() % n + 1);
@@ -392,13 +392,13 @@ void GraphTools::DrawEdge(ImDrawList* draw_list, const std::string u, const std:
 	draw_list->AddLine(from, to, color, thickness);
 
 	if (edge.weighted) {
-		
+
 		length = calcDist(from.x, from.y, to.x, to.y);
 
 		std::string w_label = std::to_string(edge.w);
 
-		ImVec2 textSize = ImGui::CalcTextSize(w_label .c_str());
-		
+		ImVec2 textSize = ImGui::CalcTextSize(w_label.c_str());
+
 		if (directed) {
 			to.x -= dir.x * length / 4.f;
 			to.y -= dir.y * length / 4.f;
@@ -485,7 +485,7 @@ void GraphTools::graphUpdate()
 		pos.y = center.y + (camPos.y + node.second.y) * zoomScale;
 
 		float dist = calcDist(pos.x, pos.y, io->MousePos.x, io->MousePos.y);
-		
+
 		if (ImGui::IsMouseDown(0) && dragging.empty() && dist <= VERTEX_RADIUS && ImGui::IsWindowHovered() && cur_tool == 0) {
 			dragging = node.first;
 		}
@@ -502,7 +502,7 @@ void GraphTools::graphUpdate()
 			clearStates();
 			leftClickPressed = true;
 		}
-		else if(!ImGui::IsMouseDown(0)){
+		else if (!ImGui::IsMouseDown(0)) {
 			leftClickPressed = false;
 		}
 
@@ -513,7 +513,7 @@ void GraphTools::graphUpdate()
 			viewAdjacent = node.first;
 			for (auto& child : adj[node.first]) {
 				nodes[child.first].color = ADJ_CHILD_COL;
-				if(edges.count({ node.first, child.first }))
+				if (edges.count({ node.first, child.first }))
 					edges[{node.first, child.first}].color = ADJ_EDGE_COL;
 				if (edges.count({ child.first, node.first }))
 					edges[{child.first, node.first}].color = ADJ_EDGE_COL;
@@ -752,11 +752,11 @@ void GraphTools::bfs()
 
 void GraphTools::dijkstra()
 {
-	
-	
-if (found == 0 && ! dijkstra_queue.empty()) {
 
-	    auto cost = -dijkstra_queue.top().first;
+
+	if (found == 0 && !dijkstra_queue.empty()) {
+
+		auto cost = -dijkstra_queue.top().first;
 		auto node = dijkstra_queue.top().second;
 		nodes[node].color = VIS_VERT_COL;
 		dijkstra_queue.pop();
@@ -769,7 +769,7 @@ if (found == 0 && ! dijkstra_queue.empty()) {
 			if (edges.count({ p, node }))
 				edges[{p, node}].color = VIS_EDGE_COL;
 		}
-		
+
 		if (camFollow)
 			followNode(node);
 
@@ -783,7 +783,7 @@ if (found == 0 && ! dijkstra_queue.empty()) {
 			auto edgeCost = (child.second.second == true ? child.second.first : 1);
 			if (!vis.count(child.first) || vis[node] + edgeCost < vis[child.first]) {
 				if (par.count(child.first)) {
-					if (edges.count({ par[child.first], child.first})) {
+					if (edges.count({ par[child.first], child.first })) {
 						edges[{par[child.first], child.first}].color = CANCELED_EDGE_COL;
 						edge_vis[{ par[child.first], child.first }] = 1;
 					}
@@ -793,7 +793,7 @@ if (found == 0 && ! dijkstra_queue.empty()) {
 					}
 				}
 				par[child.first] = node;
-				vis[child.first] = vis[node]  + edgeCost;
+				vis[child.first] = vis[node] + edgeCost;
 				nodes[child.first].color = INQUE_VERT_COL;
 				dijkstra_queue.push({ -vis[child.first] , child.first });
 				if (edges.count({ node, child.first })) {
@@ -845,8 +845,8 @@ if (found == 0 && ! dijkstra_queue.empty()) {
 		curTime = 0;
 		found = 0;
 	}
-	
-	
+
+
 
 }
 
@@ -909,7 +909,7 @@ void GraphTools::update()
 
 	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
 	camPos.y += (camTarget.y - camPos.y) * 10.f * io->DeltaTime;
-	
+
 	if (ImGui::IsWindowHovered() && io->MouseWheel != 0.0f) {
 		zoomScale += io->MouseWheel * 0.15f;
 		zoomScale = std::min(std::max(zoomScale, 0.5f), 3.0f);

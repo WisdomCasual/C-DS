@@ -178,8 +178,9 @@ void Grid::gridUpdate()
 	for (int y = 0; y < y_size; y++) {
 		cur_pos.x = s_pos.x;
 		for (int x = 0; x < x_size; x++) {
-			if (ImGui::IsMouseDown(0) && io->MousePos.x >= cur_pos.x && io->MousePos.x <= cur_pos.x + cell_size && io->MousePos.y >= cur_pos.y && io->MousePos.y <= cur_pos.y + cell_size)
+			if (ImGui::IsMouseDown(0) && io->MousePos.x >= cur_pos.x && io->MousePos.x <= cur_pos.x + cell_size && io->MousePos.y >= cur_pos.y && io->MousePos.y <= cur_pos.y + cell_size) {
 				useTool(x, y);
+			}
 
 			draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + cell_size, cur_pos.y + cell_size), getColor(x, y));
 			cur_pos.x += cell_size + separator_size;
