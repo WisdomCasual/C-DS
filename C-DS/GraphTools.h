@@ -6,6 +6,7 @@
 #include <map>
 #include <stack>
 #include <queue>
+#include <vector>
 
 class GraphTools :
     public GrandWindow
