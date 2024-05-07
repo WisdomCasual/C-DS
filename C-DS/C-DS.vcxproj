@@ -171,6 +171,7 @@
     <ClCompile Include="App.cpp" />
     <ClCompile Include="CodeVisualizer.cpp" />
     <ClCompile Include="DockingArea.cpp" />
+    <ClCompile Include="DSU.cpp" />
     <ClCompile Include="GrandWindow.cpp" />
     <ClCompile Include="GraphTools.cpp" />
     <ClCompile Include="Grid.cpp" />
@@ -178,6 +179,7 @@
     <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="TextArea.cpp" />
+    <ClCompile Include="Tree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\imgui\imconfig.h" />
@@ -192,12 +194,14 @@
     <ClInclude Include="App.h" />
     <ClInclude Include="CodeVisualizer.h" />
     <ClInclude Include="DockingArea.h" />
+    <ClInclude Include="DSU.h" />
     <ClInclude Include="GrandWindow.h" />
     <ClInclude Include="GraphTools.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="MainMenu.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="TextArea.h" />
+    <ClInclude Include="Tree.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

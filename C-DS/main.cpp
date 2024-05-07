@@ -23,7 +23,7 @@ int main() {
 	glfwSetErrorCallback(glfw_error_callback);
 	if (!glfwInit())
 		exit(1);
-	app = new App (1280, 720, "C-DS", true);
+	app = new App("C-DS");
 
 	glfwSetWindowRefreshCallback(app->getWindow(), window_refresh_callback);
 	glfwSetFramebufferSizeCallback(app->getWindow(), framebuffer_size_callback);
