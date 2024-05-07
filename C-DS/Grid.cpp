@@ -157,19 +157,11 @@ void Grid::gridUpdate()
 					    center.y + camPos.y - y_size * (cell_size + separator_size) / 2.f);
 	ImVec2 cur_pos(s_pos);
 
-	if (ImGui::IsMouseDown(0)) {
-		st_line_eq(s_pos, cell_size+separator_size);
-	}
-	else {
-		prev_x = prev_y = -1;
-	}
-
-
 	for (int y = 0; y < y_size; y++) {
 		cur_pos.x = s_pos.x;
 		for (int x = 0; x < x_size; x++) {
-			//if (ImGui::IsMouseDown(0) && io->MousePos.x >= cur_pos.x && io->MousePos.x <= cur_pos.x + cell_size && io->MousePos.y >= cur_pos.y && io->MousePos.y <= cur_pos.y + cell_size)
-			//	useTool(x, y);
+			if (ImGui::IsMouseDown(0) && io->MousePos.x >= cur_pos.x && io->MousePos.x <= cur_pos.x + cell_size && io->MousePos.y >= cur_pos.y && io->MousePos.y <= cur_pos.y + cell_size)
+				useTool(x, y);
 
 			draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + cell_size, cur_pos.y + cell_size), getColor(x, y));
 			cur_pos.x += cell_size + separator_size;
@@ -529,52 +521,6 @@ Grid::Grid(std::string name, int& state, float& scale, bool& settingEnabled)
 Grid::~Grid()
 {
 
-}
-
-void Grid::st_line_eq(ImVec2 s_pos, float cell_size)
-{
-	int x = int((io->MousePos.x - s_pos.x) / (cell_size)),
-		y = int((io->MousePos.y - s_pos.y) / cell_size);
-	if (x < 0 || y < 0 || x > x_size || y > y_size)
-		return;
-	if (prev_x == -1)
-		prev_x = x, prev_y = y;
-	int dx = x - prev_x, dy = y - prev_y;
-
-
-	if (dx == dy && dx == 0) {
-		useTool(x, y);
-		return;
-	}
-
-	int* start = nullptr, *otherDimension = nullptr, end = 0;
-	int targ_x = std::min(x, prev_x);
-	int targ_y = std::min(y, prev_y);
-	int c = 0;
-	float slope = 0;
-
-	if ((abs(dx) > abs(dy))) {
-		start = &targ_x;
-		otherDimension = &targ_y;
-		targ_x = std::min(x, prev_x);
-		end = std::max(x, prev_x);
-		slope = (float)dy / dx;
-		c = y - int(round(x * slope));
-	}
-	else {
-		start = &targ_y;
-		otherDimension = &targ_x;
-		targ_y = std::min(y, prev_y);
-		end = std::max(y, prev_y);
-		slope = (float)dx / dy;
-		c = x - int(round(y * slope));
-	}
-
-	for (; *start <= end; (*start)++) {
-		*otherDimension = int(round((*start) * slope)) + c;
-		useTool(targ_x, targ_y);
-	}
-	prev_x = x, prev_y = y;
 }
 
 void Grid::update()
