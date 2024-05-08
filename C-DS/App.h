@@ -24,6 +24,7 @@
 #include "GraphTools.h"
 #include "DSU.h"
 #include "CodeVisualizer.h"
+#include "Tree.h"
 
 class App
 {
