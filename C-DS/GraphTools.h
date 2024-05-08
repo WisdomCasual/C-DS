@@ -95,7 +95,7 @@ private:
     void clearStates();
     ImU32 ContrastingColor(ImU32);
     void pointToNode(const std::string, ImU32);
-    void DrawEdge(ImDrawList*, const std::string, const std::string, Edge&);
+    void drawEdge(ImDrawList*, const std::string, const std::string, Edge&);
     float calcDist(float, float, float, float);
     void graphUpdate();
     void followNode(const std::string);
