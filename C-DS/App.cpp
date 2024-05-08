@@ -119,15 +119,15 @@ void App::updateWindow()
 
     switch (state) {
     case 0:
-        {
-            curWindow = new MainMenu("Main_Menu", state, scale, settingsEnabled);
-            break;
-        }
+    {
+        curWindow = new MainMenu("Main_Menu", state, scale, settingsEnabled);
+        break;
+    }
     case 1:
-        {
-            curWindow = new Grid("Grid", state, scale, settingsEnabled);
-            break;
-        }
+    {
+        curWindow = new Grid("Grid", state, scale, settingsEnabled);
+        break;
+    }
     case 2:
     {
         curWindow = new GraphTools("Graph_Tools", state, scale, settingsEnabled);
@@ -139,12 +139,18 @@ void App::updateWindow()
     }
     }
     case 10:
-        {
-            curWindow = new CodeVisualizer("Code_Visualizer", state, scale, settingsEnabled);
-            break;
-        }
+    {
+        curWindow = new CodeVisualizer("Code_Visualizer", state, scale, settingsEnabled);
+        break;
     }
 
+    case 11:
+    {
+        curWindow = new Tree("Tree", state, scale, settingsEnabled);
+        break;
+    }
+    
+}
     state = -1;
 
 }
