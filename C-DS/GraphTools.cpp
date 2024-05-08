@@ -356,7 +356,7 @@ void GraphTools::generateGraph()
 
 }
 
-void GraphTools::DrawEdge(ImDrawList* draw_list, const std::string u, const std::string v, Edge& edge) {
+void GraphTools::drawEdge(ImDrawList* draw_list, const std::string u, const std::string v, Edge& edge) {
 
 	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
 
@@ -500,23 +500,21 @@ void GraphTools::graphUpdate()
 		if (ImGui::IsMouseDown(0) && !leftClickPressed && dist <= VERTEX_RADIUS && ImGui::IsWindowHovered() && (cur_tool == 2 || cur_tool == 3)) {
 			(cur_tool == 2 ? startNode : endNode) = node.first;
 			clearStates();
-			leftClickPressed = true;
-		}
-		else if (!ImGui::IsMouseDown(0)) {
-			leftClickPressed = false;
 		}
 
 		if (ImGui::IsMouseDown(0) && dist <= VERTEX_RADIUS && viewAdjacent != node.first && ImGui::IsWindowHovered() && cur_tool == 4) {
-			clearStates();
-			cleared = false;
-			node.second.color = ADJ_ROOT_COL;
-			viewAdjacent = node.first;
-			for (auto& child : adj[node.first]) {
-				nodes[child.first].color = ADJ_CHILD_COL;
-				if (edges.count({ node.first, child.first }))
-					edges[{node.first, child.first}].color = ADJ_EDGE_COL;
-				if (edges.count({ child.first, node.first }))
-					edges[{child.first, node.first}].color = ADJ_EDGE_COL;
+			if (!leftClickPressed) {
+				clearStates();
+				cleared = false;
+				node.second.color = ADJ_ROOT_COL;
+				viewAdjacent = node.first;
+				for (auto& child : adj[node.first]) {
+					nodes[child.first].color = ADJ_CHILD_COL;
+					if (edges.count({ node.first, child.first }))
+						edges[{node.first, child.first}].color = ADJ_EDGE_COL;
+					if (edges.count({ child.first, node.first }))
+						edges[{child.first, node.first}].color = ADJ_EDGE_COL;
+				}
 			}
 		}
 
@@ -541,7 +539,7 @@ void GraphTools::graphUpdate()
 	}
 
 	for (auto& edge : edges)
-		DrawEdge(draw_list, edge.first.first, edge.first.second, edge.second);
+		drawEdge(draw_list, edge.first.first, edge.first.second, edge.second);
 
 	if (startNode.size()) {
 		pointToNode(startNode, START_POINT_COL);
@@ -561,6 +559,10 @@ void GraphTools::graphUpdate()
 		draw_list->AddText(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale - textCenter.x, center.y + (camPos.y + node.second.y) * zoomScale - textCenter.y), ContrastingColor(node.second.color), node.first.c_str());
 	}
 
+	if (ImGui::IsMouseDown(0))
+		leftClickPressed = true;
+	else
+		leftClickPressed = false;
 
 }
 
