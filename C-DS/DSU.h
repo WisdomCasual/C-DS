@@ -25,9 +25,9 @@ private:
     #define BY_HEIGHT 2
 
     // speed constraints:
-    #define MAX_SPEED 10.0f
-    #define MIN_SPEED 0.1f
-    #define DELAY 1.f
+    #define DSU_MAX_SPEED 10.0f
+    #define DSU_MIN_SPEED 0.1f
+    #define DSU_DELAY 1.f
     
     struct Vertex {
         float x, y;
@@ -57,7 +57,7 @@ private:
     ImGuiIO* io;
 
     ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
-    int cur_tool = 0, rank_type;
+    int cur_tool = 0, rank_type = 0;
     float speed = 1.f, curTime = 0;
     bool movingCam = false, leftClickPressed = false, pathCompression = false, isMerging = false;
     std::string node_u, node_v, cur_node_u, cur_node_v, viewComponent;
@@ -65,7 +65,7 @@ private:
     std::map<std::string, int> st_height, st_size;
     std::map<std::string, std::string> parent;
     std::map<std::string, Vertex, CustomStringSort> nodes;
-    char add_node_text[50];
+    char add_node_text[50] = {};
 
     std::string dragging;
 

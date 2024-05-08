@@ -151,7 +151,7 @@ void Grid::controlsUpdate()
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 	}
-	ImGui::SliderFloat("Speed", &speed, MIN_SPEED, MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
+	ImGui::SliderFloat("Speed", &speed, GRID_MIN_SPEED, GRID_MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
 	if (camFollow) {
 		ImGui::PopItemFlag();
 		ImGui::PopStyleVar();
@@ -661,9 +661,9 @@ void Grid::update()
 
 		curTime += io->DeltaTime;
 
-		while (curTime * (camFollow ? 0.7f : speed) >= DELAY_TIME) {
+		while (curTime * (camFollow ? 0.7f : speed) >= GRID_DELAY_TIME) {
 			cleared = false;
-			curTime -= DELAY_TIME / (camFollow ? 0.7f : speed);
+			curTime -= GRID_DELAY_TIME / (camFollow ? 0.7f : speed);
 
 			if (activeAlgo == 1) {
 				dfs();
