@@ -16,9 +16,9 @@ private:
     #define Y_MIN 2
 
     // speed constraints:
-    #define MAX_SPEED 100.0f
-    #define MIN_SPEED 0.1f
-    #define DELAY_TIME 0.2f
+    #define GRID_MAX_SPEED 100.0f
+    #define GRID_MIN_SPEED 0.1f
+    #define GRID_DELAY_TIME 0.2f
 
     #define CELL_SIZE 70.f
     #define SEPARATOR_SIZE 5.f

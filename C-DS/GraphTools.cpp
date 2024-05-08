@@ -278,7 +278,7 @@ void GraphTools::controlsUpdate()
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 	}
-	ImGui::SliderFloat("Speed", &speed, MIN_SPEED, MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
+	ImGui::SliderFloat("Speed", &speed, GRAPH_MIN_SPEED, GRAPH_MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
 	if (camFollow) {
 		ImGui::PopItemFlag();
 		ImGui::PopStyleVar();
@@ -881,9 +881,9 @@ void GraphTools::update()
 
 		curTime += io->DeltaTime;
 
-		while (curTime * (camFollow ? 0.9f : speed) >= DELAY) {
+		while (curTime * (camFollow ? 0.9f : speed) >= GRAPH_DELAY) {
 			cleared = false;
-			curTime -= DELAY / (camFollow ? 0.9f : speed);
+			curTime -= GRAPH_DELAY / (camFollow ? 0.9f : speed);
 
 			if (activeAlgo == 1) {
 				dfs();

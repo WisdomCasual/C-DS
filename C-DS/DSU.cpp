@@ -190,7 +190,7 @@ void DSU::controlsUpdate()
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
-	ImGui::SliderFloat("Speed", &speed, MIN_SPEED, MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
+	ImGui::SliderFloat("Speed", &speed, DSU_MIN_SPEED, DSU_MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
 
 	ImGui::End();
 }
@@ -457,9 +457,9 @@ void DSU::update()
 
 		curTime += io->DeltaTime;
 
-		while (curTime * speed >= DELAY) {
+		while (curTime * speed >= DSU_DELAY) {
 
-			curTime -= DELAY / speed;
+			curTime -= DSU_DELAY / speed;
 
 			if (cur_node_u != parent[cur_node_u] || cur_node_v != parent[cur_node_v]) {
 				nodes[cur_node_u].searching = false;

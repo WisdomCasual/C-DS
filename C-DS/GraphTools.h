@@ -37,9 +37,9 @@ private:
 
 
     // speed constraints:
-    #define MAX_SPEED 20.0f
-    #define MIN_SPEED 0.1f
-    #define DELAY 1.f
+    #define GRAPH_MAX_SPEED 20.0f
+    #define GRAPH_MIN_SPEED 0.1f
+    #define GRAPH_DELAY 1.f
 
     struct Vertex {
         float x, y;
