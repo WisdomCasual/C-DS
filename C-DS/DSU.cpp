@@ -208,7 +208,7 @@ void DSU::graphUpdate()
 
 	const float cf = 0.55f; // center attraction
 	const float k = 3.f; // Spring constant
-	const float c = 8000.f; // Repulsion constant
+	const float c = 8500.f; // Repulsion constant
 	const float dampening = 0.85f; // Dampening factor
 
 	for (auto& node : nodes) {
@@ -284,15 +284,19 @@ void DSU::graphUpdate()
 			node.second.color = DEFAULT_VERT_COL;
 
 		if (dragging == node.first) {
-			node.second.fx = node.second.fy = 0;
-			node.second.x += io->MouseDelta.x / zoomScale;
-			node.second.y += io->MouseDelta.y / zoomScale;
+			if (!movingCam) {
+				node.second.fx = node.second.fy = 0;
+				node.second.x += io->MouseDelta.x / zoomScale;
+				node.second.y += io->MouseDelta.y / zoomScale;
+			}
 			continue;
 		}
+
 		if (node.second.fixed) {
 			node.second.fx = node.second.fy = 0;
 			continue;
 		}
+
 		node.second.x += node.second.fx * io->DeltaTime;
 		node.second.y += node.second.fy * io->DeltaTime;
 		node.second.fx *= dampening;
