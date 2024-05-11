@@ -76,6 +76,8 @@ void MainMenu::update()
     if (ImGui::Button("Code Visualier"))
         state = 10;
 
+    if (ImGui::Button("Trees"))
+        state = 11;
 
 
 	ImGui::End();
