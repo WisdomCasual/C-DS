@@ -431,7 +431,7 @@ void GraphTools::graphUpdate()
 
 	const float cf = 0.55f; // center attraction
 	const float k = 3.f; // Spring constant
-	const float c = 8000.f; // Repulsion constant
+	const float c = 8500.f; // Repulsion constant
 	const float dampening = 0.85f; // Dampening factor
 
 	for (auto& node : nodes) {
@@ -519,9 +519,11 @@ void GraphTools::graphUpdate()
 		}
 
 		if (dragging == node.first) {
-			node.second.fx = node.second.fy = 0;
-			node.second.x += io->MouseDelta.x / zoomScale;
-			node.second.y += io->MouseDelta.y / zoomScale;
+			if (!movingCam) {
+				node.second.fx = node.second.fy = 0;
+				node.second.x += io->MouseDelta.x / zoomScale;
+				node.second.y += io->MouseDelta.y / zoomScale;
+			}
 			continue;
 		}
 		if (node.second.fixed) {
@@ -568,9 +570,7 @@ void GraphTools::graphUpdate()
 
 void GraphTools::followNode(const std::string u)
 {
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
 	auto& node = nodes[u];
-
 	camTarget = ImVec2(-node.x, -node.y);
 }
 
