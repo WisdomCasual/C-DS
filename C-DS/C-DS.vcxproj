@@ -177,6 +177,7 @@
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainMenu.cpp" />
+    <ClCompile Include="QueueVisualization.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="TextArea.cpp" />
     <ClCompile Include="Tree.cpp" />
@@ -199,6 +200,7 @@
     <ClInclude Include="GraphTools.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="MainMenu.h" />
+    <ClInclude Include="QueueVisualization.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="TextArea.h" />
     <ClInclude Include="Tree.h" />

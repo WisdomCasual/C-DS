@@ -25,6 +25,7 @@
 #include "DSU.h"
 #include "CodeVisualizer.h"
 #include "Tree.h"
+#include "QueueVisualization.h"
 
 class App
 {
