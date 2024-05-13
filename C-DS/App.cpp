@@ -149,7 +149,11 @@ void App::updateWindow()
         curWindow = new Tree("Tree", state, scale, settingsEnabled);
         break;
     }
-    
+    case 12:
+    {
+        curWindow = new QueueVisualization("Queue",state,scale,settingsEnabled);
+        break;
+    }
 }
     state = -1;
 
