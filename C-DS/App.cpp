@@ -1,5 +1,7 @@
 #include "App.h"
-#include <imgui_internal.h>
+#include "Image.h"
+#include <iostream>
+
 
 void App::initWindow(std::string title)
 {
@@ -46,6 +48,10 @@ void App::initWindow(std::string title)
 
     ImGui_ImplOpenGL3_Init(glsl_version);
 
+    //initialize window icon
+
+    image_imp::SetWindowIcon(window, "Resources\\icon.png");
+
 }
 
 void App::initStyle()
@@ -77,7 +83,7 @@ void App::initStyle()
 
     // load custom font
     ImFont* customFont = io->Fonts->AddFontFromFileTTF("Resources/font.ttf", 45.0f);
-    ImGui::GetIO().FontGlobalScale = scale / 1.5f;
+    ImGui::GetIO().FontGlobalScale = GuiScale / 1.5f;
 
     // Set custom font as default
     io->FontDefault = customFont;
@@ -120,36 +126,35 @@ void App::updateWindow()
     switch (state) {
     case 0:
     {
-        curWindow = new MainMenu("Main_Menu", state, scale, settingsEnabled);
+        curWindow = new MainMenu("Main_Menu", state, GuiScale, settingsEnabled);
         break;
     }
     case 1:
     {
-        curWindow = new Grid("Grid", state, scale, settingsEnabled);
+        curWindow = new Grid("Grid", state, GuiScale, settingsEnabled);
         break;
     }
     case 2:
     {
-        curWindow = new GraphTools("Graph_Tools", state, scale, settingsEnabled);
-        break;
-    case 3:
-    {
-        curWindow = new DSU("DESU?", state, scale, settingsEnabled);
+        curWindow = new GraphTools("Graph_Tools", state, GuiScale, settingsEnabled);
         break;
     }
+    case 3:
+    {
+        curWindow = new DSU("DESU?", state, GuiScale, settingsEnabled);
+        break;
+    }
+    case 4:
+    {
+        curWindow = new Tree("Tree", state, GuiScale, settingsEnabled);
+        break;
     }
     case 10:
     {
-        curWindow = new CodeVisualizer("Code_Visualizer", state, scale, settingsEnabled);
+        curWindow = new CodeVisualizer("Code_Visualizer", state, GuiScale, settingsEnabled);
         break;
     }
 
-    case 11:
-    {
-        curWindow = new Tree("Tree", state, scale, settingsEnabled);
-        break;
-    }
-    
 }
     state = -1;
 
@@ -214,7 +219,7 @@ void App::overlay()
 App::App(std::string title)
 {
     initWindow(title);
-    settings = new Settings("settings", state, scale, settingsEnabled, colorMode);
+    settings = new Settings("settings", state, GuiScale, settingsEnabled, colorMode);
 }
 
 App::~App()
@@ -282,6 +287,28 @@ void App::update()
     else {
         f11Pressed = false;
     }
+
+    if (io->KeyCtrl && io->KeysDown[ImGuiKey_Minus]) {
+        if (!zoomOut) {
+            zoomOut = true;
+            GuiScale -= 0.2f;
+            GuiScale = std::max(GuiScale, 0.6f);
+            ImGui::GetIO().FontGlobalScale = GuiScale / 1.5f;
+        }
+    }
+    else
+        zoomOut = false;
+
+    if (io->KeyCtrl && io->KeysDown[ImGuiKey_Equal]) {
+        if (!zoomIn) {
+            zoomIn = true;
+            GuiScale += 0.2f;
+            GuiScale = std::min(GuiScale, 2.f);
+            ImGui::GetIO().FontGlobalScale = GuiScale / 1.5f;
+        }
+    }
+    else
+        zoomIn = false;
 }
 
 void App::render()

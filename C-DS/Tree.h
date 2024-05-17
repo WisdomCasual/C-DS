@@ -70,7 +70,6 @@ private:
 	ImU32 ContrastingColor(ImU32);
 	void graphUpdate();
 	float calcDist(float, float, float, float);
-	void updateMenuBar();
 	void controlsUpdate();
 	void drawEdge(ImDrawList*, const std::string, const std::string);
 	void addNode(std::string, std::string);

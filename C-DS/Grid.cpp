@@ -2,10 +2,6 @@
 #include <imgui_internal.h>
 #include <iostream>
 
-void Grid::updateMenuBar()
-{
-
-}
 
 void Grid::controlsUpdate()
 {

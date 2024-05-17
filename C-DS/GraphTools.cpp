@@ -24,11 +24,6 @@ void GraphTools::pointToNode(const std::string u, ImU32 color)
 
 }
 
-void GraphTools::updateMenuBar()
-{
-
-}
-
 void GraphTools::controlsUpdate()
 {
 	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(1080.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));

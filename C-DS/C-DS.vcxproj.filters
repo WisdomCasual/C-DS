@@ -54,9 +54,6 @@
     <ClCompile Include="TextArea.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GrandWindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CodeVisualizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -76,6 +73,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Tree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -138,6 +138,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Tree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

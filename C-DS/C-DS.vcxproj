@@ -172,9 +172,9 @@
     <ClCompile Include="CodeVisualizer.cpp" />
     <ClCompile Include="DockingArea.cpp" />
     <ClCompile Include="DSU.cpp" />
-    <ClCompile Include="GrandWindow.cpp" />
     <ClCompile Include="GraphTools.cpp" />
     <ClCompile Include="Grid.cpp" />
+    <ClCompile Include="Image.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="Settings.cpp" />
@@ -198,6 +198,7 @@
     <ClInclude Include="GrandWindow.h" />
     <ClInclude Include="GraphTools.h" />
     <ClInclude Include="Grid.h" />
+    <ClInclude Include="Image.h" />
     <ClInclude Include="MainMenu.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="TextArea.h" />
