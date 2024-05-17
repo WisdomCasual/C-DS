@@ -92,7 +92,6 @@ private:
     std::vector<std::vector<std::pair<int, int>>> par = std::vector<std::vector<std::pair<int, int>>>(X_MAX, std::vector<std::pair<int, int>>(Y_MAX));
 
     // private methods:
-    void updateMenuBar();
     void controlsUpdate();
     void gridUpdate();
     void useTool(int, int);

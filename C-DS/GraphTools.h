@@ -89,7 +89,6 @@ private:
     std::map<std::string, std::string> par;
 
     // private methods:
-    void updateMenuBar();
     void controlsUpdate();
     void generateGraph();
     void clearStates();

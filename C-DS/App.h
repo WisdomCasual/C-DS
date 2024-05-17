@@ -33,7 +33,7 @@ private:
 	// private fields:
 	GLFWwindow* window;
 	ImGuiStyle* style;
-	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+	const ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.00f);
 
 	GrandWindow* curWindow = nullptr;
 	Settings* settings = nullptr;
@@ -46,7 +46,8 @@ private:
 	bool isFullscreen = false, f11Pressed = false;
 	int colorMode = 0;
 	int state = 0;
-	float scale = 1;
+	float GuiScale = 1.f;
+	bool zoomIn = false, zoomOut = false;
 
 	// private methods:
 	void initWindow(std::string);

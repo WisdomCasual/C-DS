@@ -13,7 +13,7 @@ Settings::~Settings()
 
 void Settings::update()
 {
-	ImGui::Begin("Settings", &settingsEnabled, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoCollapse);
+	ImGui::Begin("Settings", &settingsEnabled, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings);
 
     if (ImGui::SliderFloat("GUI Scale", &GuiScale, 0.6f, 2.0f, "Scale = %.3f")) {
         ImGui::GetIO().FontGlobalScale = GuiScale / 1.5f;
