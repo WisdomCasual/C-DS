@@ -2,6 +2,7 @@
 #include "GrandWindow.h"
 #include <imgui.h>
 #include <queue>
+#include <string>
 class QueueVisualization : public GrandWindow
 {
 public:
@@ -31,9 +32,10 @@ private:
 	// 1: enqueue
 	// 2: dequeue
 	// 3: expand (behind the scenes) (for later visualize the the expansion process : ~visualize the 2 arrays~) 
-	int cur_tool = 0, sz = 0, tailpointer = -1, headpointer = -1, currentMaxSize = 1;
-	bool camfollow = false, movingcam = false;
-	ImVec2 campos = { 0, 0 }, camtarget = { 0, 0 };
+	int cur_tool = 0, sz = 0, tailpointer = -1, headpointer = -1, currentMaxSize = 4;
+	bool camfollow = false, movingCam = false;
+	ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
+	char add_element_content[50] = {};
 
 	std::string* arr = new std::string[currentMaxSize];
 
@@ -106,7 +108,9 @@ private:
 
 	//ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	void Enqueue(int val);
+	void queueUpdate();
+	
+	void Enqueue(std::string val);
 	void Dequeue();
 	void expand();
 	void init();
