@@ -1,5 +1,17 @@
 # C-DS
 
+<div align="center">
+  <img src="https://i.imgur.com/GbVXQ5w.png" width="600">
+</div>
+<div align="center">
+    <a href="https://isocpp.org/">
+        <img src="https://img.shields.io/badge/Made_with-C%2B%2B-00ffff">
+    </a>
+    <a href="https://github.com/ocornut/imgui/tree/docking">
+        <img src="https://img.shields.io/badge/Graphics_with-ImGui-ff00ff">
+    </a>
+</div>
+
 ## About
 **C-DS** is a data structure visualization app designed to help users understand and interact with various data structures. Whether you're a student learning about algorithms and data structures or a professional looking to analyze and optimize your code, **C-DS** provides a comprehensive set of tools and features to make your data structure exploration seamless and insightful.
 

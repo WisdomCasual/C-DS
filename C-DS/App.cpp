@@ -149,12 +149,16 @@ void App::updateWindow()
         curWindow = new Tree("Tree", state, GuiScale, settingsEnabled);
         break;
     }
+    case 5:
+    {
+        curWindow = new QueueVisualization("Queue", state, GuiScale, settingsEnabled);
+        break;
+    }
     case 10:
     {
         curWindow = new CodeVisualizer("Code_Visualizer", state, GuiScale, settingsEnabled);
         break;
     }
-
 }
     state = -1;
 
