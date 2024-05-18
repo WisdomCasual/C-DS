@@ -187,7 +187,7 @@ void Trie::graphUpdate()
 			float dy = v.y - u.y;
 			float d = calcDist(u.x, u.y, v.x, v.y);
 
-			float force = k * (d - EDGE_LENGTH);
+			float force = k * (d - TRIE_EDGE_LENGTH);
 
 			u.fx += force * dx / d;
 			u.fy += force * dy / d;
@@ -309,7 +309,7 @@ void Trie::drawEdge(ImDrawList* draw_list, int u, int v)
 
 void Trie::insertWord() {
 	if (!nodes[curNode].children.count(word[curIdx])) {
-		nodes[curNode].children[word[curIdx]] = nodes.size();
+		nodes[curNode].children[word[curIdx]] = (int)nodes.size();
 		nodes.emplace_back();
 		nodes.back().val = word[curIdx];
 		parent.push_back(curNode);
@@ -343,7 +343,6 @@ void Trie::clear() {
 Trie::Trie(std::string name, int& state, float& GuiScale, bool& settingEnabled)
 	: GrandWindow(name, state, GuiScale, settingsEnabled)
 {
-	io = &ImGui::GetIO(); (void)io;
 	nodes.push_back(Vertex());
 	nodes[0].fixed = true;
 	nodes[0].color = COMP_VERT_COL;
