@@ -32,7 +32,7 @@ private:
 		std::map<char, int>children;
 		int cnt = 0;
 		std::string val = "\0";
-		bool endofword = false;
+		int endofword = 0;
 		float x, y;
 		float fx = 0, fy = 0;
 		bool fixed = false, searching = false;
@@ -57,7 +57,7 @@ private:
 	bool movingCam = false, leftClickPressed = false;
 	bool disableButtons = false, trueUpdate = false, camFollow = false;
 	bool deleting = false;
-	int curNode = -1, curIdx = -1;
+	int curNode = -1, curIdx = -1 , endw = 0;
 
 	//-_-
 	int dragging = -1;

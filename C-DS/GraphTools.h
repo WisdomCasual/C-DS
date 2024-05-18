@@ -56,6 +56,7 @@ private:
     struct Edge {
         int w = 0;
         bool weighted = false;
+        bool directed = true;
         ImVec2 pos = {0, 0};
         ImU32 color = DEFAULT_EDGE_COL;
     };
@@ -87,6 +88,7 @@ private:
     std::map<std::string, long long> vis;
     std::map<std::pair<std::string, std::string>, long long> edge_vis;
     std::map<std::string, std::string> par;
+    std::map<std::string, std::vector<std::string>>path;
 
     // private methods:
     void controlsUpdate();
@@ -101,6 +103,7 @@ private:
     void dfs();
     void bfs();
     void dijkstra();
+    void bellmanFord();
 
 public:
 

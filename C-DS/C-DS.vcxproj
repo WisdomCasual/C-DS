@@ -181,6 +181,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="QueueVisualization.cpp" />
+    <ClCompile Include="Segment_Tree.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="SparseTable.cpp" />
     <ClCompile Include="Stack.cpp" />
@@ -211,6 +212,7 @@
     <ClInclude Include="LinkedList.h" />
     <ClInclude Include="MainMenu.h" />
     <ClInclude Include="QueueVisualization.h" />
+    <ClInclude Include="Segment_Tree.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SparseTable.h" />
     <ClInclude Include="Stack.h" />
