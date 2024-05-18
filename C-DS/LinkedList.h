@@ -8,7 +8,7 @@ class LinkedList :
     public GrandWindow
 {
     #define VERTEX_RADIUS 30.f * zoomScale
-    #define EDGE_LENGTH 200.f * zoomScale
+    #define NODES_DIST 200.f * zoomScale
     #define DEFAULT_NODE_COL ImGui::GetColorU32(IM_COL32(150, 150, 150, 255))
     #define ITER_VERT_COL ImGui::GetColorU32(IM_COL32(50, 150, 150, 255))
     #define TEXT_COL ImGui::GetColorU32(IM_COL32(255, 255, 255, 255))
@@ -44,7 +44,7 @@ class LinkedList :
     };
 
     int listSize = 0;
-    Node *head, *tail, *curNode, *tempNode;
+    Node* head = nullptr, * tail = nullptr, * curNode = nullptr, * tempNode = nullptr;
 
     char add_node_text[10] = {};
 
