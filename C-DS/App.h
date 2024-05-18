@@ -32,6 +32,7 @@
 #include "Deque.h"
 #include "HashTable.h"
 #include "Stack.h"
+#include "Vector.h"
 
 class App
 {
