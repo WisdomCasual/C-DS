@@ -124,42 +124,39 @@ void App::updateWindow()
     }
 
     switch (state) {
+
     case 0:
-    {
         curWindow = new MainMenu("Main_Menu", state, GuiScale, settingsEnabled);
         break;
-    }
     case 1:
-    {
         curWindow = new Grid("Grid", state, GuiScale, settingsEnabled);
         break;
-    }
     case 2:
-    {
         curWindow = new GraphTools("Graph_Tools", state, GuiScale, settingsEnabled);
         break;
-    }
     case 3:
-    {
         curWindow = new DSU("DESU?", state, GuiScale, settingsEnabled);
         break;
-    }
     case 4:
-    {
         curWindow = new Tree("Tree", state, GuiScale, settingsEnabled);
         break;
-    }
     case 5:
-    {
         curWindow = new QueueVisualization("Queue", state, GuiScale, settingsEnabled);
         break;
-    }
-    case 10:
-    {
-        curWindow = new CodeVisualizer("Code_Visualizer", state, GuiScale, settingsEnabled);
+    case 6:
+        curWindow = new Deque("Deque", state, GuiScale, settingsEnabled);
         break;
+    case 7:
+        curWindow = new LinkedList("Linked_List", state, GuiScale, settingsEnabled);
+        break;
+    case 8:
+        curWindow = new HashTable("Hash_Table", state, GuiScale, settingsEnabled);
+        break;
+    case 9:
+        // HASH MAP
+        break;
+
     }
-}
     state = -1;
 
 }
