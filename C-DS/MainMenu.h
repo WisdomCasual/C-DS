@@ -37,7 +37,7 @@ private:
     int logoWidth, logoHeight;
 
     int buttons_cnt;
-    ButtonData buttons[10] = { ButtonData("Grid", "Resources\\grids.png", 1),
+    ButtonData buttons[11] = { ButtonData("Grid", "Resources\\grids.png", 1),
                               ButtonData("Graph", "Resources\\graphs.png", 2),
                               ButtonData("DSU", "Resources\\DSU.png", 3),
                               ButtonData("Trees", "Resources\\mob.png", 4),
@@ -46,6 +46,7 @@ private:
                               ButtonData("Linked-List", "Resources\\mob.png", 7),
                               ButtonData("Hash Table", "Resources\\mob.png", 8), 
                               ButtonData("Hash Map", "Resources\\mob.png", 9),
+                              ButtonData("Stack", "Resources\\mob.png", 10),
                               ButtonData("Sparse Table", "Resources\\mob.png",30) };
 
     // private methods:
