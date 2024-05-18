@@ -260,7 +260,24 @@ void GraphTools::controlsUpdate()
 			activeAlgo = 0;
 		}
 	}
-
+	/*
+	if (ImGui::Button("Bellman-Ford")) {
+		activeAlgo = 420;
+		clearStates();
+		if (startNode.size()) {
+			path[startNode].push_back(startNode);
+			vis[startNode] = 0;
+			nodes[startNode].color = INQUE_VERT_COL;
+		}
+		else if (nodes.size()) {
+			path[nodes.begin()->first].push_back(nodes.begin()->first);
+			vis[nodes.begin()->first] = 0;
+			nodes[nodes.begin()->first].color = INQUE_VERT_COL;
+		}
+		else {
+			activeAlgo = 0;
+		}
+		*/
 
 	if (disabled) {
 		ImGui::PopItemFlag();
@@ -306,6 +323,7 @@ void GraphTools::clearStates()
 	edge_vis.clear();
 	par.clear();
 	viewAdjacent.clear();
+	path.clear();
 
 	for (auto& node : nodes)
 		node.second.color = DEFAULT_VERT_COL;
@@ -847,6 +865,41 @@ void GraphTools::dijkstra()
 
 }
 
+void GraphTools::bellmanFord() {
+	int nodeCnt = nodes.size();
+	if (found == 0) {
+		for (int i = 0; i < nodeCnt - 1; i++) {
+			for (auto curNode : nodes) {
+				for (auto children : adj[curNode.first]) {
+					auto edgeCost = (children.second.second == true ? children.second.first : 1);
+					if (vis.count(children.first)) {
+						if (vis[children.first] >= vis[curNode.first] + edgeCost) {
+							vis[children.first] = vis[curNode.first] + edgeCost;
+							path[children.first] = path[curNode.first];
+							path[children.first].push_back(children.first);
+						}
+					}
+					else {
+						vis[children.first] = vis[curNode.first] + edgeCost, path[children.first] = path[curNode.first], path[children.first].push_back(children.first);
+						if (children.first == endNode) {
+							//std::cout << "HEELLLO " << curNode.first << "\n";
+						}
+					}
+				}
+			}
+		}
+		found = 1;
+	}
+
+	for (auto it : nodes) {
+		std::cout << it.first << " "<< path[it.first].size()<<"\n";
+		for (auto jt : path[it.first]) {
+			std::cout << jt << " ";
+		}
+		std::cout << "\n";
+	}
+}
+
 GraphTools::GraphTools(std::string name, int& state, float& GuiScale, bool& settingEnabled)
 	: GrandWindow(name, state, GuiScale, settingsEnabled)
 {
@@ -888,6 +941,9 @@ void GraphTools::update()
 			}
 			else if (activeAlgo == 3) {
 				dijkstra();
+			}
+			else if (activeAlgo == 420) {
+				bellmanFord();
 			}
 
 		}
