@@ -13,7 +13,7 @@ void Stack::update()
 
 	ImGui::PopStyleVar();
 
-	queueUpdate();
+	stackUpdate();
 
 	if ((ImGui::IsWindowHovered() || movingCam) && ((ImGui::IsMouseDown(0) && cur_tool == 0) || ImGui::IsMouseDown(2))) {
 		movingCam = true;
@@ -71,10 +71,17 @@ ImU32 Stack::getColor(int state)
 	return col;
 }
 
-void Stack::queueUpdate()
+void Stack::stackUpdate()
 {
 
 	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+
+
+	float mxCellWidth = CELL_SIZE * zoomScale;
+	for (int i = 0; i < currentMaxSize; i++)
+	{
+		mxCellWidth = std::max(mxCellWidth, ImGui::CalcTextSize(content[i].c_str()).x);
+	}
 
 	if (~expansion)
 	{
@@ -84,9 +91,9 @@ void Stack::queueUpdate()
 			passedTime = 0.f;
 		}
 
-		drawQueue(int(center.y - CELL_SIZE * zoomScale), content, currentMaxSize, tailpointer, headpointer);
+		drawStack(int(center.x - (mxCellWidth+CELL_SIZE*zoomScale)/2.f), content, currentMaxSize, headpointer, mxCellWidth, 0);
 		if (~expansion)
-			drawQueue(int(center.y + CELL_SIZE * zoomScale), tempContent, currentMaxSize * 2, 0, sz);
+			drawStack(int(center.x + (mxCellWidth+CELL_SIZE*zoomScale)/2.f), tempContent, currentMaxSize * 2, expansion, mxCellWidth, 1);
 	}
 	else
 	{
@@ -94,70 +101,51 @@ void Stack::queueUpdate()
 		if (pending.size()) {
 			passedTime += io->DeltaTime * speed;
 			if (passedTime >= BASE_DELAY) {
-				if (Enqueue(pending.front()))
+				if (Push(pending.front()))
 					pending.pop();
 				passedTime = 0.f;
 			}
 		}
 
-		drawQueue((int)center.y, content, currentMaxSize, tailpointer, headpointer);
+		drawStack((int)center.x, content, currentMaxSize, headpointer, mxCellWidth, 0);
 	}
 
 }
 
-void Stack::drawQueue(int ypos, std::string temp[], int mxSz, int tail, int head)
+void Stack::drawStack(int xpos, std::string temp[], int mxSz, int head, float mxCellWidth, bool inverted)
 {
 
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, (float)ypos);
+	ImVec2 center((float)xpos, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
 
 	float separator_size = std::max(SEPARATOR_SIZE * zoomScale, 1.f);
 	float cell_size = CELL_SIZE * zoomScale;
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	float xSize = 0.f, headPointerX = 0.f, tailPointerX = 0.f;
+	float ySize = ((cell_size+separator_size)*mxSz), headPointerY = ((cell_size + separator_size) * head)-cell_size/2.f;
 
-	for (int i = 0; i < mxSz; i++)
-	{
-		xSize += std::max(cell_size, ImGui::CalcTextSize(temp[i].c_str()).x) + separator_size;
-		if (i <= head)
-		{
-			if (i == head)
-				headPointerX += std::max(cell_size, ImGui::CalcTextSize(temp[i].c_str()).x) / 2.f;
-			else
-				headPointerX += std::max(cell_size, ImGui::CalcTextSize(temp[i].c_str()).x) + separator_size;
-		}
-		if (i <= tail)
-		{
-			if (i == tail)
-				tailPointerX += std::max(cell_size, ImGui::CalcTextSize(temp[i].c_str()).x) / 2.f;
-			else
-				tailPointerX += std::max(cell_size, ImGui::CalcTextSize(temp[i].c_str()).x) + separator_size;
-		}
-	}
-
-	ImVec2 s_pos(center.x + camPos.x * zoomScale - xSize / 2.f,
-		center.y + camPos.y * zoomScale - cell_size / 2.f);
+	ImVec2 s_pos(center.x + camPos.x * zoomScale - mxCellWidth / 2.f,
+		center.y + camPos.y * zoomScale + ySize / 2.f);
 	ImVec2 cur_pos(s_pos);
 
 	for (int i = 0; i < mxSz; i++)
 	{
 		i %= mxSz;
 		ImVec2 textSize = ImGui::CalcTextSize(temp[i].c_str());
-		ImVec2 pos((cur_pos.x + (std::max(cell_size, textSize.x) - textSize.x) / 2.f), (cur_pos.y + (cell_size - textSize.y) / 2.f));
+		ImVec2 pos((cur_pos.x + (mxCellWidth - textSize.x) / 2.f), (cur_pos.y + (cell_size - textSize.y) / 2.f));
 		ImU32 col = IM_COL32(255, 255, 255, 255);
-		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + std::max(cell_size, textSize.x),
+		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + mxCellWidth,
 			cur_pos.y + cell_size), getColor(3));
 		draw_list->AddText(pos, col, temp[i].c_str());
-		cur_pos.x += std::max(cell_size, textSize.x) + separator_size;
+		cur_pos.y -= cell_size + separator_size;
 	}
+	draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + mxCellWidth,
+		cur_pos.y + cell_size), getColor(2));
 
-	drawArrow(int(s_pos.x + headPointerX), int(cur_pos.y), 1, 0);
-	drawArrow(int(s_pos.x + tailPointerX), int(cur_pos.y), 2, 1);
-
+	drawArrow(int(cur_pos.x), int(s_pos.y - headPointerY), 1 + (!inverted && mxSz == head), inverted, mxCellWidth);
 }
 
-void Stack::drawArrow(int x, int y, int col, bool DownToUp)
+void Stack::drawArrow(int x, int y, int col, bool inverted, float mxCellWidth)
 {
 	// This will be given the x and y where the head of the arrow should be
 	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
@@ -165,24 +153,25 @@ void Stack::drawArrow(int x, int y, int col, bool DownToUp)
 	const float headSize = 12.f * zoomScale;
 	const float length = 40.f * zoomScale;
 
-	int sign = -1;
-	if (DownToUp) {
-		sign = 1;
-		y += int(CELL_SIZE * zoomScale);
+	int sign = 1;
+	if (inverted) {
+		sign = -1;
+		x += int(mxCellWidth);
 	}
-	ImVec2 from = ImVec2((float)x, y + sign * length);
-	ImVec2 to = ImVec2((float)x, y + sign * headSize);
+
+	ImVec2 from = ImVec2(x - sign * length, (float)y);
+	ImVec2 to = ImVec2(x - sign * headSize, (float)y);
 
 	draw_list->AddLine(from, to, getColor(col), 5.f * zoomScale);
-	to.y += -sign * headSize / 2.f;
+	to.x += sign * headSize / 2.f;
 
-	ImVec2 p1 = ImVec2(to.x + headSize, to.y + sign * headSize);
-	ImVec2 p2 = ImVec2(to.x - headSize, to.y + sign * headSize);
+	ImVec2 p1 = ImVec2(to.x - sign * headSize, to.y + headSize);
+	ImVec2 p2 = ImVec2(to.x - sign * headSize, to.y - headSize);
 
 	draw_list->AddTriangleFilled(p1, p2, to, getColor(col));
 }
 
-bool Stack::Enqueue(std::string value)
+bool Stack::Push(std::string value)
 {
 	if (sz == currentMaxSize)
 	{
@@ -193,10 +182,9 @@ bool Stack::Enqueue(std::string value)
 		return 0;
 	}
 
-	content[tailpointer] = value;
+	content[headpointer] = value;
 
-	tailpointer++;
-	tailpointer %= currentMaxSize;
+	headpointer++;
 	sz++;
 
 	return 1;
@@ -212,18 +200,18 @@ void Stack::expand()
 	if (tempContent == nullptr) {
 		tempContent = new std::string[currentMaxSize * 2];
 		expansion = 0;
+		headpointer = 0;
 		return;
 	}
 
 	if (expansion < sz) {
 		tempContent[expansion] = content[headpointer];
 		headpointer++;
-		headpointer %= currentMaxSize;
 		expansion++;
 		return;
 	}
 
-	headpointer = 0, tailpointer = expansion;
+	headpointer = sz;
 	// head for popping , tail for pushing 
 	delete[] content;
 	content = tempContent;
@@ -237,23 +225,23 @@ void Stack::init()
 
 }
 
-void Stack::Dequeue()
+void Stack::Pop()
 {
 	if (sz == 0)
 		return;
 	sz--;
-	content[headpointer++] = "";
-	headpointer %= currentMaxSize;
+	content[--headpointer] = "";
 }
 
 void Stack::updateMenuBar()
 {
+
 }
 
 void Stack::controlsUpdate()
 {
 
-	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(855.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
+	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(340.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
 	ImVec2 controlsWinPos(viewport->Size.x - controlsWinSize.x - ImGui::GetStyle().WindowPadding.x, viewport->Size.y - controlsWinSize.y - ImGui::GetStyle().WindowPadding.y);
 
 	ImGui::SetNextWindowSize(controlsWinSize);
@@ -282,7 +270,7 @@ void Stack::controlsUpdate()
 
 	ImGui::SameLine();
 
-	if (ImGui::Button("Enqueue")) {
+	if (ImGui::Button("Push")) {
 		std::string curElement;
 		char* ptr = add_element_content;
 		while (*ptr != '\0') {
@@ -305,9 +293,9 @@ void Stack::controlsUpdate()
 		memset(add_element_content, 0, sizeof add_element_content);
 	}
 
-	if (ImGui::Button("Dequeue"))
+	if (ImGui::Button("Pop"))
 	{
-		Dequeue();
+		Pop();
 	}
 
 	if (ImGui::Button("Expand"))
@@ -329,13 +317,13 @@ void Stack::controlsUpdate()
 
 void Stack::useTool(int toolIndx, int value = -1)
 {
-	//Enqueue
+	//Push
 	if (toolIndx == 1)
 	{
 		//ImDrawList* draw_list = ImGui::GetWindowDrawList();
 		//draw_list->AddRectFilled();
 	}
-	//Dequeue
+	//Pop
 	else if (toolIndx == 2)
 	{
 
