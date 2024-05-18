@@ -30,6 +30,7 @@
 #include "LinkedList.h"
 #include "Deque.h"
 #include "HashTable.h"
+#include "Stack.h"
 
 class App
 {
