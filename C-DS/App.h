@@ -26,6 +26,9 @@
 #include "CodeVisualizer.h"
 #include "Tree.h"
 #include "QueueVisualization.h"
+#include "LinkedList.h"
+#include "Deque.h"
+#include "HashTable.h"
 
 class App
 {
