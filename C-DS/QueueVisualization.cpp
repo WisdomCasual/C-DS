@@ -1,6 +1,7 @@
 #include "QueueVisualization.h"
 #include <imgui_internal.h>
 #include <iostream>
+
 void QueueVisualization::update()
 {
 
@@ -43,10 +44,12 @@ QueueVisualization::QueueVisualization(std::string name, int& state, float& scal
 {
 	io = &ImGui::GetIO(); (void)io;
 }
+
 QueueVisualization::~QueueVisualization()
 {
 
 }
+
 ImU32 QueueVisualization::getColor(int state)
 {
 	ImU32 col;
@@ -96,13 +99,29 @@ void QueueVisualization::drawQueue(int ypos, std::string temp[])
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	float xSize = 0.f;
+	float xSize = 0.f, headPointerX = 0.f, tailPointerX = 0.f;
 
 	for (int i = 0; i < currentMaxSize; i++)
+	{
 		xSize += std::max(cell_size, ImGui::CalcTextSize(content[i].c_str()).x) + separator_size;
+		if (i <= headpointer)
+		{
+			if (i == headpointer)
+				headPointerX += std::max(cell_size, ImGui::CalcTextSize(content[i].c_str()).x) / 2.f;
+			else
+				headPointerX += std::max(cell_size, ImGui::CalcTextSize(content[i].c_str()).x) + separator_size;
+		}
+		if (i <= tailpointer)
+		{
+			if (i == tailpointer)
+				tailPointerX += std::max(cell_size, ImGui::CalcTextSize(content[i].c_str()).x) / 2.f;
+			else
+				tailPointerX += std::max(cell_size, ImGui::CalcTextSize(content[i].c_str()).x) + separator_size;
+		}
+	}
 
 	ImVec2 s_pos(center.x + camPos.x * zoomScale - xSize / 2.f,
-		center.y + camPos.y * zoomScale - 1 * (cell_size + separator_size) / 2.f);
+		center.y + camPos.y * zoomScale - cell_size / 2.f);
 	ImVec2 cur_pos(s_pos);
 
 	for (int i = 0; i < currentMaxSize; i++)
@@ -117,6 +136,34 @@ void QueueVisualization::drawQueue(int ypos, std::string temp[])
 		cur_pos.x += std::max(cell_size, textSize.x) + separator_size;
 	}
 
+	drawArrow(s_pos.x + headPointerX, cur_pos.y, 1, 0);
+	drawArrow(s_pos.x + tailPointerX, cur_pos.y , 2, 1);
+
+}
+
+void QueueVisualization::drawArrow(int x, int y, int col, bool DownToUp)
+{
+	// This will be given the x and y where the head of the arrow should be
+	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+	const float headSize = 12.f * zoomScale;
+	const float length = 40.f * zoomScale;
+
+	int sign = -1;
+	if(DownToUp) {
+		sign = 1;
+		y += CELL_SIZE*zoomScale;
+	}
+	ImVec2 from = ImVec2(x , y + sign*length);
+	ImVec2 to = ImVec2(x, y + sign*headSize);
+
+	draw_list->AddLine(from, to, getColor(col), 5.f * zoomScale);
+	to.y += -sign*headSize / 2.f;
+
+	ImVec2 p1 = ImVec2(to.x + headSize, to.y + sign*headSize);
+	ImVec2 p2 = ImVec2(to.x - headSize, to.y + sign*headSize);
+
+	draw_list->AddTriangleFilled(p1, p2, to, getColor(col));
 }
 
 void QueueVisualization::Enqueue(std::string value)
@@ -139,6 +186,7 @@ void QueueVisualization::Enqueue(std::string value)
 	sz++;
 
 }
+
 void QueueVisualization::expand()
 {
 	

@@ -110,7 +110,7 @@ private:
 
 	void queueUpdate();
 	void drawQueue(int, std::string[]);
-	
+	void drawArrow(int, int, int, bool);
 	void Enqueue(std::string);
 	void Dequeue();
 	void expand();
