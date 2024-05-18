@@ -11,8 +11,8 @@ void LinkedList::pushFront()
 		head = newNode;
 		if (tail == nullptr)
 			tail = newNode;
-		if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + EDGE_LENGTH > viewport->WorkSize.x ||
-			center.x + (camPos.x + newNode->curPos.x) * zoomScale - EDGE_LENGTH < 0.f)
+		if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + NODES_DIST > viewport->WorkSize.x ||
+			center.x + (camPos.x + newNode->curPos.x) * zoomScale - NODES_DIST < 0.f)
 			followNode(newNode->curPos);
 		listSize++;
 		memset(add_node_text, 0, sizeof add_node_text);
@@ -30,8 +30,8 @@ void LinkedList::pushBack()
 		tail = newNode;
 		if (head == nullptr)
 			head = newNode;
-		if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + EDGE_LENGTH > viewport->WorkSize.x ||
-			center.x + (camPos.x + newNode->curPos.x) * zoomScale - EDGE_LENGTH < 0.f)
+		if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + NODES_DIST > viewport->WorkSize.x ||
+			center.x + (camPos.x + newNode->curPos.x) * zoomScale - NODES_DIST < 0.f)
 			followNode(newNode->curPos);
 		listSize++;
 		memset(add_node_text, 0, sizeof add_node_text);
@@ -253,7 +253,7 @@ void LinkedList::listUpdate()
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	Node* cur_node = head;
-	ImVec2 targetPos(-(float)(listSize - 1) * EDGE_LENGTH / 2.f, 0.f);
+	ImVec2 targetPos(-(float)(listSize - 1) * NODES_DIST / 2.f, 0.f);
 	int curIdx = 0;
 
 	if (tempNode != nullptr) {
@@ -268,7 +268,7 @@ void LinkedList::listUpdate()
 
 		draw_list->AddText(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - textCenter.y), TEXT_COL, tempNode->value.c_str());
 
-		tempNode->curPos.y += (-EDGE_LENGTH - tempNode->curPos.y) * 20.f * io->DeltaTime;
+		tempNode->curPos.y += (-NODES_DIST - tempNode->curPos.y) * 20.f * io->DeltaTime;
 	}
 
 	while (cur_node != nullptr) {
@@ -288,7 +288,7 @@ void LinkedList::listUpdate()
 			cur_node->curPos.x += (targetPos.x - cur_node->curPos.x) * 10.f * io->DeltaTime;
 			cur_node->curPos.y += (targetPos.y - cur_node->curPos.y) * 10.f * io->DeltaTime;
 
-			targetPos.x += EDGE_LENGTH;
+			targetPos.x += NODES_DIST;
 		}
 		cur_node = cur_node->next;
 		curIdx++;

@@ -13,8 +13,8 @@ void Deque::pushFront()
 		head = newNode;
 		if (tail == nullptr)
 			tail = newNode;
-		if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + EDGE_LENGTH > viewport->WorkSize.x ||
-			center.x + (camPos.x + newNode->curPos.x) * zoomScale - EDGE_LENGTH < 0.f)
+		if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + NODES_SPACING > viewport->WorkSize.x ||
+			center.x + (camPos.x + newNode->curPos.x) * zoomScale - NODES_SPACING < 0.f)
 			followNode(newNode->curPos);
 		dequeSize++;
 		memset(add_node_text, 0, sizeof add_node_text);
@@ -34,8 +34,8 @@ void Deque::pushBack()
 		tail = newNode;
 		if (head == nullptr)
 			head = newNode;
-		if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + EDGE_LENGTH > viewport->WorkSize.x ||
-			center.x + (camPos.x + newNode->curPos.x) * zoomScale - EDGE_LENGTH < 0.f)
+		if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + NODES_SPACING > viewport->WorkSize.x ||
+			center.x + (camPos.x + newNode->curPos.x) * zoomScale - NODES_SPACING < 0.f)
 			followNode(newNode->curPos);
 		dequeSize++;
 		memset(add_node_text, 0, sizeof add_node_text);
@@ -256,7 +256,7 @@ void Deque::dequeUpdate()
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	Node* cur_node = head;
-	ImVec2 targetPos(-(float)(dequeSize - 1) * EDGE_LENGTH / 2.f, 0.f);
+	ImVec2 targetPos(-(float)(dequeSize - 1) * NODES_SPACING / 2.f, 0.f);
 	int curIdx = 0;
 
 	if (tempNode != nullptr) {
@@ -274,7 +274,7 @@ void Deque::dequeUpdate()
 
 		draw_list->AddText(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - textCenter.y), TEXT_COL, tempNode->value.c_str());
 
-		tempNode->curPos.y += (-EDGE_LENGTH - tempNode->curPos.y) * 20.f * io->DeltaTime;
+		tempNode->curPos.y += (-NODES_SPACING - tempNode->curPos.y) * 20.f * io->DeltaTime;
 	}
 
 	while (cur_node != nullptr) {
@@ -297,7 +297,7 @@ void Deque::dequeUpdate()
 			cur_node->curPos.x += (targetPos.x - cur_node->curPos.x) * 10.f * io->DeltaTime;
 			cur_node->curPos.y += (targetPos.y - cur_node->curPos.y) * 10.f * io->DeltaTime;
 
-			targetPos.x += EDGE_LENGTH;
+			targetPos.x += NODES_SPACING;
 		}
 		cur_node = cur_node->next;
 		curIdx++;
