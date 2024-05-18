@@ -1,6 +1,6 @@
 #include "QueueVisualization.h"
 #include <imgui_internal.h>
-
+#include <iostream>
 void QueueVisualization::update()
 {
 
@@ -73,19 +73,48 @@ void QueueVisualization::queueUpdate()
 
 	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
 
+	if (expansion)
+	{
+		drawQueue(center.y - 30.f * zoomScale, content);
+		drawQueue(center.y + 30.f * zoomScale, content);
+		expansion = 0;
+	}
+	else
+	{
+		drawQueue(center.y, content);
+	}
+
+}
+
+void QueueVisualization::drawQueue(int ypos, std::string temp[])
+{
+
+	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, ypos);
+
 	float separator_size = std::max(SEPARATOR_SIZE * zoomScale, 1.f);
 	float cell_size = CELL_SIZE * zoomScale;
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	ImVec2 s_pos(center.x + camPos.x * zoomScale - currentMaxSize * (cell_size + separator_size) / 2.f,
+	float xSize = 0.f;
+
+	for (int i = 0; i < currentMaxSize; i++)
+		xSize += std::max(cell_size, ImGui::CalcTextSize(content[i].c_str()).x) + separator_size;
+
+	ImVec2 s_pos(center.x + camPos.x * zoomScale - xSize / 2.f,
 		center.y + camPos.y * zoomScale - 1 * (cell_size + separator_size) / 2.f);
 	ImVec2 cur_pos(s_pos);
 
 	for (int i = 0; i < currentMaxSize; i++)
 	{
-		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + cell_size, cur_pos.y + cell_size), getColor(3));
-		cur_pos.x += cell_size + separator_size;
+		i %= currentMaxSize;
+		ImVec2 textSize = ImGui::CalcTextSize(content[i].c_str());
+		ImVec2 pos((cur_pos.x + (std::max(cell_size, textSize.x) - textSize.x) / 2.f), (cur_pos.y + (cell_size - textSize.y) / 2.f));
+		ImU32 col = IM_COL32(255, 255, 255, 255);
+		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + std::max(cell_size, textSize.x),
+			cur_pos.y + cell_size), getColor(3));
+		draw_list->AddText(pos, col, content[i].c_str());
+		cur_pos.x += std::max(cell_size, textSize.x) + separator_size;
 	}
 
 }
@@ -94,16 +123,16 @@ void QueueVisualization::Enqueue(std::string value)
 {
 	if (sz == currentMaxSize)
 	{
-		if (sz == currentMaxSize)
+		if (sz == MAX_SIZE)
 			return;
 
 		expand();
-		arr[tailpointer++] = value;
+		content[tailpointer++] = value;
 		sz++;
 		return;
 	}
 
-	arr[tailpointer] = value;
+	content[tailpointer] = value;
 
 	tailpointer++;
 	tailpointer %= currentMaxSize;
@@ -112,17 +141,21 @@ void QueueVisualization::Enqueue(std::string value)
 }
 void QueueVisualization::expand()
 {
+	
+	if (currentMaxSize * 2 >= MAX_SIZE)
+		return;
 	std::string* temp = new std::string[currentMaxSize*2];
-	int i;
-	for (i = 0; headpointer != tailpointer; headpointer++, i++) {
+	int i = 0;
+	for (; i < sz; headpointer++, i++) {
 		headpointer %= currentMaxSize;
-		temp[i] = arr[headpointer];
+		temp[i] = content[headpointer]; 
 	}
-	if (headpointer != -1)
-		temp[i] = arr[headpointer];
-	delete[] arr;
-	arr = temp;
+	headpointer = 0, tailpointer = i;
+	// head for popping , tail for pushing 
+	delete[] content;
+	content = temp;
 	currentMaxSize *= 2;
+
 }
 
 void QueueVisualization::init()
@@ -132,13 +165,11 @@ void QueueVisualization::init()
 
 void QueueVisualization::Dequeue()
 {
-	if (!sz)
+	if (sz == 0)
 		return;
-
 	sz--;
-	arr[headpointer++] = '0';
+	content[headpointer++] = "";
 	headpointer %= currentMaxSize;
-
 }
 
 void QueueVisualization::updateMenuBar()
@@ -173,7 +204,6 @@ void QueueVisualization::controlsUpdate()
 	if (ImGui::Button("Enqueue")) {
 		std::string curElement;
 		char* ptr = add_element_content;
-		
 		while (*ptr != '\0') {
 			if (*ptr == ',') {
 				if (curElement.size() > 0) {
@@ -196,12 +226,13 @@ void QueueVisualization::controlsUpdate()
 
 	if (ImGui::Button("Dequeue"))
 	{
-
+		Dequeue();
 	}
 
 	if (ImGui::Button("Expand"))
 	{
-
+		expand();
+		expansion = 1;
 	}
 
 	ImGui::End();

@@ -11,7 +11,7 @@ public:
 	~QueueVisualization();
 private:
 
-#define MAX_SIZE 256
+#define MAX_SIZE 32
 
 	// speed constraints:
 #define MAX_SPEED 100.0f
@@ -31,20 +31,20 @@ private:
 	// tools for queue:
 	// 1: enqueue
 	// 2: dequeue
-	// 3: expand (behind the scenes) (for later visualize the the expansion process : ~visualize the 2 arrays~) 
-	int cur_tool = 0, sz = 0, tailpointer = -1, headpointer = -1, currentMaxSize = 4;
-	bool camfollow = false, movingCam = false;
+	// 3: expand (behind the scenes) (for later visualize the the expansion process : ~visualize the 2 contentays~) 
+	int cur_tool = 0, sz = 0, tailpointer = 0, headpointer = 0, currentMaxSize = 1;
+	bool camfollow = false, movingCam = false, expansion = 0;
 	ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
 	char add_element_content[50] = {};
 
-	std::string* arr = new std::string[currentMaxSize];
+	std::string* content = new std::string[currentMaxSize];
 
 	/*
 		the insert function works as follows:
 		first we need to check for the pointers to know the current state of the queue
 		whether it's empty or the average case or it's full (in this case call the expand fucntion)
 
-		the array will consist of 3 different colors for the cells
+		the contentay will consist of 3 different colors for the cells
 		for the head pointer we'll use blue
 		for the tail pointer we'll use red
 		for the elements in the middle we'll use grey (what is the pointer in the middle? -- i meant elements sry)
@@ -52,15 +52,15 @@ private:
 		first in the average case:
 		{
 			when we insert first we uncolor the current element of the tail pointer
-			and then shift the tail pointer and update the array with the new value and color the new
+			and then shift the tail pointer and update the contentay with the new value and color the new
 			cell red
 
 			when we remove an element we uncolor the current element of the head pointer and then shift
-			the head pointer and upadate the array the cell with null or some neutral value (tbd later)
+			the head pointer and upadate the contentay the cell with null or some neutral value (tbd later)
 			and then shift the the pointer
 		}
 
-		// don't forget to check the possibility for making arrows
+		// don't forget to check the possibility for making contentows
 
 		in the empty case:
 		{
@@ -73,9 +73,9 @@ private:
 		{
 
 			the expand function works as follows :
-			takes the previous array size, double it, and then create a new array with that size
-			iterate from the head pointer to the tail pointer while taking % (the previous array size)
-			copy that into the new array and make the queue pointer point at it, delete the previous array
+			takes the previous contentay size, double it, and then create a new contentay with that size
+			iterate from the head pointer to the tail pointer while taking % (the previous contentay size)
+			copy that into the new contentay and make the queue pointer point at it, delete the previous contentay
 
 			handle the colors of the head and tail pointers
 			handle the camera system and find a suitable scale for each size
@@ -91,7 +91,7 @@ private:
 		operation ids:
 		1: enqueue
 		2: dequeue
-		3: expand (behind the scenes) (for later visualize the expansion process : ~visualize the 2 arrays
+		3: expand (behind the scenes) (for later visualize the expansion process : ~visualize the 2 contentays
 		maybe we can have the user expand the queue even if it's not full
 	*/
 	void useTool(int, int);
@@ -109,8 +109,9 @@ private:
 	//ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	void queueUpdate();
+	void drawQueue(int, std::string[]);
 	
-	void Enqueue(std::string val);
+	void Enqueue(std::string);
 	void Dequeue();
 	void expand();
 	void init();
