@@ -3,12 +3,12 @@
 #include <imgui.h>
 #include <queue>
 #include <string>
-class Stack : public GrandWindow
+class Vector : public GrandWindow
 {
 public:
 	void update();
-	Stack(std::string, int&, float&, bool&);
-	~Stack();
+	Vector(std::string, int&, float&, bool&);
+	~Vector();
 private:
 
 #define MAX_SIZE 1024
@@ -29,12 +29,9 @@ private:
 	const ImGuiViewport* viewport = ImGui::GetMainViewport();
 	ImGuiIO* io;
 
-	// tools for stack:
-	// 1: enqueue
-	// 2: dequeue
-	// 3: expand (behind the scenes) (for later visualize the the expansion process : ~visualize the 2 contentays~) 
-	int cur_tool = 0, sz = 0, headpointer = 0, currentMaxSize = 1, expansion = -1, tempSize = 0;
-	bool camfollow = false, movingCam = false;
+
+	int cur_tool = 0, sz = 0, tailpointer = 0, currentMaxSize = 1, expansion = -1, tempSize = 0, insertIdx = -1, eraseIdx = -1, selected_index = 0;
+	bool camfollow = false, movingCam = false, inserting = 0;
 	ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
 	char add_element_content[200] = {};
 	float speed = 1.f, passedTime = 0.f;
@@ -42,20 +39,21 @@ private:
 	std::string* content = new std::string[currentMaxSize], * tempContent = nullptr;
 	std::queue<std::string> pending;
 
-	
 
 	void updateMenuBar();
 	void controlsUpdate();
 
 
+
 	ImU32 getColor(int);
 
-	//ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	void stackUpdate();
-	void drawStack(int, std::string[], int, int, float, bool);
-	void drawArrow(int, int, int, bool, float);
-	bool Push(std::string);
-	void Pop();
+	void vectorUpdate();
+	void drawVector(int, std::string[], int, int, bool);
+	void drawArrow(int, int, int, bool);
+	bool pushBack(std::string);
+	void popBack();
 	void expand();
+	void erase();
+	void insert();
 };
