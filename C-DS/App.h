@@ -25,6 +25,7 @@
 #include "DSU.h"
 #include "CodeVisualizer.h"
 #include "Tree.h"
+#include "Trie.h"
 #include "QueueVisualization.h"
 #include "SparseTable.h"
 #include "LinkedList.h"
