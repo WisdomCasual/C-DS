@@ -36,7 +36,7 @@ private:
 	int cur_tool = 0, sz = 0, tailpointer = 0, headpointer = 0, currentMaxSize = 1, expansion = -1, tempSize = 0;
 	bool camfollow = false, movingCam = false;
 	ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
-	char add_element_content[50] = {};
+	char add_element_content[200] = {};
 	float speed = 1.f, passedTime = 0.f;
 
 	std::string* content = new std::string[currentMaxSize], *tempContent = nullptr;
