@@ -14,7 +14,7 @@ private:
 #define MAX_SIZE 32
 
 	// speed constraints:
-#define MAX_SPEED 100.0f
+#define MAX_SPEED 10.0f
 #define MIN_SPEED 0.1f
 #define DELAY_TIME 0.2f
 #define BASE_DELAY 0.6f

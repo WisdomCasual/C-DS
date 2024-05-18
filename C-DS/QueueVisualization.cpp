@@ -84,9 +84,9 @@ void QueueVisualization::queueUpdate()
 			passedTime = 0.f;
 		}
 
-		drawQueue(center.y - CELL_SIZE * zoomScale, content, currentMaxSize, tailpointer, headpointer);
+		drawQueue(int(center.y - CELL_SIZE * zoomScale), content, currentMaxSize, tailpointer, headpointer);
 		if(~expansion)
-			drawQueue(center.y + CELL_SIZE*zoomScale, tempContent, currentMaxSize*2, 0, sz);
+			drawQueue(int(center.y + CELL_SIZE*zoomScale), tempContent, currentMaxSize*2, 0, sz);
 	}
 	else
 	{
@@ -100,7 +100,7 @@ void QueueVisualization::queueUpdate()
 			}
 		}
 
-		drawQueue(center.y, content, currentMaxSize, tailpointer, headpointer);
+		drawQueue((int)center.y, content, currentMaxSize, tailpointer, headpointer);
 	}
 
 }
@@ -108,7 +108,7 @@ void QueueVisualization::queueUpdate()
 void QueueVisualization::drawQueue(int ypos, std::string temp[], int mxSz, int tail, int head)
 {
 
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, ypos);
+	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, (float)ypos);
 
 	float separator_size = std::max(SEPARATOR_SIZE * zoomScale, 1.f);
 	float cell_size = CELL_SIZE * zoomScale;
@@ -152,8 +152,8 @@ void QueueVisualization::drawQueue(int ypos, std::string temp[], int mxSz, int t
 		cur_pos.x += std::max(cell_size, textSize.x) + separator_size;
 	}
 
-	drawArrow(s_pos.x + headPointerX, cur_pos.y, 1, 0);
-	drawArrow(s_pos.x + tailPointerX, cur_pos.y , 2, 1);
+	drawArrow(int(s_pos.x + headPointerX), int(cur_pos.y), 1, 0);
+	drawArrow(int(s_pos.x + tailPointerX), int(cur_pos.y), 2, 1);
 
 }
 
@@ -168,10 +168,10 @@ void QueueVisualization::drawArrow(int x, int y, int col, bool DownToUp)
 	int sign = -1;
 	if(DownToUp) {
 		sign = 1;
-		y += CELL_SIZE*zoomScale;
+		y += int(CELL_SIZE*zoomScale);
 	}
-	ImVec2 from = ImVec2(x , y + sign*length);
-	ImVec2 to = ImVec2(x, y + sign*headSize);
+	ImVec2 from = ImVec2((float)x , y + sign*length);
+	ImVec2 to = ImVec2((float)x, y + sign*headSize);
 
 	draw_list->AddLine(from, to, getColor(col), 5.f * zoomScale);
 	to.y += -sign*headSize / 2.f;
@@ -216,9 +216,9 @@ void QueueVisualization::expand()
 	}
 
 	if(expansion < sz) {
-		headpointer %= currentMaxSize;
 		tempContent[expansion] = content[headpointer];
 		headpointer++;
+		headpointer %= currentMaxSize;
 		expansion++;
 		return;
 	}
@@ -255,7 +255,6 @@ void QueueVisualization::controlsUpdate()
 
 	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(855.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
 	ImVec2 controlsWinPos(viewport->Size.x - controlsWinSize.x - ImGui::GetStyle().WindowPadding.x, viewport->Size.y - controlsWinSize.y - ImGui::GetStyle().WindowPadding.y);
-	bool disabled = false;
 
 	ImGui::SetNextWindowSize(controlsWinSize);
 	ImGui::SetNextWindowPos(controlsWinPos);
@@ -267,9 +266,17 @@ void QueueVisualization::controlsUpdate()
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
-	ImGui::Text("Tools: ");
+	if (ImGui::Button("Reset Camera"))
+		camTarget = { 0, 0 };
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
+
+	bool disabled = false;
+	if (~expansion || pending.size()) {
+		disabled = true;
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+	}
 
 	ImGui::InputText("##Enter_node", add_element_content, IM_ARRAYSIZE(add_element_content));
 
@@ -307,6 +314,15 @@ void QueueVisualization::controlsUpdate()
 	{
 		expand();
 	}
+
+	if (disabled) {
+		ImGui::PopItemFlag();
+		ImGui::PopStyleVar();
+	}
+
+	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
+
+	ImGui::SliderFloat("Speed", &speed, MIN_SPEED, MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
 
 	ImGui::End();
 }
