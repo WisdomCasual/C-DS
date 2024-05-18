@@ -86,7 +86,7 @@ void QueueVisualization::queueUpdate()
 
 		drawQueue(int(center.y - CELL_SIZE * zoomScale), content, currentMaxSize, tailpointer, headpointer);
 		if(~expansion)
-			drawQueue(int(center.y + CELL_SIZE*zoomScale), tempContent, currentMaxSize*2, 0, sz);
+			drawQueue(int(center.y + CELL_SIZE*zoomScale), tempContent, currentMaxSize*2, expansion, 0);
 	}
 	else
 	{
@@ -152,8 +152,8 @@ void QueueVisualization::drawQueue(int ypos, std::string temp[], int mxSz, int t
 		cur_pos.x += std::max(cell_size, textSize.x) + separator_size;
 	}
 
-	drawArrow(int(s_pos.x + headPointerX), int(cur_pos.y), 1, 0);
-	drawArrow(int(s_pos.x + tailPointerX), int(cur_pos.y), 2, 1);
+	drawArrow(int(s_pos.x + headPointerX), int(cur_pos.y), 1, 1);
+	drawArrow(int(s_pos.x + tailPointerX), int(cur_pos.y), 2, 0);
 
 }
 
