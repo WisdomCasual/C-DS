@@ -186,6 +186,7 @@
     <ClCompile Include="Stack.cpp" />
     <ClCompile Include="TextArea.cpp" />
     <ClCompile Include="Tree.cpp" />
+    <ClCompile Include="Vector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\imgui\imconfig.h" />
@@ -215,6 +216,7 @@
     <ClInclude Include="Stack.h" />
     <ClInclude Include="TextArea.h" />
     <ClInclude Include="Tree.h" />
+    <ClInclude Include="Vector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
