@@ -37,11 +37,12 @@ private:
     int logoWidth, logoHeight;
 
     int buttons_cnt;
-    ButtonData buttons[5] = { ButtonData("Grid", "Resources\\grids.png", 1),
+    ButtonData buttons[6] = { ButtonData("Grid", "Resources\\grids.png", 1),
                                ButtonData("Graph", "Resources\\graphs.png", 2),
                                ButtonData("DSU", "Resources\\DSU.png", 3),
                                ButtonData("Trees", "Resources\\mob.png", 4),
-                               ButtonData("Queue", "Resources\\mob.png", 5) };
+                               ButtonData("Queue", "Resources\\mob.png", 5),
+                               ButtonData("Sparse Table", "Resources\\mob.png",30) };
 
     // private methods:
     bool ImageButtonWithText(const char*, ImTextureID, const ImVec2&);

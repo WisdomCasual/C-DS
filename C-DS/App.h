@@ -26,6 +26,7 @@
 #include "CodeVisualizer.h"
 #include "Tree.h"
 #include "QueueVisualization.h"
+#include "SparseTable.h"
 
 class App
 {

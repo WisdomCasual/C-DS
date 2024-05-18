@@ -159,6 +159,9 @@ void App::updateWindow()
         curWindow = new CodeVisualizer("Code_Visualizer", state, GuiScale, settingsEnabled);
         break;
     }
+    case 30:
+        curWindow = new SparseTable("Sparsy", state, GuiScale, settingsEnabled);
+        break;
 }
     state = -1;
 

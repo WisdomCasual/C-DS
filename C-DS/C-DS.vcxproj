@@ -179,6 +179,7 @@
     <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="QueueVisualization.cpp" />
     <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="SparseTable.cpp" />
     <ClCompile Include="TextArea.cpp" />
     <ClCompile Include="Tree.cpp" />
   </ItemGroup>
@@ -203,6 +204,7 @@
     <ClInclude Include="MainMenu.h" />
     <ClInclude Include="QueueVisualization.h" />
     <ClInclude Include="Settings.h" />
+    <ClInclude Include="SparseTable.h" />
     <ClInclude Include="TextArea.h" />
     <ClInclude Include="Tree.h" />
   </ItemGroup>
