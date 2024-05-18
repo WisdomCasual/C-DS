@@ -17,6 +17,7 @@ private:
 #define MAX_SPEED 100.0f
 #define MIN_SPEED 0.1f
 #define DELAY_TIME 0.2f
+#define BASE_DELAY 0.6f
 
 #define CELL_SIZE 70.f
 #define SEPARATOR_SIZE 5.f
@@ -32,12 +33,14 @@ private:
 	// 1: enqueue
 	// 2: dequeue
 	// 3: expand (behind the scenes) (for later visualize the the expansion process : ~visualize the 2 contentays~) 
-	int cur_tool = 0, sz = 0, tailpointer = 0, headpointer = 0, currentMaxSize = 1;
-	bool camfollow = false, movingCam = false, expansion = 0;
+	int cur_tool = 0, sz = 0, tailpointer = 0, headpointer = 0, currentMaxSize = 1, expansion = -1, tempSize = 0;
+	bool camfollow = false, movingCam = false;
 	ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
 	char add_element_content[50] = {};
+	float speed = 1.f, passedTime = 0.f;
 
-	std::string* content = new std::string[currentMaxSize];
+	std::string* content = new std::string[currentMaxSize], *tempContent = nullptr;
+	std::queue<std::string> pending;
 
 	/*
 		the insert function works as follows:
@@ -109,9 +112,9 @@ private:
 	//ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	void queueUpdate();
-	void drawQueue(int, std::string[]);
-	
-	void Enqueue(std::string);
+	void drawQueue(int, std::string[], int, int, int);
+	void drawArrow(int, int, int, bool);
+	bool Enqueue(std::string);
 	void Dequeue();
 	void expand();
 	void init();
