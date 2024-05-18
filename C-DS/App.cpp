@@ -161,6 +161,9 @@ void App::updateWindow()
     case 11:
         curWindow = new Vector("Vector", state, GuiScale, settingsEnabled);
         break;
+    case 12:
+        curWindow = new Trie("Trie", state, GuiScale, settingsEnabled);
+        break;
     case 30:
         curWindow = new SparseTable("Sparsy", state, GuiScale, settingsEnabled);
         break;

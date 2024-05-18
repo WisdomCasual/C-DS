@@ -37,10 +37,11 @@ private:
     int logoWidth, logoHeight;
 
     int buttons_cnt;
-    ButtonData buttons[12] = { ButtonData("Grid", "Resources\\grids.png", 1),
+    ButtonData buttons[13] = { ButtonData("Grid", "Resources\\grids.png", 1),
                               ButtonData("Graph", "Resources\\graphs.png", 2),
                               ButtonData("DSU", "Resources\\DSU.png", 3),
                               ButtonData("Trees", "Resources\\mob.png", 4),
+                              ButtonData("Trie", "Resources\\mob.png", 12),
                               ButtonData("Queue", "Resources\\mob.png", 5),
                               ButtonData("Deque", "Resources\\mob.png", 6),
                               ButtonData("Linked-List", "Resources\\mob.png", 7),
