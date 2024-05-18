@@ -12,7 +12,7 @@ class Trie :
 {
 private:
 	// graph settings:
-#define EDGE_LENGTH 100.f
+#define TRIE_EDGE_LENGTH 100.f
 
 #define VERTEX_RADIUS 30.f * zoomScale
 #define UPDATED_NODE_COLOR ImGui::GetColorU32(IM_COL32(50, 150, 50, 255))
@@ -50,7 +50,7 @@ private:
 	ImGuiWindowFlags controls_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
 
 	const ImGuiViewport* viewport = ImGui::GetMainViewport();
-	ImGuiIO* io;
+	ImGuiIO* io = &ImGui::GetIO();
 
 	ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
 	float speed = 1.f, curTime = 0;
@@ -68,7 +68,7 @@ private:
 
 	std::string word;
 
-	int n, cur_tool = 0;
+	int cur_tool = 0;
 	char add_node_text[4][20] = {};
 
 	// private methods:
