@@ -130,14 +130,14 @@ void Trie::controlsUpdate()
 		memset(add_node_text, 0, sizeof add_node_text);
 	}
 
-	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
-
-	ImGui::SliderFloat("Speed", &speed, TRIE_MIN_SPEED, TRIE_MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
-
-	if (disableButtons) {
+    if (disableButtons) {
 		ImGui::PopItemFlag();
 		ImGui::PopStyleVar();
 	}
+
+	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
+
+	ImGui::SliderFloat("Speed", &speed, TRIE_MIN_SPEED, TRIE_MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
 
 	ImGui::End();
 }
@@ -447,11 +447,12 @@ void Trie::update()
 					continue;
 
 			}
-			disableButtons = false;
-			trueUpdate = false;
 		}
 	}
-
+	else {
+		disableButtons = false;
+		trueUpdate = false;
+	}
 	if ((ImGui::IsWindowHovered() || movingCam) && ((ImGui::IsMouseDown(0) && cur_tool == 1) || ImGui::IsMouseDown(2))) {
 		movingCam = true;
 		camPos.x += io->MouseDelta.x / zoomScale;
