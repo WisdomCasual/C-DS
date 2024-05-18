@@ -76,20 +76,36 @@ void QueueVisualization::queueUpdate()
 
 	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
 
-	if (expansion)
+	if (~expansion)
 	{
-		drawQueue(center.y - 30.f * zoomScale, content);
-		drawQueue(center.y + 30.f * zoomScale, content);
-		expansion = 0;
+		passedTime += io->DeltaTime*speed;
+		if (passedTime >= BASE_DELAY) {
+			expand();
+			passedTime = 0.f;
+		}
+
+		drawQueue(center.y - CELL_SIZE * zoomScale, content, currentMaxSize, tailpointer, headpointer);
+		if(~expansion)
+			drawQueue(center.y + CELL_SIZE*zoomScale, tempContent, currentMaxSize*2, 0, sz);
 	}
 	else
 	{
-		drawQueue(center.y, content);
+
+		if(pending.size()) {
+			passedTime += io->DeltaTime * speed;
+			if (passedTime >= BASE_DELAY) {
+				if(Enqueue(pending.front()))
+					pending.pop();
+				passedTime = 0.f;
+			}
+		}
+
+		drawQueue(center.y, content, currentMaxSize, tailpointer, headpointer);
 	}
 
 }
 
-void QueueVisualization::drawQueue(int ypos, std::string temp[])
+void QueueVisualization::drawQueue(int ypos, std::string temp[], int mxSz, int tail, int head)
 {
 
 	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, ypos);
@@ -101,22 +117,22 @@ void QueueVisualization::drawQueue(int ypos, std::string temp[])
 
 	float xSize = 0.f, headPointerX = 0.f, tailPointerX = 0.f;
 
-	for (int i = 0; i < currentMaxSize; i++)
+	for (int i = 0; i < mxSz; i++)
 	{
-		xSize += std::max(cell_size, ImGui::CalcTextSize(content[i].c_str()).x) + separator_size;
-		if (i <= headpointer)
+		xSize += std::max(cell_size, ImGui::CalcTextSize(temp[i].c_str()).x) + separator_size;
+		if (i <= head)
 		{
-			if (i == headpointer)
-				headPointerX += std::max(cell_size, ImGui::CalcTextSize(content[i].c_str()).x) / 2.f;
+			if (i == head)
+				headPointerX += std::max(cell_size, ImGui::CalcTextSize(temp[i].c_str()).x) / 2.f;
 			else
-				headPointerX += std::max(cell_size, ImGui::CalcTextSize(content[i].c_str()).x) + separator_size;
+				headPointerX += std::max(cell_size, ImGui::CalcTextSize(temp[i].c_str()).x) + separator_size;
 		}
-		if (i <= tailpointer)
+		if (i <= tail)
 		{
-			if (i == tailpointer)
-				tailPointerX += std::max(cell_size, ImGui::CalcTextSize(content[i].c_str()).x) / 2.f;
+			if (i == tail)
+				tailPointerX += std::max(cell_size, ImGui::CalcTextSize(temp[i].c_str()).x) / 2.f;
 			else
-				tailPointerX += std::max(cell_size, ImGui::CalcTextSize(content[i].c_str()).x) + separator_size;
+				tailPointerX += std::max(cell_size, ImGui::CalcTextSize(temp[i].c_str()).x) + separator_size;
 		}
 	}
 
@@ -124,15 +140,15 @@ void QueueVisualization::drawQueue(int ypos, std::string temp[])
 		center.y + camPos.y * zoomScale - cell_size / 2.f);
 	ImVec2 cur_pos(s_pos);
 
-	for (int i = 0; i < currentMaxSize; i++)
+	for (int i = 0; i < mxSz; i++)
 	{
-		i %= currentMaxSize;
-		ImVec2 textSize = ImGui::CalcTextSize(content[i].c_str());
+		i %= mxSz;
+		ImVec2 textSize = ImGui::CalcTextSize(temp[i].c_str());
 		ImVec2 pos((cur_pos.x + (std::max(cell_size, textSize.x) - textSize.x) / 2.f), (cur_pos.y + (cell_size - textSize.y) / 2.f));
 		ImU32 col = IM_COL32(255, 255, 255, 255);
 		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + std::max(cell_size, textSize.x),
 			cur_pos.y + cell_size), getColor(3));
-		draw_list->AddText(pos, col, content[i].c_str());
+		draw_list->AddText(pos, col, temp[i].c_str());
 		cur_pos.x += std::max(cell_size, textSize.x) + separator_size;
 	}
 
@@ -166,17 +182,15 @@ void QueueVisualization::drawArrow(int x, int y, int col, bool DownToUp)
 	draw_list->AddTriangleFilled(p1, p2, to, getColor(col));
 }
 
-void QueueVisualization::Enqueue(std::string value)
+bool QueueVisualization::Enqueue(std::string value)
 {
 	if (sz == currentMaxSize)
 	{
 		if (sz == MAX_SIZE)
-			return;
+			return 1;
 
 		expand();
-		content[tailpointer++] = value;
-		sz++;
-		return;
+		return 0;
 	}
 
 	content[tailpointer] = value;
@@ -185,25 +199,37 @@ void QueueVisualization::Enqueue(std::string value)
 	tailpointer %= currentMaxSize;
 	sz++;
 
+	return 1;
 }
 
 void QueueVisualization::expand()
 {
-	
+
 	if (currentMaxSize * 2 >= MAX_SIZE)
 		return;
-	std::string* temp = new std::string[currentMaxSize*2];
-	int i = 0;
-	for (; i < sz; headpointer++, i++) {
-		headpointer %= currentMaxSize;
-		temp[i] = content[headpointer]; 
+
+
+	if (tempContent == nullptr) {
+		tempContent = new std::string[currentMaxSize*2];
+		expansion = 0;
+		return;
 	}
-	headpointer = 0, tailpointer = i;
+
+	if(expansion < sz) {
+		headpointer %= currentMaxSize;
+		tempContent[expansion] = content[headpointer];
+		headpointer++;
+		expansion++;
+		return;
+	}
+
+	headpointer = 0, tailpointer = expansion;
 	// head for popping , tail for pushing 
 	delete[] content;
-	content = temp;
+	content = tempContent;
+	tempContent = nullptr;
+	expansion = -1;
 	currentMaxSize *= 2;
-
 }
 
 void QueueVisualization::init()
@@ -255,7 +281,7 @@ void QueueVisualization::controlsUpdate()
 		while (*ptr != '\0') {
 			if (*ptr == ',') {
 				if (curElement.size() > 0) {
-					Enqueue(curElement);
+					pending.push(curElement);
 					curElement.clear();
 				}
 			}
@@ -265,7 +291,7 @@ void QueueVisualization::controlsUpdate()
 			ptr++;
 		}
 		if (curElement.size() > 0) {
-			Enqueue(curElement);
+			pending.push(curElement);
 			curElement.clear();
 		}
 
@@ -280,7 +306,6 @@ void QueueVisualization::controlsUpdate()
 	if (ImGui::Button("Expand"))
 	{
 		expand();
-		expansion = 1;
 	}
 
 	ImGui::End();
