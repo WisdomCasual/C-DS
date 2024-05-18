@@ -155,8 +155,10 @@ void App::updateWindow()
     case 9:
         // HASH MAP
         break;
-
-    }
+    case 30:
+        curWindow = new SparseTable("Sparsy", state, GuiScale, settingsEnabled);
+        break;
+}
     state = -1;
 
 }
