@@ -153,7 +153,16 @@ void App::updateWindow()
         curWindow = new HashTable("Hash_Table", state, GuiScale, settingsEnabled);
         break;
     case 9:
-        // HASH MAP
+        curWindow = new HashMap("Hash_Map", state, GuiScale, settingsEnabled);
+        break;
+    case 10:
+        curWindow = new Stack("Stack", state, GuiScale, settingsEnabled);
+        break;
+    case 11:
+        curWindow = new Vector("Vector", state, GuiScale, settingsEnabled);
+        break;
+    case 12:
+        curWindow = new Trie("Trie", state, GuiScale, settingsEnabled);
         break;
     case 30:
         curWindow = new SparseTable("Sparsy", state, GuiScale, settingsEnabled);
