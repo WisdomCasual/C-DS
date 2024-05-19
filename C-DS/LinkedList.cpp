@@ -73,7 +73,7 @@ void LinkedList::popFront()
 void LinkedList::controlsUpdate()
 {
 	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
-	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(600.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
+	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(640.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
 	ImVec2 controlsWinPos(viewport->Size.x - controlsWinSize.x - ImGui::GetStyle().WindowPadding.x, viewport->Size.y - controlsWinSize.y - ImGui::GetStyle().WindowPadding.y);
 	bool disabled = false;
 
@@ -87,16 +87,16 @@ void LinkedList::controlsUpdate()
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
+	if (ImGui::Button("Reset Camera"))
+		camTarget = { 0, 0 };
+
+	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
+
 	if (iterationMode != 0) {
 		disabled = true;
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 	}
-
-	if (ImGui::Button("Reset Camera"))
-		camTarget = { 0, 0 };
-
-	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
 	ImGui::InputText("Value", add_node_text, IM_ARRAYSIZE(add_node_text));
 
@@ -202,6 +202,8 @@ void LinkedList::controlsUpdate()
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
+	ImGui::Checkbox("Camera Follow", &camFollow);
+
 	ImGui::SliderFloat("Speed", &speed, LL_MIN_SPEED, LL_MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
 
 	ImGui::End();
@@ -298,6 +300,8 @@ void LinkedList::listUpdate()
 
 void LinkedList::followNode(ImVec2 pos)
 {
+	if (!camFollow)
+		return;
 	camTarget = ImVec2(-pos.x, -pos.y);
 }
 

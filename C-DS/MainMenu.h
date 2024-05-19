@@ -20,7 +20,7 @@ private:
     struct ButtonData {
         const std::string label, imagePath;
         GLuint textureID;
-        int imageWidth, imageHeight, stateID;
+        int imageWidth = 0, imageHeight = 0, stateID = 0;
         ButtonData(std::string label, std::string imagePath, int stateID)
             : label(label), imagePath(imagePath), stateID(stateID) { textureID = NULL; }
     };

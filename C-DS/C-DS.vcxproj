@@ -175,6 +175,7 @@
     <ClCompile Include="DSU.cpp" />
     <ClCompile Include="GraphTools.cpp" />
     <ClCompile Include="Grid.cpp" />
+    <ClCompile Include="HashMap.cpp" />
     <ClCompile Include="HashTable.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="LinkedList.cpp" />
@@ -206,6 +207,7 @@
     <ClInclude Include="GrandWindow.h" />
     <ClInclude Include="GraphTools.h" />
     <ClInclude Include="Grid.h" />
+    <ClInclude Include="HashMap.h" />
     <ClInclude Include="HashTable.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="LinkedList.h" />
