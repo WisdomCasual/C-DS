@@ -33,6 +33,7 @@
 #include "HashTable.h"
 #include "HashMap.h"
 #include "Stack.h"
+#include "Vector.h"
 
 class App
 {
