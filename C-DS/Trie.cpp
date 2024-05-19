@@ -160,7 +160,7 @@ void Trie::graphUpdate()
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	const float cf = 0.55f; // center attraction
-	const float k = 3.f; // Spring constant
+	const float k = 5.f; // Spring constant
 	const float c = 8000.f; // Repulsion constant
 	const float dampening = 0.85f; // Dampening factor
 	for (int i = 0; i != nodes.size(); i++) {
