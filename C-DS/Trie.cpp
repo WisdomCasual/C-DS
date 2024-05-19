@@ -470,6 +470,7 @@ void Trie::update()
 	else {
 		disableButtons = false;
 		trueUpdate = false;
+		deleting = false;
 	}
 	if ((ImGui::IsWindowHovered() || movingCam) && ((ImGui::IsMouseDown(0) && cur_tool == 1) || ImGui::IsMouseDown(2))) {
 		movingCam = true;
