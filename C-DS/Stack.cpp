@@ -139,8 +139,9 @@ void Stack::drawStack(int xpos, std::string temp[], int mxSz, int head, float mx
 		draw_list->AddText(pos, col, temp[i].c_str());
 		cur_pos.y -= cell_size + separator_size;
 	}
-	draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + mxCellWidth,
-		cur_pos.y + cell_size), getColor(2));
+	if(!inverted)
+		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + mxCellWidth,
+			cur_pos.y + cell_size), getColor(2));
 
 	drawArrow(int(cur_pos.x), int(s_pos.y - headPointerY), 1 + (!inverted && mxSz == head), inverted, mxCellWidth);
 }
@@ -193,7 +194,7 @@ bool Stack::Push(std::string value)
 void Stack::expand()
 {
 
-	if (currentMaxSize * 2 >= MAX_SIZE)
+	if (currentMaxSize * 2 > MAX_SIZE)
 		return;
 
 
@@ -220,10 +221,6 @@ void Stack::expand()
 	currentMaxSize *= 2;
 }
 
-void Stack::init()
-{
-
-}
 
 void Stack::Pop()
 {
@@ -313,24 +310,4 @@ void Stack::controlsUpdate()
 	ImGui::SliderFloat("Speed", &speed, MIN_SPEED, MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
 
 	ImGui::End();
-}
-
-void Stack::useTool(int toolIndx, int value = -1)
-{
-	//Push
-	if (toolIndx == 1)
-	{
-		//ImDrawList* draw_list = ImGui::GetWindowDrawList();
-		//draw_list->AddRectFilled();
-	}
-	//Pop
-	else if (toolIndx == 2)
-	{
-
-	}
-	//Expand
-	else
-	{
-
-	}
 }
