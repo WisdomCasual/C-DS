@@ -92,10 +92,14 @@ void Tree::controlsUpdate()
 	for (int i = 1; i < itemCnt; i++)
 		delete[] items[i];
 
-	if (root != "\0" && cur_p == 0 ) {
+	if ((root != "\0" && cur_p == 0) || add_node_text[0] == '\0') {
+		disabled = true;
+	}
+	if (disabled) {
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 	}
+
 	if (ImGui::Button("Insert")) {
 		std::string curNode;
 		char* ptr = add_node_text;
@@ -117,10 +121,13 @@ void Tree::controlsUpdate()
 		cur_p = 0;
 		memset(add_node_text, 0, sizeof add_node_text);
 	}
-	if (root != "\0" && cur_p == 0) {
+
+	if (disabled) {
 		ImGui::PopItemFlag();
 		ImGui::PopStyleVar();
 	}
+
+	disabled = false;
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
@@ -295,8 +302,8 @@ void Tree::drawEdge(ImDrawList* draw_list, const std::string u, const std::strin
 
 }
 
-void Tree::addNode(std::string u , std::string p)
-{ 
+void Tree::addNode(std::string u, std::string p)
+{
 	nodes[u];
 	parent[u] = p;
 }

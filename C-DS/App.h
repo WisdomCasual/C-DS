@@ -25,11 +25,15 @@
 #include "DSU.h"
 #include "CodeVisualizer.h"
 #include "Tree.h"
+#include "Trie.h"
 #include "QueueVisualization.h"
 #include "SparseTable.h"
 #include "LinkedList.h"
 #include "Deque.h"
 #include "HashTable.h"
+#include "HashMap.h"
+#include "Stack.h"
+#include "Vector.h"
 
 class App
 {

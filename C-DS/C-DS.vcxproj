@@ -175,16 +175,21 @@
     <ClCompile Include="DSU.cpp" />
     <ClCompile Include="GraphTools.cpp" />
     <ClCompile Include="Grid.cpp" />
+    <ClCompile Include="HashMap.cpp" />
     <ClCompile Include="HashTable.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="LinkedList.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="QueueVisualization.cpp" />
+    <ClCompile Include="Segment_Tree.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="SparseTable.cpp" />
+    <ClCompile Include="Stack.cpp" />
     <ClCompile Include="TextArea.cpp" />
     <ClCompile Include="Tree.cpp" />
+    <ClCompile Include="Trie.cpp" />
+    <ClCompile Include="Vector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\imgui\imconfig.h" />
@@ -204,15 +209,20 @@
     <ClInclude Include="GrandWindow.h" />
     <ClInclude Include="GraphTools.h" />
     <ClInclude Include="Grid.h" />
+    <ClInclude Include="HashMap.h" />
     <ClInclude Include="HashTable.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="LinkedList.h" />
     <ClInclude Include="MainMenu.h" />
     <ClInclude Include="QueueVisualization.h" />
+    <ClInclude Include="Segment_Tree.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SparseTable.h" />
+    <ClInclude Include="Stack.h" />
     <ClInclude Include="TextArea.h" />
     <ClInclude Include="Tree.h" />
+    <ClInclude Include="Trie.h" />
+    <ClInclude Include="Vector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

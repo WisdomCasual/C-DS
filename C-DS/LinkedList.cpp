@@ -11,8 +11,8 @@ void LinkedList::pushFront()
 		head = newNode;
 		if (tail == nullptr)
 			tail = newNode;
-		if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + EDGE_LENGTH > viewport->WorkSize.x ||
-			center.x + (camPos.x + newNode->curPos.x) * zoomScale - EDGE_LENGTH < 0.f)
+		if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + NODES_DIST > viewport->WorkSize.x ||
+			center.x + (camPos.x + newNode->curPos.x) * zoomScale - NODES_DIST < 0.f)
 			followNode(newNode->curPos);
 		listSize++;
 		memset(add_node_text, 0, sizeof add_node_text);
@@ -30,8 +30,8 @@ void LinkedList::pushBack()
 		tail = newNode;
 		if (head == nullptr)
 			head = newNode;
-		if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + EDGE_LENGTH > viewport->WorkSize.x ||
-			center.x + (camPos.x + newNode->curPos.x) * zoomScale - EDGE_LENGTH < 0.f)
+		if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + NODES_DIST > viewport->WorkSize.x ||
+			center.x + (camPos.x + newNode->curPos.x) * zoomScale - NODES_DIST < 0.f)
 			followNode(newNode->curPos);
 		listSize++;
 		memset(add_node_text, 0, sizeof add_node_text);
@@ -73,7 +73,7 @@ void LinkedList::popFront()
 void LinkedList::controlsUpdate()
 {
 	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
-	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(600.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
+	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(640.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
 	ImVec2 controlsWinPos(viewport->Size.x - controlsWinSize.x - ImGui::GetStyle().WindowPadding.x, viewport->Size.y - controlsWinSize.y - ImGui::GetStyle().WindowPadding.y);
 	bool disabled = false;
 
@@ -87,16 +87,16 @@ void LinkedList::controlsUpdate()
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
+	if (ImGui::Button("Reset Camera"))
+		camTarget = { 0, 0 };
+
+	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
+
 	if (iterationMode != 0) {
 		disabled = true;
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 	}
-
-	if (ImGui::Button("Reset Camera"))
-		camTarget = { 0, 0 };
-
-	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
 	ImGui::InputText("Value", add_node_text, IM_ARRAYSIZE(add_node_text));
 
@@ -202,6 +202,8 @@ void LinkedList::controlsUpdate()
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
+	ImGui::Checkbox("Camera Follow", &camFollow);
+
 	ImGui::SliderFloat("Speed", &speed, LL_MIN_SPEED, LL_MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
 
 	ImGui::End();
@@ -253,7 +255,7 @@ void LinkedList::listUpdate()
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	Node* cur_node = head;
-	ImVec2 targetPos(-(float)(listSize - 1) * EDGE_LENGTH / 2.f, 0.f);
+	ImVec2 targetPos(-(float)(listSize - 1) * NODES_DIST / 2.f, 0.f);
 	int curIdx = 0;
 
 	if (tempNode != nullptr) {
@@ -268,7 +270,7 @@ void LinkedList::listUpdate()
 
 		draw_list->AddText(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - textCenter.y), TEXT_COL, tempNode->value.c_str());
 
-		tempNode->curPos.y += (-EDGE_LENGTH - tempNode->curPos.y) * 20.f * io->DeltaTime;
+		tempNode->curPos.y += (-NODES_DIST - tempNode->curPos.y) * 20.f * io->DeltaTime;
 	}
 
 	while (cur_node != nullptr) {
@@ -288,7 +290,7 @@ void LinkedList::listUpdate()
 			cur_node->curPos.x += (targetPos.x - cur_node->curPos.x) * 10.f * io->DeltaTime;
 			cur_node->curPos.y += (targetPos.y - cur_node->curPos.y) * 10.f * io->DeltaTime;
 
-			targetPos.x += EDGE_LENGTH;
+			targetPos.x += NODES_DIST;
 		}
 		cur_node = cur_node->next;
 		curIdx++;
@@ -298,6 +300,8 @@ void LinkedList::listUpdate()
 
 void LinkedList::followNode(ImVec2 pos)
 {
+	if (!camFollow)
+		return;
 	camTarget = ImVec2(-pos.x, -pos.y);
 }
 

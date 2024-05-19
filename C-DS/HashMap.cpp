@@ -1,8 +1,8 @@
-#include "HashTable.h"
+#include "HashMap.h"
 #include <imgui_internal.h>
 #include <iostream>
 
-void HashTable::controlsUpdate()
+void HashMap::controlsUpdate()
 {
 	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(605.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
 	ImVec2 controlsWinPos(viewport->Size.x - controlsWinSize.x - ImGui::GetStyle().WindowPadding.x, viewport->Size.y - controlsWinSize.y - ImGui::GetStyle().WindowPadding.y);
@@ -54,65 +54,81 @@ void HashTable::controlsUpdate()
 
 	ImGui::Text("Functions:");
 
-	ImGui::InputText("Value", add_node_text, IM_ARRAYSIZE(add_node_text));
+	ImGui::InputText("Key", key_text, IM_ARRAYSIZE(key_text));
+	ImGui::InputText("Value", value_text, IM_ARRAYSIZE(value_text));
 
-	if (!add_node_text[0] && !disabled) {
+
+	if (!key_text[0] && !disabled) {
 		disabled = true;
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 	}
 
+	bool noVal = false;
+	if (!value_text[0] && !disabled) {
+		noVal = true;
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+	}
+
 	if (ImGui::Button("Insert")) {
-		if (add_node_text[0]) {
-			cur_bucket = hashValue(add_node_text);
-			searchVal = add_node_text;
-			memset(add_node_text, 0, sizeof add_node_text);
+		if (key_text[0] && value_text[0]) {
+			cur_bucket = hashValue(key_text);
+			searchKey = key_text;
+			newVal = value_text;
+			memset(key_text, 0, sizeof key_text);
+			memset(value_text, 0, sizeof value_text);
 			mode = 1;
 
 			iteratingNode = buckets[cur_bucket];
 
-			ImVec2 pos(-((table_size + 1) * CELL_SIZE_X + (table_size + 2) * HT_SEPARATOR_SIZE) / zoomScale / 2.f, CELL_SIZE_Y / zoomScale / 2.f);
-			pos.x += (cur_bucket + 1) * (CELL_SIZE_X + HT_SEPARATOR_SIZE) / zoomScale;
+			ImVec2 pos(-((table_size + 1) * CELL_SIZE_X + (table_size + 2) * HM_SEPARATOR_SIZE) / zoomScale / 2.f, CELL_SIZE_Y / zoomScale / 2.f);
+			pos.x += (cur_bucket + 1) * (CELL_SIZE_X + HM_SEPARATOR_SIZE) / zoomScale;
 
 			followNode(ImVec2(pos.x, pos.y - viewport->WorkSize.y / 3.f / zoomScale));
 
 			if (iteratingNode != nullptr) {
 				followNode(ImVec2(iteratingNode->curPos.x, iteratingNode->curPos.y - viewport->WorkSize.y / 3.f / zoomScale));
-				if (iteratingNode->value == searchVal) {
+				if (iteratingNode->key == searchKey) {
 					found = true;
-					iteratingNode->color = FAIL_NODE_COL;
+					iteratingNode->keyColor = FOUND_NODE_COL;
 				}
 				else
-					iteratingNode->color = ITER_NODE_COL;
+					iteratingNode->keyColor = ITER_NODE_COL;
 			}
 
 		}
 	}
 
+	if (noVal) {
+		ImGui::PopItemFlag();
+		ImGui::PopStyleVar();
+	}
+
 	ImGui::SameLine();
 
 	if (ImGui::Button("Find")) {
-		if (add_node_text[0]) {
-			cur_bucket = hashValue(add_node_text);
-			searchVal = add_node_text;
-			memset(add_node_text, 0, sizeof add_node_text);
+		if (key_text[0]) {
+			cur_bucket = hashValue(key_text);
+			searchKey = key_text;
+			memset(key_text, 0, sizeof key_text);
 			mode = 2;
 
 			iteratingNode = buckets[cur_bucket];
 
-			ImVec2 pos(-((table_size + 1) * CELL_SIZE_X + (table_size + 2) * HT_SEPARATOR_SIZE) / zoomScale / 2.f, CELL_SIZE_Y / zoomScale / 2.f);
-			pos.x += (cur_bucket + 1) * (CELL_SIZE_X + HT_SEPARATOR_SIZE) / zoomScale;
+			ImVec2 pos(-((table_size + 1) * CELL_SIZE_X + (table_size + 2) * HM_SEPARATOR_SIZE) / zoomScale / 2.f, CELL_SIZE_Y / zoomScale / 2.f);
+			pos.x += (cur_bucket + 1) * (CELL_SIZE_X + HM_SEPARATOR_SIZE) / zoomScale;
 
 			followNode(ImVec2(pos.x, pos.y - viewport->WorkSize.y / 3.f / zoomScale));
 
 			if (iteratingNode != nullptr) {
 				followNode(ImVec2(iteratingNode->curPos.x, iteratingNode->curPos.y + -viewport->WorkSize.y / 3.f / zoomScale));
-				if (iteratingNode->value == searchVal) {
+				if (iteratingNode->key == searchKey) {
 					found = true;
-					iteratingNode->color = FOUND_NODE_COL;
+					iteratingNode->keyColor = FOUND_NODE_COL;
 				}
 				else
-					iteratingNode->color = ITER_NODE_COL;
+					iteratingNode->keyColor = ITER_NODE_COL;
 			}
 
 		}
@@ -121,14 +137,14 @@ void HashTable::controlsUpdate()
 	ImGui::SameLine();
 
 	if (ImGui::Button("Erase")) {
-		if (add_node_text[0]) {
-			cur_bucket = hashValue(add_node_text);
-			searchVal = add_node_text;
-			memset(add_node_text, 0, sizeof add_node_text);
+		if (key_text[0]) {
+			cur_bucket = hashValue(key_text);
+			searchKey = key_text;
+			memset(key_text, 0, sizeof key_text);
 			mode = 3;
 
-			ImVec2 pos(-((table_size + 1) * CELL_SIZE_X + (table_size + 2) * HT_SEPARATOR_SIZE) / zoomScale / 2.f, CELL_SIZE_Y / zoomScale / 2.f);
-			pos.x += (cur_bucket + 1) * (CELL_SIZE_X + HT_SEPARATOR_SIZE) / zoomScale;
+			ImVec2 pos(-((table_size + 1) * CELL_SIZE_X + (table_size + 2) * HM_SEPARATOR_SIZE) / zoomScale / 2.f, CELL_SIZE_Y / zoomScale / 2.f);
+			pos.x += (cur_bucket + 1) * (CELL_SIZE_X + HM_SEPARATOR_SIZE) / zoomScale;
 
 			followNode(ImVec2(pos.x, pos.y - viewport->WorkSize.y / 3.f / zoomScale));
 		}
@@ -145,37 +161,46 @@ void HashTable::controlsUpdate()
 
 	ImGui::Checkbox("Camera Follow", &camFollow);
 
-	ImGui::SliderFloat("Speed", &speed, HT_MIN_SPEED, HT_MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
+	ImGui::SliderFloat("Speed", &speed, HM_MIN_SPEED, HM_MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
 
 	ImGui::End();
 
 }
 
-void HashTable::tableUpdate()
+void HashMap::tableUpdate()
 {
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	ImVec2 s_pos(center.x + camPos.x * zoomScale - (CELL_SIZE_X + HT_SEPARATOR_SIZE) * table_size / 2.f, center.y + camPos.y * zoomScale - CELL_SIZE_Y - viewport->WorkSize.y / 3.f);
+	ImVec2 s_pos(center.x + camPos.x * zoomScale - (CELL_SIZE_X + HM_SEPARATOR_SIZE) * table_size / 2.f, center.y + camPos.y * zoomScale - CELL_SIZE_Y - viewport->WorkSize.y / 3.f);
 	ImVec2 cur_pos(s_pos);
 
-	ImVec2 targetPos(-((table_size + 1) * CELL_SIZE_X + (table_size + 2) * HT_SEPARATOR_SIZE) / zoomScale / 2.f, CELL_SIZE_Y / zoomScale / 2.f);
+	ImVec2 targetPos(-((table_size + 1) * CELL_SIZE_X + (table_size + 2) * HM_SEPARATOR_SIZE) / zoomScale / 2.f, CELL_SIZE_Y / zoomScale / 2.f);
 
 	for (int i = 0; i < table_size; i++) {
 
-		targetPos.x += (CELL_SIZE_X + HT_SEPARATOR_SIZE) / zoomScale;
+		targetPos.x += (CELL_SIZE_X + HM_SEPARATOR_SIZE) / zoomScale;
 		targetPos.y = -CELL_SIZE_Y / zoomScale / 2.f;
 
 		if (tempNode != nullptr) {
-			if(tempNode->next != nullptr)
-			drawEdge(ImVec2(tempNode->curPos.x, tempNode->curPos.y - viewport->WorkSize.y / 3.f / zoomScale), ImVec2(tempNode->next->curPos.x, tempNode->next->curPos.y - viewport->WorkSize.y / 3.f / zoomScale));
+			if (tempNode->next != nullptr)
+				drawEdge(ImVec2(tempNode->curPos.x - LINK_DIST / 2.f, tempNode->curPos.y - viewport->WorkSize.y / 3.f / zoomScale), ImVec2(tempNode->next->curPos.x - LINK_DIST / 2.f, tempNode->next->curPos.y - viewport->WorkSize.y / 3.f / zoomScale));
 
-			ImVec2 textCenter = ImGui::CalcTextSize(tempNode->value.c_str());
+			drawEdge(ImVec2(tempNode->curPos.x - LINK_DIST / 2.f, tempNode->curPos.y - viewport->WorkSize.y / 3.f / zoomScale), ImVec2(tempNode->curPos.x + LINK_DIST / 2.f, tempNode->curPos.y - viewport->WorkSize.y / 3.f / zoomScale));
+
+			ImVec2 textCenter = ImGui::CalcTextSize(tempNode->key.c_str());
 			textCenter.x /= 2.f;
 			textCenter.y /= 2.f;
 
-			draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - viewport->WorkSize.y / 3.f), VERTEX_RADIUS, tempNode->color);
-			draw_list->AddText(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - textCenter.y - viewport->WorkSize.y / 3.f), TEXT_COL, tempNode->value.c_str());
+			draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale - LINK_DIST * zoomScale / 2.f, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - viewport->WorkSize.y / 3.f), VERTEX_RADIUS, tempNode->keyColor);
+			draw_list->AddText(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale - textCenter.x - LINK_DIST * zoomScale / 2.f, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - textCenter.y - viewport->WorkSize.y / 3.f), TEXT_COL, tempNode->key.c_str());
+
+			textCenter = ImGui::CalcTextSize(tempNode->value.c_str());
+			textCenter.x /= 2.f;
+			textCenter.y /= 2.f;
+
+			draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale + LINK_DIST * zoomScale / 2.f, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - viewport->WorkSize.y / 3.f), VERTEX_RADIUS, tempNode->valColor);
+			draw_list->AddText(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale - textCenter.x + LINK_DIST * zoomScale / 2.f, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - textCenter.y - viewport->WorkSize.y / 3.f), TEXT_COL, tempNode->value.c_str());
 		}
 
 		ImVec2 prevPos(targetPos);
@@ -183,26 +208,37 @@ void HashTable::tableUpdate()
 		Node* cur_node = buckets[i];
 
 		while (cur_node != nullptr) {
-			drawEdge(ImVec2(prevPos. x, prevPos.y - viewport->WorkSize.y / 3.f / zoomScale), ImVec2(cur_node->curPos.x, cur_node->curPos.y - viewport->WorkSize.y / 3.f / zoomScale));
-			if(cur_node->value == toDelete)
+			drawEdge(ImVec2(prevPos.x - LINK_DIST / 2.f, prevPos.y - viewport->WorkSize.y / 3.f / zoomScale), ImVec2(cur_node->curPos.x - LINK_DIST / 2.f, cur_node->curPos.y - viewport->WorkSize.y / 3.f / zoomScale));
+			
+			drawEdge(ImVec2(cur_node->curPos.x - LINK_DIST / 2.f, cur_node->curPos.y - viewport->WorkSize.y / 3.f / zoomScale), ImVec2(cur_node->curPos.x + LINK_DIST / 2.f, cur_node->curPos.y - viewport->WorkSize.y / 3.f / zoomScale));
+			
+			if (cur_node->key == toDelete) {
 				targetPos.x += NODES_DIST / 2.f / zoomScale;
+				targetPos.y += NODES_DIST / zoomScale / 2.f;
+			}
+			else
+				targetPos.y += NODES_DIST / zoomScale;
 
-			targetPos.y += NODES_DIST / zoomScale;
-
-			ImVec2 textCenter = ImGui::CalcTextSize(cur_node->value.c_str());
+			ImVec2 textCenter = ImGui::CalcTextSize(cur_node->key.c_str());
 			textCenter.x /= 2.f;
 			textCenter.y /= 2.f;
 
-			draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale, center.y + (camPos.y + cur_node->curPos.y) * zoomScale - viewport->WorkSize.y / 3.f), VERTEX_RADIUS, cur_node->color);
+			draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale - LINK_DIST * zoomScale / 2.f, center.y + (camPos.y + cur_node->curPos.y) * zoomScale - viewport->WorkSize.y / 3.f), VERTEX_RADIUS, cur_node->keyColor);
+			draw_list->AddText(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale - textCenter.x - LINK_DIST * zoomScale / 2.f, center.y + (camPos.y + cur_node->curPos.y) * zoomScale - textCenter.y - viewport->WorkSize.y / 3.f), TEXT_COL, cur_node->key.c_str());
 
-			draw_list->AddText(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + cur_node->curPos.y) * zoomScale - textCenter.y - viewport->WorkSize.y / 3.f), TEXT_COL, cur_node->value.c_str());
+			textCenter = ImGui::CalcTextSize(cur_node->value.c_str());
+			textCenter.x /= 2.f;
+			textCenter.y /= 2.f;
+
+			draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale + LINK_DIST * zoomScale / 2.f, center.y + (camPos.y + cur_node->curPos.y) * zoomScale - viewport->WorkSize.y / 3.f), VERTEX_RADIUS, cur_node->valColor);
+			draw_list->AddText(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale - textCenter.x + LINK_DIST * zoomScale / 2.f, center.y + (camPos.y + cur_node->curPos.y) * zoomScale - textCenter.y - viewport->WorkSize.y / 3.f), TEXT_COL, cur_node->value.c_str());
 
 			cur_node->curPos.x += (targetPos.x - cur_node->curPos.x) * 10.f * io->DeltaTime;
 			cur_node->curPos.y += (targetPos.y - cur_node->curPos.y) * 10.f * io->DeltaTime;
 
-			if (cur_node->value == toDelete) {
+			if (cur_node->key == toDelete) {
 				targetPos.x -= NODES_DIST / 2.f / zoomScale;
-				targetPos.y -= NODES_DIST / zoomScale;
+				targetPos.y -= NODES_DIST / zoomScale / 2.f;
 			}
 
 			prevPos = cur_node->curPos;
@@ -215,17 +251,17 @@ void HashTable::tableUpdate()
 		ImU32 col = IM_COL32(255, 255, 255, 255);
 		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + std::max(CELL_SIZE_X, textSize.x), cur_pos.y + CELL_SIZE_Y), (i == cur_bucket ? CUR_BUCKET_COL : DEFAULT_BUCKET_COL));
 		draw_list->AddText(bucketPos, col, bucket_label.c_str());
-		cur_pos.x += std::max(CELL_SIZE_X, textSize.x) + HT_SEPARATOR_SIZE;
+		cur_pos.x += std::max(CELL_SIZE_X, textSize.x) + HM_SEPARATOR_SIZE;
 	}
 
 }
 
-float HashTable::calcDist(float x1, float y1, float x2, float y2)
+float HashMap::calcDist(float x1, float y1, float x2, float y2)
 {
 	return sqrtf((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 }
 
-void HashTable::drawEdge(ImVec2 u, ImVec2 v) {
+void HashMap::drawEdge(ImVec2 u, ImVec2 v) {
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -258,14 +294,14 @@ void HashTable::drawEdge(ImVec2 u, ImVec2 v) {
 
 }
 
-void HashTable::followNode(ImVec2 pos)
+void HashMap::followNode(ImVec2 pos)
 {
 	if (!camFollow)
 		return;
 	camTarget = ImVec2(-pos.x, -pos.y);
 }
 
-int HashTable::hashValue(std::string value)
+int HashMap::hashValue(std::string value)
 {
 	int hash = 0;
 
@@ -277,18 +313,18 @@ int HashTable::hashValue(std::string value)
 	return hash;
 }
 
-HashTable::HashTable(std::string name, int& state, float& scale, bool& settingEnabled)
+HashMap::HashMap(std::string name, int& state, float& scale, bool& settingEnabled)
 	: GrandWindow(name, state, scale, settingsEnabled)
 {
 	buckets = std::vector<Node*>(table_size, nullptr);
 }
 
-HashTable::~HashTable()
+HashMap::~HashMap()
 {
 
 }
 
-void HashTable::update()
+void HashMap::update()
 {
 	center = ImVec2(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
 
@@ -307,64 +343,83 @@ void HashTable::update()
 
 		curTime += io->DeltaTime;
 
-		while (curTime * speed >= HT_DELAY) {
-			curTime -= HT_DELAY / speed;
+		while (curTime * speed >= HM_DELAY) {
+			curTime -= HM_DELAY / speed;
 
 			if (mode == 1) {
 
 				if (buckets[cur_bucket] == nullptr) {
-					ImVec2 pos(-((table_size + 1) * CELL_SIZE_X + (table_size + 2) * HT_SEPARATOR_SIZE) / zoomScale / 2.f, CELL_SIZE_Y / zoomScale / 2.f);
-					pos.x += (cur_bucket + 1) * (CELL_SIZE_X + HT_SEPARATOR_SIZE) / zoomScale;
-					buckets[cur_bucket] = new Node(searchVal, pos);
+					ImVec2 pos(-((table_size + 1) * CELL_SIZE_X + (table_size + 2) * HM_SEPARATOR_SIZE) / zoomScale / 2.f, CELL_SIZE_Y / zoomScale / 2.f);
+					pos.x += (cur_bucket + 1) * (CELL_SIZE_X + HM_SEPARATOR_SIZE) / zoomScale;
+					buckets[cur_bucket] = new Node(searchKey, newVal, pos);
 					followNode(ImVec2(buckets[cur_bucket]->curPos.x, buckets[cur_bucket]->curPos.y + NODES_DIST / zoomScale - viewport->WorkSize.y / 3.f / zoomScale));
 					cur_bucket = -1;
 					mode = 0;
 				}
 				else {
 					if (iteratingNode->next != nullptr && !found) {
-						iteratingNode->color = DEFAULT_NODE_COL;
+						iteratingNode->keyColor = DEFAULT_NODE_COL;
 						iteratingNode = iteratingNode->next;
 						followNode(ImVec2(iteratingNode->curPos.x, iteratingNode->curPos.y + -viewport->WorkSize.y / 3.f / zoomScale));
-						if (iteratingNode->value == searchVal) {
+						if (iteratingNode->key == searchKey) {
 							found = true;
-							iteratingNode->color = FAIL_NODE_COL;
+							iteratingNode->keyColor = FOUND_NODE_COL;
 						}
 						else
-							iteratingNode->color = ITER_NODE_COL;
+							iteratingNode->keyColor = ITER_NODE_COL;
 					}
 					else {
-						iteratingNode->color = DEFAULT_NODE_COL;
-						if (!found){
-							iteratingNode->next = new Node(searchVal, iteratingNode->curPos);
+						iteratingNode->keyColor = DEFAULT_NODE_COL;
+						if (!found) {
+							iteratingNode->next = new Node(searchKey, newVal, iteratingNode->curPos);
 							followNode(ImVec2(iteratingNode->curPos.x, iteratingNode->curPos.y + NODES_DIST / zoomScale - viewport->WorkSize.y / 3.f / zoomScale));
+							iteratingNode = nullptr;
+							found = false;
+							cur_bucket = -1;
+							mode = 0;
 						}
-						iteratingNode = nullptr;
-						found = false;
-						cur_bucket = -1;
-						mode = 0;
+						else {
+							if (iteratingNode->valColor != FOUND_NODE_COL) {
+								iteratingNode->valColor = FOUND_NODE_COL;
+								iteratingNode->value = newVal;
+							}
+							else {
+								iteratingNode->valColor = DEFAULT_NODE_COL;
+								iteratingNode = nullptr;
+								found = false;
+								cur_bucket = -1;
+								mode = 0;
+							}
+						}
 					}
 				}
 			}
 			else if (mode == 2) {
 				if (iteratingNode != nullptr && !found) {
-					iteratingNode->color = DEFAULT_NODE_COL;
+					iteratingNode->keyColor = DEFAULT_NODE_COL;
 					iteratingNode = iteratingNode->next;
 
 					if (iteratingNode != nullptr) {
 						followNode(ImVec2(iteratingNode->curPos.x, iteratingNode->curPos.y - viewport->WorkSize.y / 3.f / zoomScale));
-						if (iteratingNode->value == searchVal) {
+						if (iteratingNode->key == searchKey) {
 							found = true;
-							iteratingNode->color = FOUND_NODE_COL;
+							iteratingNode->keyColor = FOUND_NODE_COL;
 						}
 						else
-							iteratingNode->color = ITER_NODE_COL;
+							iteratingNode->keyColor = ITER_NODE_COL;
 					}
 				}
 				else {
 					if (iteratingNode != nullptr) {
-						followNode(ImVec2(iteratingNode->curPos.x, iteratingNode->curPos.y - viewport->WorkSize.y / 3.f / zoomScale));
-						iteratingNode->color = DEFAULT_NODE_COL;
-						iteratingNode = nullptr;
+						if (iteratingNode->keyColor != DEFAULT_NODE_COL) {
+							followNode(ImVec2(iteratingNode->curPos.x, iteratingNode->curPos.y - viewport->WorkSize.y / 3.f / zoomScale));
+							iteratingNode->keyColor = DEFAULT_NODE_COL;
+							iteratingNode->valColor = FOUND_NODE_COL;
+						}
+						else {
+							iteratingNode->valColor = DEFAULT_NODE_COL;
+							iteratingNode = nullptr;
+						}
 					}
 					else {
 						found = false;
@@ -377,7 +432,7 @@ void HashTable::update()
 
 				if (tempNode != nullptr) {
 					if (iteratingNode != nullptr) {
-						iteratingNode->color = DEFAULT_NODE_COL;
+						iteratingNode->keyColor = DEFAULT_NODE_COL;
 						iteratingNode = nullptr;
 					}
 					toDelete.clear();
@@ -392,44 +447,44 @@ void HashTable::update()
 						cur_bucket = -1;
 						mode = 0;
 					}
-					else if (buckets[cur_bucket]->value == searchVal) {
+					else if (buckets[cur_bucket]->key == searchKey) {
 						if (toDelete.empty()) {
-							toDelete = buckets[cur_bucket]->value;
+							toDelete = buckets[cur_bucket]->key;
 							followNode(ImVec2(buckets[cur_bucket]->curPos.x, buckets[cur_bucket]->curPos.y - viewport->WorkSize.y / 3.f / zoomScale));
 						}
 						else {
 							tempNode = buckets[cur_bucket];
-							tempNode->color = FAIL_NODE_COL;
+							tempNode->keyColor = FAIL_NODE_COL;
 							buckets[cur_bucket] = buckets[cur_bucket]->next;
 						}
 					}
 					else {
 						iteratingNode = buckets[cur_bucket];
 						followNode(ImVec2(iteratingNode->curPos.x, iteratingNode->curPos.y - viewport->WorkSize.y / 3.f / zoomScale));
-						iteratingNode->color = ITER_NODE_COL;
+						iteratingNode->keyColor = ITER_NODE_COL;
 					}
 				}
 				else {
 
-					if (iteratingNode->next != nullptr && iteratingNode->next->value != searchVal) {
-						iteratingNode->color = DEFAULT_NODE_COL;
+					if (iteratingNode->next != nullptr && iteratingNode->next->key != searchKey) {
+						iteratingNode->keyColor = DEFAULT_NODE_COL;
 						iteratingNode = iteratingNode->next;
 						followNode(ImVec2(iteratingNode->curPos.x, iteratingNode->curPos.y - viewport->WorkSize.y / 3.f / zoomScale));
-						iteratingNode->color = ITER_NODE_COL;
+						iteratingNode->keyColor = ITER_NODE_COL;
 					}
 					else if (iteratingNode->next != nullptr) {
 						if (toDelete.empty()) {
-							toDelete = iteratingNode->next->value;
+							toDelete = iteratingNode->next->key;
 							followNode(ImVec2(iteratingNode->next->curPos.x, iteratingNode->next->curPos.y - viewport->WorkSize.y / 3.f / zoomScale));
 						}
 						else {
 							tempNode = iteratingNode->next;
-							tempNode->color = FAIL_NODE_COL;
+							tempNode->keyColor = FAIL_NODE_COL;
 							iteratingNode->next = tempNode->next;
 						}
 					}
 					else {
-						iteratingNode->color = DEFAULT_NODE_COL;
+						iteratingNode->keyColor = DEFAULT_NODE_COL;
 						iteratingNode = nullptr;
 						cur_bucket = -1;
 						mode = 0;
