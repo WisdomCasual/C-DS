@@ -159,6 +159,9 @@ void App::updateWindow()
         curWindow = new Stack("Stack", state, GuiScale, settingsEnabled);
         break;
     case 11:
+        curWindow = new Vector("Vector", state, GuiScale, settingsEnabled);
+        break;
+    case 12:
         curWindow = new Trie("Trie", state, GuiScale, settingsEnabled);
         break;
     case 30:

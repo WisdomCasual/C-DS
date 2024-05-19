@@ -11,7 +11,7 @@ public:
 	~QueueVisualization();
 private:
 
-#define MAX_SIZE 32
+#define MAX_SIZE 1024
 
 	// speed constraints:
 #define MAX_SPEED 10.0f
@@ -90,14 +90,6 @@ private:
 
 	void updateMenuBar();
 	void controlsUpdate();
-	/*
-		operation ids:
-		1: enqueue
-		2: dequeue
-		3: expand (behind the scenes) (for later visualize the expansion process : ~visualize the 2 contentays
-		maybe we can have the user expand the queue even if it's not full
-	*/
-	void useTool(int, int);
 
 	/*
 		imu32 col;
@@ -117,5 +109,4 @@ private:
 	bool Enqueue(std::string);
 	void Dequeue();
 	void expand();
-	void init();
 };

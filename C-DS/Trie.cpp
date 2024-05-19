@@ -29,6 +29,12 @@ void Trie::controlsUpdate()
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
 	ImGui::Text("Tools:");
+	ImGui::RadioButton("Move Camera", &cur_tool, 1);
+	if (camTarget.x != 0 || camTarget.y != 0) {
+		ImGui::SameLine();
+		if (ImGui::Button("Reset##Move_Cam"))
+			camTarget = { 0, 0 };
+	}
 
 	if (disableButtons) {
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
@@ -117,6 +123,7 @@ void Trie::controlsUpdate()
 			disableButtons = 1;
 			deleting = 1;
 			trueUpdate = search(curNode, false);
+			endw = updatedNodes.back();
 			curNode.clear();
 			memset(add_node_text, 0, sizeof add_node_text);
 			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
@@ -236,6 +243,8 @@ void Trie::graphUpdate()
 
 		if (node.fixed) {
 			node.fx = node.fy = 0;
+			node.y = -center.y * .8;
+			node.x = 0;
 			continue;
 		}
 		node.x += node.fx * io->DeltaTime;
@@ -403,7 +412,7 @@ void Trie::update()
 			if (curNode != -1) {
 				if (curIdx == word.size()) {
 					nodes[curNode].color = COMP_VERT_COL;
-					nodes[curNode].endofword = true;
+					nodes[curNode].endofword++;
 					curIdx = -1;
 					curNode = -1;
 					word.clear();
@@ -411,6 +420,8 @@ void Trie::update()
 				else {
 					if (curNode != 0)
 						nodes[curNode].color = DEFAULT_VERT_COL;
+					if (nodes[curNode].endofword)
+						nodes[curNode].color = COMP_VERT_COL;
 					insertWord();
 					nodes[curNode].color = UPDATED_NODE_COLOR;
 					continue;
@@ -421,7 +432,15 @@ void Trie::update()
 				if (nodes[deletedNodes.top()].color != DEFAULT_VERT_COL) {
 
 					int idx = deletedNodes.top();
-					nodes[idx].color = DEFAULT_VERT_COL;
+					if (trueUpdate && idx == endw)
+						nodes[idx].endofword--;
+					if (nodes[idx].endofword) {
+						nodes[idx].color = COMP_VERT_COL;
+					}
+					else
+					{
+						nodes[idx].color = DEFAULT_VERT_COL;
+					}
 					char val = nodes[idx].val[0];
 					deletedNodes.pop();
 
