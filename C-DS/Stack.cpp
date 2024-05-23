@@ -126,6 +126,11 @@ void Stack::drawStack(int xpos, std::string temp[], int mxSz, int head, float mx
 
 	ImVec2 s_pos(center.x + camPos.x * zoomScale - mxCellWidth / 2.f,
 		center.y + camPos.y * zoomScale + ySize / 2.f);
+
+	if (!inverted)
+		s_pos.y += cell_size / 2.f;
+
+
 	ImVec2 cur_pos(s_pos);
 
 	for (int i = 0; i < mxSz; i++)

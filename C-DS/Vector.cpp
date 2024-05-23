@@ -121,6 +121,8 @@ void Vector::vectorUpdate()
 				passedTime = 0.f;
 			}
 		}
+		else
+			inserting = 0;
 
 		drawVector((int)center.y, content, currentMaxSize, tailpointer, 0);
 	}
@@ -156,6 +158,9 @@ void Vector::drawVector(int ypos, std::string temp[], int mxSz, int tail, bool i
 
 	ImVec2 s_pos(center.x + camPos.x * zoomScale - xSize / 2.f,
 		center.y + camPos.y * zoomScale - cell_size / 2.f);
+	if (!inverted)
+		s_pos.x -= cell_size / 2.f;
+
 	ImVec2 cur_pos(s_pos);
 
 	for (int i = 0; i < mxSz; i++)
