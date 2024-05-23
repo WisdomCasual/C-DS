@@ -61,11 +61,40 @@ private:
         ImU32 color = DEFAULT_EDGE_COL;
     };
 
+	class DSU {
+	private:
+        std::map<std::string, std::string> parent;
+		std::map<std::string, int> st_size;
+	public:
+		DSU(std::map<std::string, Vertex>& nodes) {
+
+            for (auto node : nodes){
+                parent[node.first] = node.first;
+                st_size[node.first] = 1;
+            }
+
+		}
+		std::string find(std::string x) {
+			return (parent[x] == x ? x : parent[x] = find(parent[x]));
+		}
+		void Union(std::string x, std::string y) {
+			std::string set_x = find(x);
+			std::string set_y = find(y);
+			if (set_x == set_y)
+				return;
+			if (st_size[set_x] < st_size[set_y])
+				parent[set_x] = set_y, st_size[set_y] += st_size[set_x];
+			else
+				parent[set_y] = set_x, st_size[set_x] += st_size[set_y];
+		}
+	};
+
     // private fields:
 
     std::map<std::string, Vertex> nodes;
     std::map<std::pair<std::string, std::string>, Edge> edges;
     std::map<std::string, std::vector<std::pair<std::string, std::pair<int, bool>>>> adj;
+    DSU* mst_dsu = nullptr;
 
     char graphText[1000];
 
@@ -85,6 +114,7 @@ private:
     std::stack<std::pair< std::string, int>> dfs_stack;
     std::queue<std::string> bfs_queue;
     std::priority_queue<std::pair<long long, std::string>> dijkstra_queue;
+	std::priority_queue<std::pair<long long, std::pair<std::string, std::string>>> kruskal_queue;
     std::map<std::string, long long> vis;
     std::map<std::pair<std::string, std::string>, long long> edge_vis;
     std::map<std::string, std::string> par;
@@ -103,6 +133,7 @@ private:
     void dfs();
     void bfs();
     void dijkstra();
+    void kruskal();
     void bellmanFord();
 
 public:
