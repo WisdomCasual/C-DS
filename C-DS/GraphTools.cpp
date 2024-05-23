@@ -81,6 +81,11 @@ void GraphTools::controlsUpdate()
 	if (ImGui::Button("Generate Random"))
 		generateGraph();
 
+	ImGui::SameLine();
+
+	ImGui::Checkbox("Weighted", &weighted_rand);
+	
+
 	if (ImGui::RadioButton("Undirected", &directed, 0))
 		clearStates();
 
@@ -381,9 +386,16 @@ void GraphTools::generateGraph()
 
 	for (int i = 0; i < m; i++) {
 		std::string u = std::to_string(rand() % n + 1), v = std::to_string(rand() % n + 1);
-		while (edge_vis.count({ u, v }))
-			u = rand() % n + 1, v = rand() % n + 1;
-		gen += u + ' ' + v + '\n';
+		while (edge_vis.count({ u, v }) || (!directed && edge_vis.count({ v, u })))
+			u = std::to_string(rand() % n + 1), v = std::to_string(rand() % n + 1);
+
+		edge_vis[{ u, v }] = 1;
+
+		gen += u + ' ' + v;
+
+		if (weighted_rand)
+			gen += ' ' + std::to_string(rand() % 1000 + 1);
+		gen += '\n';
 	}
 	edge_vis.clear();
 
@@ -606,6 +618,8 @@ void GraphTools::graphUpdate()
 
 void GraphTools::followNode(const std::string u)
 {
+	if (!camFollow)
+		return;
 	auto& node = nodes[u];
 	camTarget = ImVec2(-node.x, -node.y);
 }
@@ -902,6 +916,12 @@ void GraphTools::kruskal()
 		}
 
 		edge_vis[edge] = 1;
+
+		if (camFollow) {
+			auto& u = nodes[edge.first];
+			auto& v = nodes[edge.second];
+			camTarget = ImVec2((u.x + v.x) / -2.f, (u.y + v.y) / -2.f);
+		}
 
 		if(mst_dsu->find(edge.first) != mst_dsu->find(edge.second)){
 			edges[edge].color = VIS_EDGE_COL;
