@@ -51,7 +51,7 @@ private:
     void build();
     void init();
     void drawtable();
-    void drawarray(int);
+    void drawarray(float);
 public:
     void update();
     SparseTable(std::string, int&, float&, bool&);
