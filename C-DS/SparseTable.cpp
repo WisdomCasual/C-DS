@@ -138,7 +138,7 @@ void SparseTable::build()
 
 void SparseTable::init()
 {
-	sz = Elements.size();
+	sz = (int)Elements.size();
 	logs.resize(sz + 1);
 	table = std::vector<std::vector<int>>(LOG + 1, std::vector<int>(sz));
 	for (int i = 2; i <= sz; i++) {
@@ -163,7 +163,7 @@ void SparseTable::drawtable()
 	float cell_size = CELL_SIZE * zoomScale;
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-	x_size = Elements.size();
+	x_size = (int)Elements.size();
 	y_size = LOG;
 	ImVec2 s_pos(center.x + camPos.x * zoomScale - x_size * (cell_size + separator_size) / 2.f,
 		center.y + camPos.y * zoomScale - y_size * (cell_size + separator_size) / 2.f);
@@ -179,7 +179,7 @@ void SparseTable::drawtable()
 	}
 }
 
-void SparseTable::drawarray(int yPos)
+void SparseTable::drawarray(float yPos)
 {
 	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, yPos);
 
@@ -187,7 +187,7 @@ void SparseTable::drawarray(int yPos)
 	float cell_size = CELL_SIZE * zoomScale;
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-	sz = Elements.size();
+	sz = (int)Elements.size();
 	ImVec2 s_pos(center.x + camPos.x * zoomScale - sz* cell_size / 2.f ,
 		center.y + camPos.y * zoomScale - cell_size / 2.f);
 	ImVec2 cur_pos(s_pos);

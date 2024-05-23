@@ -26,7 +26,7 @@ void GraphTools::pointToNode(const std::string u, ImU32 color)
 
 void GraphTools::controlsUpdate()
 {
-	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(1080.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
+	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(1180.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
 	ImVec2 controlsWinPos(viewport->Size.x - controlsWinSize.x - ImGui::GetStyle().WindowPadding.x, viewport->Size.y - controlsWinSize.y - ImGui::GetStyle().WindowPadding.y);
 	bool disabled = false;
 
@@ -177,7 +177,7 @@ void GraphTools::controlsUpdate()
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
-	ImGui::Text("Traversal Algorithms:");
+	ImGui::Text("Algorithms:");
 
 	if (activeAlgo != 0) {
 		ImGui::PopItemFlag();
@@ -260,6 +260,7 @@ void GraphTools::controlsUpdate()
 			activeAlgo = 0;
 		}
 	}
+
 	/*
 	if (ImGui::Button("Bellman-Ford")) {
 		activeAlgo = 420;
@@ -279,10 +280,29 @@ void GraphTools::controlsUpdate()
 		}
 		*/
 
+	if(directed == 1 && !disabled){
+		disabled = true;
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+	}
+
+	if (ImGui::Button("MST (Kruskal)")) {
+		activeAlgo = 4;
+		clearStates();
+
+		for (auto edge : edges)
+			kruskal_queue.push({ -edge.second.w, { edge.first.first,edge.first.second } });
+
+		mst_dsu = new DSU(nodes);
+	}
+
 	if (disabled) {
 		ImGui::PopItemFlag();
 		ImGui::PopStyleVar();
 	}
+
+	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
+	ImGui::Text("Simulation:");
 
 	ImGui::Checkbox("Camera Follow", &camFollow);
 
@@ -316,6 +336,9 @@ void GraphTools::clearStates()
 
 	while (!dfs_stack.empty())
 		dfs_stack.pop();
+
+	while (!kruskal_queue.empty())
+		kruskal_queue.pop();
 
 	cleared = true;
 
@@ -767,8 +790,6 @@ void GraphTools::bfs()
 
 void GraphTools::dijkstra()
 {
-
-
 	if (found == 0 && !dijkstra_queue.empty()) {
 
 		auto cost = -dijkstra_queue.top().first;
@@ -861,8 +882,45 @@ void GraphTools::dijkstra()
 		found = 0;
 	}
 
+}
 
+void GraphTools::kruskal()
+{
+	if(!kruskal_queue.empty()){
 
+		std::pair<std::string, std::string> edge;
+		do {
+			edge = kruskal_queue.top().second;
+			kruskal_queue.pop();
+		} while (edge_vis.count({ edge.second, edge.first }) && !kruskal_queue.empty());
+
+		if(edge_vis.count({ edge.second, edge.first })){
+			delete mst_dsu;
+			mst_dsu = nullptr;
+			activeAlgo = 0;
+			return;
+		}
+
+		edge_vis[edge] = 1;
+
+		if(mst_dsu->find(edge.first) != mst_dsu->find(edge.second)){
+			edges[edge].color = VIS_EDGE_COL;
+			if(edges.count({ edge.second, edge.first }))
+				edges[{ edge.second, edge.first }].color = VIS_EDGE_COL;
+
+			mst_dsu->Union(edge.first, edge.second);
+		}
+		else{
+			edges[edge].color = CANCELED_EDGE_COL;
+			if (edges.count({ edge.second, edge.first }))
+				edges[{ edge.second, edge.first }].color = CANCELED_EDGE_COL;
+		}
+	}
+	else{
+		delete mst_dsu;
+		mst_dsu = nullptr;
+		activeAlgo = 0;
+	}
 }
 
 void GraphTools::bellmanFord() {
@@ -909,7 +967,8 @@ GraphTools::GraphTools(std::string name, int& state, float& GuiScale, bool& sett
 
 GraphTools::~GraphTools()
 {
-
+	if (mst_dsu != nullptr)
+		delete mst_dsu;
 }
 
 void GraphTools::update()
@@ -941,6 +1000,9 @@ void GraphTools::update()
 			}
 			else if (activeAlgo == 3) {
 				dijkstra();
+			}
+			else if (activeAlgo == 4) {
+				kruskal();
 			}
 			else if (activeAlgo == 420) {
 				bellmanFord();
