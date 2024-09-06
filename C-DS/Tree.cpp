@@ -307,8 +307,8 @@ void Tree::addNode(std::string u, std::string p)
 	nodes[u];
 	parent[u] = p;
 }
-Tree::Tree(std::string name, int& state, float& GuiScale, bool& settingEnabled)
-	: GrandWindow(name, state, GuiScale, settingsEnabled)
+Tree::Tree(std::string name, int& state, float& GuiScale, bool& settingsEnabled, int& colorMode)
+	: GrandWindow(name, state, GuiScale, settingsEnabled, colorMode)
 {
 	io = &ImGui::GetIO(); (void)io;
 }
@@ -343,11 +343,13 @@ void Tree::update()
 
 	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
 	camPos.y += (camTarget.y - camPos.y) * 10.f * io->DeltaTime;
+	zoomScale += (targetZoom - zoomScale) * 10.f * io->DeltaTime;
 
 	if (ImGui::IsWindowHovered() && io->MouseWheel != 0.0f) {
-		zoomScale += io->MouseWheel * 0.15f;
-		zoomScale = std::min(std::max(zoomScale, 0.5f), 3.0f);
+		targetZoom += io->MouseWheel * 0.15f;
+		targetZoom = std::min(std::max(targetZoom, 0.5f), 3.0f);
 	}
+
 
 	ImGui::End();
 

@@ -7,20 +7,31 @@ class Vector : public GrandWindow
 {
 public:
 	void update();
-	Vector(std::string, int&, float&, bool&);
+	Vector(std::string, int&, float&, bool&, int&);
 	~Vector();
 private:
 
-#define MAX_SIZE 1024
+	const int MAX_SIZE = 1024;
 
 	// speed constraints:
-#define MAX_SPEED 10.0f
-#define MIN_SPEED 0.1f
-#define DELAY_TIME 0.2f
-#define BASE_DELAY 0.6f
+	const float MAX_SPEED = 10.0f;
+	const float MIN_SPEED = 0.1f;
+	const float DELAY_TIME = 0.2f;
+	const float BASE_DELAY = 0.6f;
 
-#define CELL_SIZE 70.f
-#define SEPARATOR_SIZE 5.f
+	const float VEC_ROUNDNESS = 10.f;
+	const float VEC_CELL_SIZE = 70.f;
+	const float VEC_SEPARATOR_SIZE = 5.f;
+
+	enum {
+		DEFAULT_CELL_COL,
+		MARKED_CELL_COL,
+		CELL_BORDER_COL,
+		END_CELL_COL,
+		ARROW1_COL,
+		ARROW2_COL,
+		TEXT_COLOR
+	};
 
 // private fields:
 	ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
@@ -50,6 +61,7 @@ private:
 
 	void vectorUpdate();
 	void drawVector(int, std::string[], int, int, bool);
+	void getInput();
 	void drawArrow(int, int, int, bool);
 	bool pushBack(std::string);
 	void popBack();

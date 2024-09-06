@@ -76,7 +76,7 @@ private:
 
 public:
 
-    Tree(std::string, int&, float&, bool&);
+    Tree(std::string, int&, float&, bool&, int&);
     ~Tree();
 
 	// public methods:

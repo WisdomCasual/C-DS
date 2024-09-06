@@ -2,17 +2,6 @@
 #include <imgui_internal.h>
 #include <iostream>
 
-ImU32 Trie::ContrastingColor(ImU32 col)
-{
-	ImVec4 ret = ImGui::ColorConvertU32ToFloat4(col);
-
-	ret.x = std::min(ret.x + 50.f, 255.f);
-	ret.y = std::min(ret.y + 50.f, 255.f);
-	ret.z = std::min(ret.z + 50.f, 255.f);
-
-	return ImGui::ColorConvertFloat4ToU32(ret);
-}
-
 void Trie::controlsUpdate()
 {
 	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(750.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
@@ -149,6 +138,33 @@ void Trie::controlsUpdate()
 	ImGui::End();
 }
 
+ImU32 Trie::getColor(int color_code)
+{
+	switch (color_code) {
+	case DEF_VERT_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(200, 200, 200, 255)) : ImGui::GetColorU32(IM_COL32(150, 150, 150, 255));
+	case MARKED_VERT_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(50, 200, 200, 255)) : ImGui::GetColorU32(IM_COL32(50, 150, 150, 255));
+	case INCORRECT:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(200, 50, 50, 255)) : ImGui::GetColorU32(IM_COL32(150, 50, 50, 255));
+	case VISITED_VERT_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(50, 200, 50, 255)) : ImGui::GetColorU32(IM_COL32(50, 150, 50, 255));
+	case UPDATED_NODE_COLOR:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(50, 200, 50, 255)) : ImGui::GetColorU32(IM_COL32(50, 150, 50, 255));
+	case VERT_BORDER_COL:
+		return ImGui::GetColorU32(IM_COL32(40, 40, 40, 255));
+	case FIXED_VERT_COLOR:
+		return ImGui::GetColorU32(IM_COL32(40, 40, 40, 255));
+	case DEFAULT_EDGE_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(40, 40, 40, 255)) : ImGui::GetColorU32(IM_COL32(200, 200, 200, 255));
+	case TEXT_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(0, 0, 0, 255)) : ImGui::GetColorU32(IM_COL32(255, 255, 255, 255));
+
+	default:
+		return ImGui::GetColorU32(IM_COL32(255, 0, 255, 255));
+	}
+}
+
 float Trie::calcDist(float x1, float y1, float x2, float y2)
 {
 	return sqrtf((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
@@ -212,26 +228,26 @@ void Trie::graphUpdate()
 		// -_- 
 		float dist = calcDist(pos.x, pos.y, io->MousePos.x, io->MousePos.y);
 
-		if (ImGui::IsMouseDown(0) && dragging == -1 && dist <= VERTEX_RADIUS && ImGui::IsWindowHovered() && cur_tool == 0) {
+		if (ImGui::IsMouseDown(0) && dragging == -1 && dist <= TRIE_VERTEX_RADIUS * zoomScale && ImGui::IsWindowHovered() && cur_tool == 0) {
 			dragging = j;
 		}
 		else if ((!ImGui::IsWindowFocused() || !ImGui::IsMouseDown(0 || cur_tool != 0)) && dragging != -1) {
 			dragging = -1;
 		}
 		/*
-		if (ImGui::IsMouseDoubleClicked(0) && dist <= VERTEX_RADIUS && ImGui::IsWindowHovered() && cur_tool == 0) {
+		if (ImGui::IsMouseDoubleClicked(0) && dist <= TRIE_VERTEX_RADIUS * zoomScale && ImGui::IsWindowHovered() && cur_tool == 0) {
 			node.second.fixed = !node.second.fixed;
 		}
 		*/
 		/*
 		if (node.second.searching) {
-			node.second.color = VIS_VERT_COL;
+			node.second.color = VISITED_VERT_COL;
 		}
 		else if (sameGroup(node.first, viewComponent)) {
-			node.second.color = COMP_VERT_COL;
+			node.second.color = MARKED_VERT_COL;
 		}
 		else
-			node.second.color = DEFAULT_VERT_COL;
+			node.second.color = DEF_VERT_COL;
 			*/
 
 		if (dragging == j) {
@@ -268,10 +284,12 @@ void Trie::graphUpdate()
 		textCenter.x /= 2.f;
 		textCenter.y /= 2.f;
 
-		draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + node.x) * zoomScale, center.y + (camPos.y + node.y) * zoomScale), VERTEX_RADIUS, node.color);
+		draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + node.x) * zoomScale, center.y + (camPos.y + node.y) * zoomScale), TRIE_VERTEX_RADIUS* zoomScale, getColor(node.color));
+		draw_list->AddCircle(ImVec2(center.x + (camPos.x + node.x) * zoomScale, center.y + (camPos.y + node.y) * zoomScale), TRIE_VERTEX_RADIUS* zoomScale, getColor(VERT_BORDER_COL), 100, 5.f * zoomScale);
+
 		if (node.fixed)
-			draw_list->AddCircle(ImVec2(center.x + (camPos.x + node.x) * zoomScale, center.y + (camPos.y + node.y) * zoomScale), VERTEX_RADIUS, FIXED_NODE_COLOR, 100, 5.f * zoomScale);
-		draw_list->AddText(ImVec2(center.x + (camPos.x + node.x) * zoomScale - textCenter.x, center.y + (camPos.y + node.y) * zoomScale - textCenter.y), ContrastingColor(node.color), node.val.c_str());
+			draw_list->AddCircle(ImVec2(center.x + (camPos.x + node.x) * zoomScale, center.y + (camPos.y + node.y) * zoomScale), TRIE_VERTEX_RADIUS * zoomScale, getColor(FIXED_VERT_COLOR), 100, 10.f * zoomScale);
+		draw_list->AddText(ImVec2(center.x + (camPos.x + node.x) * zoomScale - textCenter.x, center.y + (camPos.y + node.y) * zoomScale - textCenter.y), getColor(TEXT_COL), node.val.c_str());
 	}
 
 	if (ImGui::IsMouseDown(0))
@@ -288,8 +306,6 @@ void Trie::drawEdge(ImDrawList* draw_list, int u, int v)
 	ImVec2 from = ImVec2(center.x + (camPos.x + nodes[v].x) * zoomScale, center.y + (camPos.y + nodes[v].y) * zoomScale);
 	ImVec2 to = ImVec2(center.x + (camPos.x + nodes[u].x) * zoomScale, center.y + (camPos.y + nodes[u].y) * zoomScale);
 
-	//const ImU32 color = edge.color;
-	const ImU32 color = ImGui::GetColorU32(IM_COL32(200, 200, 200, 255));
 	const float thickness = 5.f * zoomScale;
 
 	ImVec2 dir = ImVec2(to.x - from.x, to.y - from.y);
@@ -298,21 +314,21 @@ void Trie::drawEdge(ImDrawList* draw_list, int u, int v)
 	dir.y /= length;
 
 	const float headSize = 15.f * zoomScale;
-	to.x -= dir.x * VERTEX_RADIUS;
-	to.y -= dir.y * VERTEX_RADIUS;
-	from.x += dir.x * VERTEX_RADIUS;
-	from.y += dir.y * VERTEX_RADIUS;
+	to.x -= dir.x * TRIE_VERTEX_RADIUS * zoomScale;
+	to.y -= dir.y * TRIE_VERTEX_RADIUS * zoomScale;
+	from.x += dir.x * TRIE_VERTEX_RADIUS * zoomScale;
+	from.y += dir.y * TRIE_VERTEX_RADIUS * zoomScale;
 
 	ImVec2 p1 = ImVec2(to.x - dir.x * headSize - dir.y * headSize, to.y - dir.y * headSize + dir.x * headSize);
 	ImVec2 p2 = ImVec2(to.x - dir.x * headSize + dir.y * headSize, to.y - dir.y * headSize - dir.x * headSize);
-	draw_list->AddTriangleFilled(p1, p2, to, color);
+	draw_list->AddTriangleFilled(p1, p2, to, getColor(DEFAULT_EDGE_COL));
 
 	to.x -= dir.x * headSize / 2;
 	to.y -= dir.y * headSize / 2;
 	from.x += dir.x * headSize / 2;
 	from.y += dir.y * headSize / 2;
 
-	draw_list->AddLine(from, to, color, thickness);
+	draw_list->AddLine(from, to, getColor(DEFAULT_EDGE_COL), thickness);
 
 }
 
@@ -344,17 +360,17 @@ void Trie::clear() {
 	parent.clear();
 	nodes.push_back(Vertex());
 	nodes[0].fixed = true;
-	nodes[0].color = COMP_VERT_COL;
+	nodes[0].color = MARKED_VERT_COL;
 	nodes[0].cnt = 1;
 	parent.push_back(0);
 }
 
-Trie::Trie(std::string name, int& state, float& GuiScale, bool& settingEnabled)
-	: GrandWindow(name, state, GuiScale, settingsEnabled)
+Trie::Trie(std::string name, int& state, float& GuiScale, bool& settingsEnabled, int& colorMode)
+	: GrandWindow(name, state, GuiScale, settingsEnabled, colorMode)
 {
 	nodes.push_back(Vertex());
 	nodes[0].fixed = true;
-	nodes[0].color = COMP_VERT_COL;
+	nodes[0].color = MARKED_VERT_COL;
 	nodes[0].cnt = 1;
 	parent.push_back(0);
 }
@@ -383,13 +399,13 @@ void Trie::update()
 		while (curTime * (camFollow ? 0.7f : speed) >= TRIE_DELAY) {
 			curTime -= TRIE_DELAY / (camFollow ? 0.7f : speed);
 
-			if (updatedNodes.size() && nodes[updatedNodes.front()].color != DEFAULT_VERT_COL) {
+			if (updatedNodes.size() && nodes[updatedNodes.front()].color != DEF_VERT_COL) {
 				if (nodes[updatedNodes.front()].endofword) {
-					nodes[updatedNodes.front()].color = COMP_VERT_COL;
+					nodes[updatedNodes.front()].color = MARKED_VERT_COL;
 				}
 				else
 				{
-					nodes[updatedNodes.front()].color = DEFAULT_VERT_COL;
+					nodes[updatedNodes.front()].color = DEF_VERT_COL;
 				}
 				updatedNodes.pop();
 
@@ -411,7 +427,7 @@ void Trie::update()
 
 			if (curNode != -1) {
 				if (curIdx == word.size()) {
-					nodes[curNode].color = COMP_VERT_COL;
+					nodes[curNode].color = MARKED_VERT_COL;
 					nodes[curNode].endofword++;
 					curIdx = -1;
 					curNode = -1;
@@ -419,9 +435,9 @@ void Trie::update()
 				}
 				else {
 					if (curNode != 0)
-						nodes[curNode].color = DEFAULT_VERT_COL;
+						nodes[curNode].color = DEF_VERT_COL;
 					if (nodes[curNode].endofword)
-						nodes[curNode].color = COMP_VERT_COL;
+						nodes[curNode].color = MARKED_VERT_COL;
 					insertWord();
 					nodes[curNode].color = UPDATED_NODE_COLOR;
 					continue;
@@ -429,17 +445,17 @@ void Trie::update()
 			}
 
 			if (deletedNodes.size()) {
-				if (nodes[deletedNodes.top()].color != DEFAULT_VERT_COL) {
+				if (nodes[deletedNodes.top()].color != DEF_VERT_COL) {
 
 					int idx = deletedNodes.top();
 					if (trueUpdate && idx == endw)
 						nodes[idx].endofword--;
 					if (nodes[idx].endofword) {
-						nodes[idx].color = COMP_VERT_COL;
+						nodes[idx].color = MARKED_VERT_COL;
 					}
 					else
 					{
-						nodes[idx].color = DEFAULT_VERT_COL;
+						nodes[idx].color = DEF_VERT_COL;
 					}
 					char val = nodes[idx].val[0];
 					deletedNodes.pop();

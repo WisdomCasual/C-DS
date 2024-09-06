@@ -1,45 +1,39 @@
 #include "Deque.h"
 #include <imgui_internal.h>
 
-void Deque::pushFront()
+void Deque::pushFront(std::string node)
 {
 	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
 
-	if (add_node_text[0]) {
-		Node* newNode = new Node(add_node_text, (head == nullptr ? ImVec2(0, 0) : head->curPos));
-		newNode->next = head;
-		if (head != nullptr)
-			head->prev = newNode;
-		head = newNode;
-		if (tail == nullptr)
-			tail = newNode;
-		if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + NODES_SPACING > viewport->WorkSize.x ||
-			center.x + (camPos.x + newNode->curPos.x) * zoomScale - NODES_SPACING < 0.f)
-			followNode(newNode->curPos);
-		dequeSize++;
-		memset(add_node_text, 0, sizeof add_node_text);
-	}
+	Node* newNode = new Node(node, (head == nullptr ? ImVec2(0, 0) : head->curPos));
+	newNode->next = head;
+	if (head != nullptr)
+		head->prev = newNode;
+	head = newNode;
+	if (tail == nullptr)
+		tail = newNode;
+	if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + DQ_NODES_SPACING * zoomScale > viewport->WorkSize.x ||
+		center.x + (camPos.x + newNode->curPos.x) * zoomScale - DQ_NODES_SPACING * zoomScale < 0.f)
+		followNode(newNode->curPos);
+	dequeSize++;
 }
 
-void Deque::pushBack()
+void Deque::pushBack(std::string node)
 {
 	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
 
-	if (add_node_text[0]) {
-		Node* newNode = new Node(add_node_text, (tail == nullptr ? ImVec2(0, 0) : tail->curPos));
-		newNode->prev = tail;
+	Node* newNode = new Node(node, (tail == nullptr ? ImVec2(0, 0) : tail->curPos));
+	newNode->prev = tail;
 
-		if (tail != nullptr)
-			tail->next = newNode;
-		tail = newNode;
-		if (head == nullptr)
-			head = newNode;
-		if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + NODES_SPACING > viewport->WorkSize.x ||
-			center.x + (camPos.x + newNode->curPos.x) * zoomScale - NODES_SPACING < 0.f)
-			followNode(newNode->curPos);
-		dequeSize++;
-		memset(add_node_text, 0, sizeof add_node_text);
-	}
+	if (tail != nullptr)
+		tail->next = newNode;
+	tail = newNode;
+	if (head == nullptr)
+		head = newNode;
+	if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + DQ_NODES_SPACING * zoomScale > viewport->WorkSize.x ||
+		center.x + (camPos.x + newNode->curPos.x) * zoomScale - DQ_NODES_SPACING * zoomScale < 0.f)
+		followNode(newNode->curPos);
+	dequeSize++;
 }
 
 void Deque::popFront()
@@ -49,7 +43,7 @@ void Deque::popFront()
 	if (dequeSize != 0) {
 		Node* delNode = head;
 		head = head->next;
-		if(head != nullptr)
+		if (head != nullptr)
 			head->prev = nullptr;
 		dequeSize--;
 		if (dequeSize == 0)
@@ -69,7 +63,7 @@ void Deque::popBack()
 
 		Node* delNode = tail;
 		tail = tail->prev;
-		if(tail != nullptr)
+		if (tail != nullptr)
 			tail->next = nullptr;
 		dequeSize--;
 		if (dequeSize == 0)
@@ -80,6 +74,50 @@ void Deque::popBack()
 		delete delNode;
 	}
 }
+
+ImU32 Deque::getColor(int color_code)
+{
+	switch (color_code) {
+	case DEF_VERT_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(200, 200, 200, 255)) : ImGui::GetColorU32(IM_COL32(150, 150, 150, 255));
+	case ITER_VERT_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(50, 200, 200, 255)) : ImGui::GetColorU32(IM_COL32(50, 150, 150, 255));
+	case VERT_BORDER_COL:
+		return ImGui::GetColorU32(IM_COL32(40, 40, 40, 255));
+	case DEFAULT_EDGE_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(40, 40, 40, 255)) : ImGui::GetColorU32(IM_COL32(200, 200, 200, 255));
+	case TEXT_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(0, 0, 0, 255)) : ImGui::GetColorU32(IM_COL32(255, 255, 255, 255));
+
+	default:
+		return ImGui::GetColorU32(IM_COL32(255, 0, 255, 255));
+	}
+}
+
+void Deque::getInput()
+{
+	std::string curElement;
+	char* ptr = add_element_content;
+	while (*ptr != '\0') {
+		if (*ptr == ',') {
+			if (curElement.size() > 0) {
+				pending.push(curElement);
+				curElement.clear();
+			}
+		}
+		else
+			curElement.push_back(*ptr);
+
+		ptr++;
+	}
+	if (curElement.size() > 0) {
+		pending.push(curElement);
+		curElement.clear();
+	}
+
+	memset(add_element_content, 0, sizeof add_element_content);
+}
+
 
 void Deque::controlsUpdate()
 {
@@ -103,7 +141,7 @@ void Deque::controlsUpdate()
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
-	ImGui::InputText("Value", add_node_text, IM_ARRAYSIZE(add_node_text));
+	ImGui::InputText("Value", add_element_content, IM_ARRAYSIZE(add_element_content));
 
 	if (iterationMode != 0) {
 		disabled = true;
@@ -116,38 +154,29 @@ void Deque::controlsUpdate()
 
 	bool insertDisabled = false;
 
-	if (add_node_text[0] == 0 && !disabled) {
+	if (add_element_content[0] == 0 && !disabled) {
 		insertDisabled = true;
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 	}
 
 	if (ImGui::Button("Push Front")) {
-		pushFront();
+		getInput();
+		mode = PUSH_FRONT;
+		curTime = DQ_DELAY / speed;
 	}
 
 	if (ImGui::Button("Push Back")) {
-		pushBack();
+		getInput();
+		mode = PUSH_BACK;
+		curTime = DQ_DELAY / speed;
+
 	}
 
 	if (ImGui::Button("Push at Index")) {
-		if (add_node_text[0]) {
-			if (selected_index == 0) {
-				pushFront();
-			}
-			else if (selected_index == dequeSize) {
-				pushBack();
-			}
-			else {
-				iterationMode = 1;
-				highlighted_idx = 0;
-				curNode = head;
-				followNode(head->curPos);
-
-				insert_val = add_node_text;
-				memset(add_node_text, 0, sizeof add_node_text);
-			}
-		}
+		getInput();
+		mode = INSERT;
+		curTime = DQ_DELAY / speed;
 	}
 
 	if (insertDisabled) {
@@ -209,7 +238,7 @@ void Deque::controlsUpdate()
 
 	ImGui::Checkbox("Camera Follow", &camFollow);
 
-	ImGui::SliderFloat("Speed", &speed, LL_MIN_SPEED, LL_MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
+	ImGui::SliderFloat("Speed", &speed, DQ_MIN_SPEED, DQ_MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
 
 	ImGui::End();
 
@@ -236,21 +265,21 @@ void Deque::drawEdge(ImVec2& u, ImVec2& v) {
 	dir.y /= length;
 
 	const float headSize = 15.f * zoomScale;
-	to.x -= dir.x * VERTEX_RADIUS;
-	to.y -= dir.y * VERTEX_RADIUS;
-	from.x += dir.x * VERTEX_RADIUS;
-	from.y += dir.y * VERTEX_RADIUS;
+	to.x -= dir.x * DQ_VERTEX_RADIUS * zoomScale;
+	to.y -= dir.y * DQ_VERTEX_RADIUS * zoomScale;
+	from.x += dir.x * DQ_VERTEX_RADIUS * zoomScale;
+	from.y += dir.y * DQ_VERTEX_RADIUS * zoomScale;
 
 	ImVec2 p1 = ImVec2(to.x - dir.x * headSize - dir.y * headSize, to.y - dir.y * headSize + dir.x * headSize);
 	ImVec2 p2 = ImVec2(to.x - dir.x * headSize + dir.y * headSize, to.y - dir.y * headSize - dir.x * headSize);
-	draw_list->AddTriangleFilled(p1, p2, to, DEFAULT_EDGE_COL);
+	draw_list->AddTriangleFilled(p1, p2, to, getColor(DEFAULT_EDGE_COL));
 
 	to.x -= dir.x * headSize / 2;
 	to.y -= dir.y * headSize / 2;
 	from.x += dir.x * headSize / 2;
 	from.y += dir.y * headSize / 2;
 
-	draw_list->AddLine(from, to, DEFAULT_EDGE_COL, thickness);
+	draw_list->AddLine(from, to, getColor(DEFAULT_EDGE_COL), thickness);
 
 }
 
@@ -260,7 +289,7 @@ void Deque::dequeUpdate()
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	Node* cur_node = head;
-	ImVec2 targetPos(-(float)(dequeSize - 1) * NODES_SPACING / 2.f, 0.f);
+	ImVec2 targetPos(-(float)(dequeSize - 1) * DQ_NODES_SPACING * zoomScale / 2.f, 0.f);
 	int curIdx = 0;
 
 	if (tempNode != nullptr) {
@@ -268,7 +297,9 @@ void Deque::dequeUpdate()
 		textCenter.x /= 2.f;
 		textCenter.y /= 2.f;
 
-		draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale, center.y + (camPos.y + tempNode->curPos.y) * zoomScale), VERTEX_RADIUS, DEFAULT_NODE_COL);
+		draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale, center.y + (camPos.y + tempNode->curPos.y) * zoomScale), DQ_VERTEX_RADIUS * zoomScale, getColor(DEF_VERT_COL));
+		draw_list->AddCircle(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale, center.y + (camPos.y + tempNode->curPos.y) * zoomScale), DQ_VERTEX_RADIUS * zoomScale, getColor(VERT_BORDER_COL), 100, 5.f * zoomScale);
+
 
 		if (tempNode->next != nullptr)
 			drawEdge(tempNode->curPos, tempNode->next->curPos);
@@ -276,9 +307,9 @@ void Deque::dequeUpdate()
 		if (tempNode->prev != nullptr)
 			drawEdge(tempNode->curPos, tempNode->prev->curPos);
 
-		draw_list->AddText(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - textCenter.y), TEXT_COL, tempNode->value.c_str());
+		draw_list->AddText(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - textCenter.y), getColor(TEXT_COL), tempNode->value.c_str());
 
-		tempNode->curPos.y += (-NODES_SPACING - tempNode->curPos.y) * 20.f * io->DeltaTime;
+		tempNode->curPos.y += (-DQ_NODES_SPACING * zoomScale - tempNode->curPos.y) * 20.f * io->DeltaTime;
 	}
 
 	while (cur_node != nullptr) {
@@ -288,7 +319,8 @@ void Deque::dequeUpdate()
 			textCenter.x /= 2.f;
 			textCenter.y /= 2.f;
 
-			draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale, center.y + (camPos.y + cur_node->curPos.y) * zoomScale), VERTEX_RADIUS, (curIdx == highlighted_idx ? ITER_VERT_COL : DEFAULT_NODE_COL));
+			draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale, center.y + (camPos.y + cur_node->curPos.y) * zoomScale), DQ_VERTEX_RADIUS * zoomScale, getColor(curIdx == highlighted_idx ? ITER_VERT_COL : DEF_VERT_COL));
+			draw_list->AddCircle(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale, center.y + (camPos.y + cur_node->curPos.y) * zoomScale), DQ_VERTEX_RADIUS * zoomScale, getColor(VERT_BORDER_COL), 100, 5.f * zoomScale);
 
 			if (cur_node->next != nullptr)
 				drawEdge(cur_node->curPos, cur_node->next->curPos);
@@ -296,12 +328,12 @@ void Deque::dequeUpdate()
 			if (cur_node->prev != nullptr)
 				drawEdge(cur_node->curPos, cur_node->prev->curPos);
 
-			draw_list->AddText(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + cur_node->curPos.y) * zoomScale - textCenter.y), TEXT_COL, cur_node->value.c_str());
+			draw_list->AddText(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + cur_node->curPos.y) * zoomScale - textCenter.y), getColor(TEXT_COL), cur_node->value.c_str());
 
 			cur_node->curPos.x += (targetPos.x - cur_node->curPos.x) * 10.f * io->DeltaTime;
 			cur_node->curPos.y += (targetPos.y - cur_node->curPos.y) * 10.f * io->DeltaTime;
 
-			targetPos.x += NODES_SPACING;
+			targetPos.x += DQ_NODES_SPACING * zoomScale;
 		}
 		cur_node = cur_node->next;
 		curIdx++;
@@ -316,8 +348,8 @@ void Deque::followNode(ImVec2 pos)
 	camTarget = ImVec2(-pos.x, -pos.y);
 }
 
-Deque::Deque(std::string name, int& state, float& scale, bool& settingEnabled)
-	: GrandWindow(name, state, scale, settingsEnabled)
+Deque::Deque(std::string name, int& state, float& GuiScale, bool& settingsEnabled, int& colorMode)
+	: GrandWindow(name, state, GuiScale, settingsEnabled, colorMode)
 {
 
 }
@@ -352,19 +384,20 @@ void Deque::update()
 
 	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
 	camPos.y += (camTarget.y - camPos.y) * 10.f * io->DeltaTime;
+	zoomScale += (targetZoom - zoomScale) * 10.f * io->DeltaTime;
 
 	if (ImGui::IsWindowHovered() && io->MouseWheel != 0.0f) {
-		zoomScale += io->MouseWheel * 0.15f;
-		zoomScale = std::min(std::max(zoomScale, 0.5f), 3.0f);
+		targetZoom += io->MouseWheel * 0.15f;
+		targetZoom = std::min(std::max(targetZoom, 0.5f), 3.0f);
 	}
 
-
-	if (iterationMode != 0) {
+	if (iterationMode != 0 || !pending.empty()) {
 		curTime += io->DeltaTime;
 
-		while (curTime * speed >= LL_DELAY) {
 
-			curTime -= LL_DELAY / speed;
+		while (curTime * speed >= DQ_DELAY) {
+
+			curTime -= DQ_DELAY / speed;
 
 			if (iterationMode == 1) {
 				if (highlighted_idx + 1 < selected_index) {
@@ -382,13 +415,21 @@ void Deque::update()
 						curNode->next->prev = tempNode;
 						curNode->next = tempNode;
 						dequeSize++;
-						highlighted_idx = -1;
 						tempNode = nullptr;
-						iterationMode = 0;
+						if (pending.empty()) {
+							highlighted_idx = -1;
+							curNode = nullptr;
+							iterationMode = 0;
+						}
+						else {
+							insert_val = pending.front();
+							pending.pop();
+							selected_index++;
+						}
 					}
 				}
 			}
-			else {
+			else if (iterationMode == 2) {
 				if (highlighted_idx + 1 < selected_index) {
 					highlighted_idx++;
 					curNode = curNode->next;
@@ -401,7 +442,7 @@ void Deque::update()
 					}
 					else if (curNode->next == tempNode) {
 						curNode->next = tempNode->next;
-						if(curNode->next != nullptr)
+						if (curNode->next != nullptr)
 							curNode->next->prev = curNode;
 					}
 					else {
@@ -413,15 +454,36 @@ void Deque::update()
 						iterationMode = 0;
 					}
 				}
-
 			}
+			else {
 
+				std::string cur = pending.front();
+				pending.pop();
+
+				if (mode == PUSH_BACK)
+					pushBack(cur);
+
+				if (mode == PUSH_FRONT)
+					pushFront(cur);
+
+				if (mode == INSERT) {
+					if (selected_index == 0)
+						pushFront(cur), selected_index++;
+					else if (selected_index == dequeSize)
+						pushBack(cur), selected_index++;
+					else {
+						iterationMode = 1;
+						highlighted_idx = 0;
+						curNode = head;
+						followNode(curNode->curPos);
+						insert_val = cur;
+					}
+				}
+			}
 		}
-
 	}
 
 	ImGui::End();
-
 	controlsUpdate();
 
 }

@@ -28,18 +28,19 @@ void SparseTable::update()
 	}
 	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
 	camPos.y += (camTarget.y - camPos.y) * 10.f * io->DeltaTime;
+	zoomScale += (targetZoom - zoomScale) * 10.f * io->DeltaTime;
 
 	if (ImGui::IsWindowHovered() && io->MouseWheel != 0.0f) {
-		zoomScale += io->MouseWheel * 0.15f;
-		zoomScale = std::min(std::max(zoomScale, std::min(0.5f, std::min(viewport->WorkSize.x / x_size, viewport->WorkSize.y / y_size) / (CELL_SIZE + SEPARATOR_SIZE))), 3.f);
+		targetZoom += io->MouseWheel * 0.15f;
+		targetZoom = std::min(std::max(targetZoom, std::min(0.5f, std::min(viewport->WorkSize.x / x_size, viewport->WorkSize.y / y_size) / (CELL_SIZE + SEPARATOR_SIZE))), 3.f);
 	}
 
 	ImGui::End();
 
 	controlsUpdate();
 }
-SparseTable::SparseTable(std::string name, int& state, float& scale, bool& settingEnabled)
-	: GrandWindow(name, state, scale, settingsEnabled)
+SparseTable::SparseTable(std::string name, int& state, float& GuiScale, bool& settingsEnabled, int& colorMode)
+	: GrandWindow(name, state, GuiScale, settingsEnabled, colorMode)
 {
 	io = &ImGui::GetIO(); (void)io;
 }

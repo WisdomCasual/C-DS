@@ -13,27 +13,35 @@ class GraphTools :
 {
 private:
     // graph settings:
-    #define EDGE_LENGTH 200.f
-    #define VERTEX_RADIUS 30.f * zoomScale
+    const float EDGE_LENGTH = 200.f;
+    const float VERTEX_RADIUS = 30.f;
 
-    #define FIXED_NODE_COLOR ImGui::GetColorU32(IM_COL32(40, 40, 40, 255))
+    const char NO_DRAGGING = char(2);
 
-    #define DEFAULT_VERT_COL ImGui::GetColorU32(IM_COL32(150, 150, 150, 255))
-    #define ADJ_ROOT_COL ImGui::GetColorU32(IM_COL32(60, 60, 150, 255))
-    #define ADJ_CHILD_COL ImGui::GetColorU32(IM_COL32(80, 80, 160, 255))
-    #define VIS_VERT_COL ImGui::GetColorU32(IM_COL32(50, 150, 50, 255))
-    #define PATH_VERT_COL ImGui::GetColorU32(IM_COL32(50, 150, 150, 255))
-    #define INQUE_VERT_COL ImGui::GetColorU32(IM_COL32(70, 70, 70, 255))
-    #define ADJ_EDGE_COL ImGui::GetColorU32(IM_COL32(120, 120, 200, 255))
+    enum {
 
-    #define START_POINT_COL ImGui::GetColorU32(IM_COL32(50, 50, 150, 255))
-    #define END_POINT_COL ImGui::GetColorU32(IM_COL32(150, 50, 50, 255))
+        FIXED_NODE_COLOR,
 
-    #define DEFAULT_EDGE_COL ImGui::GetColorU32(IM_COL32(200, 200, 200, 255))
-    #define VIS_EDGE_COL ImGui::GetColorU32(IM_COL32(80, 180, 80, 255))
-    #define PATH_EDGE_COL ImGui::GetColorU32(IM_COL32(80, 180, 180, 255))
-    #define INQUE_EDGE_COL ImGui::GetColorU32(IM_COL32(120, 180, 120, 255))
-    #define CANCELED_EDGE_COL ImGui::GetColorU32(IM_COL32(50, 50, 50, 255))
+        DEFAULT_VERT_COL,
+        ADJ_ROOT_COL,
+        ADJ_CHILD_COL,
+        VIS_VERT_COL,
+        PATH_VERT_COL,
+        INQUE_VERT_COL,
+        ADJ_EDGE_COL,
+        VERT_BORDER_COL,
+
+        START_POINT_COL,
+        END_POINT_COL,
+
+        DEFAULT_EDGE_COL,
+        VIS_EDGE_COL,
+        PATH_EDGE_COL,
+        INQUE_EDGE_COL,
+        CANCELED_EDGE_COL,
+
+        TEXT_COL
+    };
 
 
     // speed constraints:
@@ -44,8 +52,8 @@ private:
     struct Vertex {
         float x, y;
         float fx = 0, fy = 0;
-        bool fixed = false;
-        ImU32 color;
+        bool fixed = false, beingDragged = false;
+        int color;
         Vertex() {
             x = (rand() % 10000) / 100.f;
             y = (rand() % 10000) / 100.f;
@@ -58,7 +66,7 @@ private:
         bool weighted = false;
         bool directed = true;
         ImVec2 pos = {0, 0};
-        ImU32 color = DEFAULT_EDGE_COL;
+        int color = DEFAULT_EDGE_COL;
     };
 
 	class DSU {
@@ -74,18 +82,21 @@ private:
             }
 
 		}
-		std::string find(std::string x) {
+		std::string find(const std::string& x) {
 			return (parent[x] == x ? x : parent[x] = find(parent[x]));
 		}
-		void Union(std::string x, std::string y) {
-			std::string set_x = find(x);
-			std::string set_y = find(y);
-			if (set_x == set_y)
+        bool isConnected(const std::string& u, const std::string& v) {
+            return (find(u) == find(v));
+        }
+		void Union(const std::string& u, const std::string& v) {
+			std::string set_u = find(u);
+			std::string set_v = find(v);
+			if (set_u == set_v)
 				return;
-			if (st_size[set_x] < st_size[set_y])
-				parent[set_x] = set_y, st_size[set_y] += st_size[set_x];
+			if (st_size[set_u] < st_size[set_v])
+				parent[set_u] = set_v, st_size[set_v] += st_size[set_u];
 			else
-				parent[set_y] = set_x, st_size[set_x] += st_size[set_y];
+				parent[set_v] = set_u, st_size[set_u] += st_size[set_v];
 		}
 	};
 
@@ -96,7 +107,7 @@ private:
     std::map<std::string, std::vector<std::pair<std::string, std::pair<int, bool>>>> adj;
     DSU* mst_dsu = nullptr;
 
-    char graphText[1000];
+    char graphText[500000];
 
     ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
     ImGuiWindowFlags controls_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
@@ -107,6 +118,7 @@ private:
     int cur_tool = 0, activeAlgo = 0, directed = 0, found = 0;
     float speed = 1.f, curTime = 0;
     bool cleared = true, paused = false, leftClickPressed = false, camFollow = false, movingCam = false, weighted_rand = false;
+    bool showNodeText = true, showWeightText = true;
     std::string dragging, cur_node;
     std::string viewAdjacent, startNode = "", endNode = "";
     ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
@@ -124,10 +136,10 @@ private:
     void controlsUpdate();
     void generateGraph();
     void clearStates();
-    ImU32 ContrastingColor(ImU32);
     void pointToNode(const std::string, ImU32);
     void drawEdge(ImDrawList*, const std::string, const std::string, Edge&);
     float calcDist(float, float, float, float);
+    void updateDraggedComponent();
     void graphUpdate();
     void followNode(const std::string);
     void dfs();
@@ -135,10 +147,11 @@ private:
     void dijkstra();
     void kruskal();
     void bellmanFord();
+    ImU32 getColor(int);
 
 public:
 
-    GraphTools(std::string, int&, float&, bool&);
+    GraphTools(std::string, int&, float&, bool&, int&);
     ~GraphTools();
 
     // public methods:

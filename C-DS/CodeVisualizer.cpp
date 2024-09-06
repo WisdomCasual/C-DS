@@ -23,12 +23,12 @@ void CodeVisualizer::updateMenuBar()
         if (ImGui::BeginMenu("View"))
         {
             if (ImGui::MenuItem("Zoom in", "Ctrl+=")) {
-                //scale = scale * 1.2f;
-                //ImGui::GetIO().FontGlobalScale = scale;
+                //GuiScale = GuiScale * 1.2f;
+                //ImGui::GetIO().FontGlobalScale = GuiScale;
             }
             if (ImGui::MenuItem("Zoom out", "Ctrl+-")) {
-                //scale = scale * 0.8f;
-                //ImGui::GetIO().FontGlobalScale = scale;
+                //GuiScale = GuiScale * 0.8f;
+                //ImGui::GetIO().FontGlobalScale = GuiScale;
             }
             if (ImGui::MenuItem("Settings")) {
                 settingsEnabled = true;
@@ -40,8 +40,8 @@ void CodeVisualizer::updateMenuBar()
     }
 }
 
-CodeVisualizer::CodeVisualizer(std::string name, int& state, float& scale, bool& settingsEnabled)
-	: GrandWindow(name, state, scale, settingsEnabled)
+CodeVisualizer::CodeVisualizer(std::string name, int& state, float& GuiScale, bool& settingsEnabled, int& colorMode)
+	: GrandWindow(name, state, GuiScale, settingsEnabled, colorMode)
 {
     docking_area = new DockingArea("Docking_Area");
     text_area = new TextArea("Text_Area");

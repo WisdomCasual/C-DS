@@ -6,8 +6,8 @@ class Settings :
     public GrandWindow
 {
     // private fields:
-    int& colorMode;
     ImGuiStyle* style;
+    bool initialized = false, debuggingSettings = false;
 
 public:
 

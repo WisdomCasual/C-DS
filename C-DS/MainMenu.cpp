@@ -63,8 +63,8 @@ bool MainMenu::ImageButtonWithText(const char* label, ImTextureID texId, const I
     return pressed;
 }
 
-MainMenu::MainMenu(std::string name, int& state, float& scale, bool& settingsEnabled)
-	: GrandWindow(name, state, scale, settingsEnabled)
+MainMenu::MainMenu(std::string name, int& state, float& GuiScale, bool& settingsEnabled, int& colorMode)
+	: GrandWindow(name, state, GuiScale, settingsEnabled, colorMode)
 {
 
     buttons_cnt = (sizeof buttons) / (sizeof(buttons[0]));
@@ -110,7 +110,7 @@ void MainMenu::updateButtons()
 
 
     if (((buttons_cnt + per_row - 1) / per_row) * (button_height * GuiScale + text_height + item_spacing.y) + 50.f * GuiScale < viewport->WorkSize.y - pos.y) {
-        pos.y = viewport->WorkSize.y - ((buttons_cnt + per_row - 1) / per_row) * (button_height * GuiScale + text_height + item_spacing.y) - 50.f * GuiScale;
+        pos.y += (viewport->WorkSize.y - pos.y - ((buttons_cnt + per_row - 1) / per_row) * (button_height * GuiScale + text_height + item_spacing.y)) / 2.f;
     }
 
     ImGui::SetCursorPosY(pos.y);

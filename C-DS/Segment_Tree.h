@@ -79,7 +79,7 @@ private:
 
 	void clear();
 
-	Segment_Tree(std::string, int&, float&, bool&);
+	Segment_Tree(std::string, int&, float&, bool&, int&);
 	~Segment_Tree();
 
 	// public methods:

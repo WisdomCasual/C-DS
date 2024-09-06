@@ -54,7 +54,7 @@ private:
     void drawarray(float);
 public:
     void update();
-    SparseTable(std::string, int&, float&, bool&);
+    SparseTable(std::string, int&, float&, bool&, int&);
     ~SparseTable();
 };
 

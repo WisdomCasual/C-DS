@@ -37,7 +37,7 @@ private:
     int logoWidth, logoHeight;
 
     int buttons_cnt;
-    ButtonData buttons[12] = { ButtonData("Grid", "Resources\\grids.png", 1),
+    ButtonData buttons[11] = { ButtonData("Grid", "Resources\\grids.png", 1),
                               ButtonData("Graph", "Resources\\graphs.png", 2),
                               ButtonData("Stack", "Resources\\stack.png", 10),
                               ButtonData("Queue", "Resources\\queue.png", 5),
@@ -48,7 +48,7 @@ private:
                               ButtonData("Hash Map", "Resources\\hash_map.png", 9),
                               ButtonData("DSU", "Resources\\DSU.png", 3),
                               ButtonData("Trie", "Resources\\trie.png", 12),
-                              ButtonData("Sparse Table", "Resources\\sparce_table.png",30) };
+                              /*ButtonData("Sparse Table", "Resources\\sparce_table.png",30)*/ };
 
     // private methods:
     bool ImageButtonWithText(const char*, ImTextureID, const ImVec2&);
@@ -56,7 +56,7 @@ private:
 
 public:
 
-    MainMenu(std::string, int&, float&, bool&);
+    MainMenu(std::string, int&, float&, bool&, int&);
     ~MainMenu();
 
     // public methods:

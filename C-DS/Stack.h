@@ -5,22 +5,28 @@
 #include <string>
 class Stack : public GrandWindow
 {
-public:
-	void update();
-	Stack(std::string, int&, float&, bool&);
-	~Stack();
 private:
 
-#define MAX_SIZE 1024
+	const int STACK_MAX_SIZE = 1024;
 
 	// speed constraints:
-#define MAX_SPEED 10.0f
-#define MIN_SPEED 0.1f
-#define DELAY_TIME 0.2f
-#define BASE_DELAY 0.6f
+	const float STACK_MAX_SPEED = 10.0f;
+	const float STACK_MIN_SPEED = 0.1f;
+	const float STACK_DELAY_TIME = 0.2f;
+	const float STACK_BASE_DELAY = 0.6f;
 
-#define CELL_SIZE 70.f
-#define SEPARATOR_SIZE 5.f
+	const float STACK_ROUNDNESS = 10.f;
+	const float STACK_CELL_SIZE = 70.f;
+	const float STACK_SEPARATOR_SIZE = 5.f;
+
+	enum {
+		DEFAULT_CELL_COL,
+		CELL_BORDER_COL,
+		END_CELL_COL,
+		ARROW1_COL,
+		ARROW2_COL,
+		TEXT_COLOR
+	};
 
 // private fields:
 	ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
@@ -43,19 +49,24 @@ private:
 	std::queue<std::string> pending;
 
 	
-
-	void updateMenuBar();
 	void controlsUpdate();
-
 
 	ImU32 getColor(int);
 
 	//ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
+	void getInput();
 	void stackUpdate();
 	void drawStack(int, std::string[], int, int, float, bool);
 	void drawArrow(int, int, int, bool, float);
 	bool Push(std::string);
 	void Pop();
 	void expand();
+
+public:
+
+	Stack(std::string, int&, float&, bool&, int&);
+	~Stack();
+	void update();
+
 };

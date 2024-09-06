@@ -2,30 +2,41 @@
 #include "GrandWindow.h"
 #include <imgui.h>
 #include <set>
+#include <queue>
 
 class Deque :
     public GrandWindow
 {
-#define VERTEX_RADIUS 30.f * zoomScale
-#define NODES_SPACING 200.f * zoomScale
-#define DEFAULT_NODE_COL ImGui::GetColorU32(IM_COL32(150, 150, 150, 255))
-#define ITER_VERT_COL ImGui::GetColorU32(IM_COL32(50, 150, 150, 255))
-#define TEXT_COL ImGui::GetColorU32(IM_COL32(255, 255, 255, 255))
-#define DEFAULT_EDGE_COL ImGui::GetColorU32(IM_COL32(200, 200, 200, 255))
+    const float DQ_VERTEX_RADIUS = 30.f;
+    const float DQ_NODES_SPACING = 200.f;
+
 
     // speed constraints:
-#define LL_MAX_SPEED 5.0f
-#define LL_MIN_SPEED 0.5f
-#define LL_DELAY 1.f
+    const float DQ_MAX_SPEED = 5.0f;
+    const float DQ_MIN_SPEED = 0.5f;
+    const float DQ_DELAY = 1.f;
 
-// private fields:
+    enum {
+        DEF_VERT_COL,
+        ITER_VERT_COL,
+        VERT_BORDER_COL,
+        DEFAULT_EDGE_COL,
+        TEXT_COL,
+
+        PUSH_BACK,
+        PUSH_FRONT,
+        INSERT,
+        IDLE
+    };
+
+    // private fields:
     ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
     ImGuiWindowFlags controls_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
 
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     const ImGuiIO* io = &ImGui::GetIO();
 
-    int cur_tool = 0, highlighted_idx = -1, selected_index = 0, iterationMode = 0;
+    int cur_tool = 0, highlighted_idx = -1, selected_index = 0, iterationMode = 0, mode = IDLE;
     std::string insert_val;
     float speed = 1.f, curTime = 0;
     bool paused = false, camFollow = false, movingCam = false;
@@ -46,14 +57,17 @@ class Deque :
 
     int dequeSize = 0;
     Node* head = nullptr, * tail = nullptr, * curNode = nullptr, * tempNode = nullptr;
+    std::queue<std::string> pending;
 
-    char add_node_text[10] = {};
+    char add_element_content[200] = {};
 
     // private methods:
-    void pushFront();
-    void pushBack();
+    void pushFront(std::string);
+    void pushBack(std::string);
     void popFront();
     void popBack();
+    ImU32 getColor(int color_code);
+    void getInput();
     void controlsUpdate();
     float calcDist(float, float, float, float);
     void drawEdge(ImVec2&, ImVec2&);
@@ -62,7 +76,7 @@ class Deque :
 
 public:
 
-    Deque(std::string, int&, float&, bool&);
+    Deque(std::string, int&, float&, bool&, int&);
     ~Deque();
 
     // public methods:

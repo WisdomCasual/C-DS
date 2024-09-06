@@ -75,11 +75,11 @@ void App::initStyle()
         style->Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
 
-    // Setup Dear ImGui style
-    //if(colorMode == 0)
-    //    ImGui::StyleColorsDark();
-    //else
-    //    ImGui::StyleColorsLight();
+    //Setup Dear ImGui style
+    if(colorMode == 0)
+        ImGui::StyleColorsDark();
+    else
+        ImGui::StyleColorsLight();
 
     // load custom font
     ImFont* customFont = io->Fonts->AddFontFromFileTTF("Resources/font.ttf", 45.0f);
@@ -126,46 +126,46 @@ void App::updateWindow()
     switch (state) {
 
     case 0:
-        curWindow = new MainMenu("Main_Menu", state, GuiScale, settingsEnabled);
+        curWindow = new MainMenu("Main_Menu", state, GuiScale, settingsEnabled, colorMode);
         break;
     case 1:
-        curWindow = new Grid("Grid", state, GuiScale, settingsEnabled);
+        curWindow = new Grid("Grid", state, GuiScale, settingsEnabled, colorMode);
         break;
     case 2:
-        curWindow = new GraphTools("Graph_Tools", state, GuiScale, settingsEnabled);
+        curWindow = new GraphTools("Graph_Tools", state, GuiScale, settingsEnabled, colorMode);
         break;
     case 3:
-        curWindow = new DSU("DESU?", state, GuiScale, settingsEnabled);
+        curWindow = new DSU("DESU?", state, GuiScale, settingsEnabled, colorMode);
         break;
     case 4:
-        curWindow = new Tree("Tree", state, GuiScale, settingsEnabled);
+        curWindow = new Tree("Tree", state, GuiScale, settingsEnabled, colorMode);
         break;
     case 5:
-        curWindow = new QueueVisualization("Queue", state, GuiScale, settingsEnabled);
+        curWindow = new QueueVisualization("Queue", state, GuiScale, settingsEnabled, colorMode);
         break;
     case 6:
-        curWindow = new Deque("Deque", state, GuiScale, settingsEnabled);
+        curWindow = new Deque("Deque", state, GuiScale, settingsEnabled, colorMode);
         break;
     case 7:
-        curWindow = new LinkedList("Linked_List", state, GuiScale, settingsEnabled);
+        curWindow = new LinkedList("Linked_List", state, GuiScale, settingsEnabled, colorMode);
         break;
     case 8:
-        curWindow = new HashTable("Hash_Table", state, GuiScale, settingsEnabled);
+        curWindow = new HashTable("Hash_Table", state, GuiScale, settingsEnabled, colorMode);
         break;
     case 9:
-        curWindow = new HashMap("Hash_Map", state, GuiScale, settingsEnabled);
+        curWindow = new HashMap("Hash_Map", state, GuiScale, settingsEnabled, colorMode);
         break;
     case 10:
-        curWindow = new Stack("Stack", state, GuiScale, settingsEnabled);
+        curWindow = new Stack("Stack", state, GuiScale, settingsEnabled, colorMode);
         break;
     case 11:
-        curWindow = new Vector("Vector", state, GuiScale, settingsEnabled);
+        curWindow = new Vector("Vector", state, GuiScale, settingsEnabled, colorMode);
         break;
     case 12:
-        curWindow = new Trie("Trie", state, GuiScale, settingsEnabled);
+        curWindow = new Trie("Trie", state, GuiScale, settingsEnabled, colorMode);
         break;
     case 30:
-        curWindow = new SparseTable("Sparsy", state, GuiScale, settingsEnabled);
+        curWindow = new SparseTable("Sparsy", state, GuiScale, settingsEnabled, colorMode);
         break;
 }
     state = -1;

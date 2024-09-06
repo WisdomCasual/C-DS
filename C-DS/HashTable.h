@@ -2,36 +2,48 @@
 #include "GrandWindow.h"
 #include <imgui.h>
 #include <vector>
+#include <queue>
 
 
 class HashTable :
     public GrandWindow
 {
     // grid size constraints:
-    #define MAX_TABLE_SIZE 50
-    #define MIN_TABLE_SIZE 2
+    const int MAX_TABLE_SIZE = 50;
+    const int MIN_TABLE_SIZE = 2;
 
-    #define HT_SEPARATOR_SIZE 100.f * zoomScale
-    #define CELL_SIZE_X 180.f * zoomScale
-    #define CELL_SIZE_Y 60.f * zoomScale
+    const float HT_SEPARATOR_SIZE = 70.f;
+    const float CELL_SIZE_X = 180.f;
+    const float CELL_SIZE_Y = 60.f;
 
-    #define DEFAULT_BUCKET_COL ImGui::GetColorU32(IM_COL32(150, 150, 150, 255))
-    #define CUR_BUCKET_COL ImGui::GetColorU32(IM_COL32(50, 150, 50, 255))
-    #define FAIL_BUCKET_COL ImGui::GetColorU32(IM_COL32(150, 50, 50, 255))
+    const float BUCKET_ROUNDNESS = 10.f;
+    const float HT_VERTEX_RADIUS = 30.f;
+    const float HT_NODES_DIST = 200.f;
 
-    #define VERTEX_RADIUS 30.f * zoomScale
-    #define NODES_DIST 200.f * zoomScale
-    #define DEFAULT_NODE_COL ImGui::GetColorU32(IM_COL32(150, 150, 150, 255))
-    #define ITER_NODE_COL ImGui::GetColorU32(IM_COL32(50, 150, 150, 255))
-    #define FAIL_NODE_COL ImGui::GetColorU32(IM_COL32(150, 50, 50, 255))
-    #define FOUND_NODE_COL ImGui::GetColorU32(IM_COL32(50, 150, 50, 255))
-    #define DEFAULT_EDGE_COL ImGui::GetColorU32(IM_COL32(200, 200, 200, 255))
-    #define TEXT_COL ImGui::GetColorU32(IM_COL32(255, 255, 255, 255))
+    // speed constraints:
+    const float HT_MAX_SPEED = 5.0f;
+    const float HT_MIN_SPEED = 0.5f;
+    const float HT_DELAY = 1.f;
 
-        // speed constraints:
-    #define HT_MAX_SPEED 5.0f
-    #define HT_MIN_SPEED 0.5f
-    #define HT_DELAY 1.f
+    enum {
+        DEFAULT_BUCKET_COL,
+        BUCKET_BORDER_COL,
+        CUR_BUCKET_COL,
+        FAIL_BUCKET_COL,
+
+        DEFAULT_NODE_COL,
+        NODE_BORDER_COL,
+        ITER_NODE_COL,
+        FAIL_NODE_COL,
+        FOUND_NODE_COL,
+        DEFAULT_EDGE_COL,
+        TEXT_COL,
+
+        INSERT,
+        FIND,
+        ERASE,
+        IDLE
+    };
 
 private:
     // private fields:
@@ -41,7 +53,7 @@ private:
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     const ImGuiIO* io = &ImGui::GetIO();
 
-    int cur_tool = 0, table_size_slider = 10,  table_size = 10, cur_bucket = -1, mode = 0;
+    int cur_tool = 0, table_size_slider = 10,  table_size = 10, cur_bucket = -1, mode = IDLE;
     float speed = 1.f, curTime = 0;
     bool paused = false, camFollow = false, movingCam = false, found = false;;
     ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
@@ -63,10 +75,14 @@ private:
 
     std::vector<Node*> buckets;
     Node* iteratingNode = nullptr, *tempNode = nullptr;
+    std::queue<std::string> pending;
 
-    char add_node_text[10] = "";
+    char add_element_content[200] = "";
 
     // private methods:
+    ImU32 getColor(int color_code);
+    void getInput();
+    void selectBucket(int);
     void controlsUpdate();
     void tableUpdate();
     float calcDist(float, float, float, float);
@@ -76,7 +92,7 @@ private:
 
 public:
 
-    HashTable(std::string, int&, float&, bool&);
+    HashTable(std::string, int&, float&, bool&, int&);
     ~HashTable();
 
     // public methods:

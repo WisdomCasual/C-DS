@@ -10,18 +10,31 @@ class Grid :
 {
 private:
     // grid size constraints:
-    #define X_MAX 50
-    #define X_MIN 2
-    #define Y_MAX 50
-    #define Y_MIN 2
+    const int X_MAX = 50;
+    const int X_MIN = 2;
+    const int Y_MAX = 50;
+    const int Y_MIN = 2;
+    const float GRID_ROUNDNESS = 7.f;
 
     // speed constraints:
-    #define GRID_MAX_SPEED 100.0f
-    #define GRID_MIN_SPEED 0.1f
-    #define GRID_DELAY_TIME 0.2f
+    const float GRID_MAX_SPEED = 100.0f;
+    const float GRID_MIN_SPEED = 0.1f;
+    const float GRID_DELAY_TIME = 0.2f;
 
-    #define CELL_SIZE 70.f
-    #define SEPARATOR_SIZE 5.f
+    const float CELL_SIZE = 70.f;
+    const float SEPARATOR_SIZE = 5.f;
+
+    enum {
+        PATH_CELL,
+        VISITED_CELL,
+        START_POS_CELL,
+        END_POS_CELL,
+        OBSTACLE_CELL,
+        EMPTY_CELL,
+        INQUE_CELL,
+
+        OUTLINE_COL,
+    };
 
     // private fields:
     ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
@@ -32,7 +45,7 @@ private:
 
     int cur_tool = 0, x_size = 5, y_size = 5, activeAlgo = 0, obstaclesCnt = 0;
     float speed = 1.f, curTime = 0;
-    bool diagonal_movement = false, found = false, cleared = true, paused = false, camFollow = false, movingCam = false;
+    bool diagonal_movement = false, found = false, cleared = false, paused = false, camFollow = false, movingCam = false;
     ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
     int prev_x = -1, prev_y = -1;
 
@@ -95,7 +108,8 @@ private:
     void controlsUpdate();
     void gridUpdate();
     void useTool(int, int);
-    ImU32 getColor(int, int);
+    ImU32 getCellColor(int, int);
+    ImU32 getColor(int);
     void clearVisited();
     bool inbounds(int, int);
     double getCost(int x, int y);
@@ -109,7 +123,7 @@ private:
 
 public:
 
-    Grid(std::string, int&, float&, bool&);
+    Grid(std::string, int&, float&, bool&, int&);
     ~Grid();
 
     // public methods:

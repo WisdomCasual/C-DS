@@ -18,7 +18,7 @@
 // It is intended for use in games and other systems that need to build
 // their own custom widgets and which do not have heavy text-editing
 // requirements (this library is not recommended for use for editing large
-// texts, as its performance does not scale and it has limited undo).
+// texts, as its performance does not GuiScale and it has limited undo).
 //
 // Non-trivial behaviors are modelled after Windows text controls.
 //
