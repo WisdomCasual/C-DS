@@ -105,9 +105,9 @@ void GraphTools::controlsUpdate()
 	if (activeAlgo == 0) {
 		std::string curStr;
 		char* curChar = graphText;
-		std::map<std::string, Vertex> temp_nodes;
+		std::unordered_map<std::string, Vertex> temp_nodes;
 		std::map<std::pair<std::string, std::string>, Edge> temp_edges;
-		std::map<std::string, std::vector<std::pair<std::string, std::pair<int, bool>>>> temp_adj;
+		std::unordered_map<std::string, std::vector<std::pair<std::string, std::pair<int, bool>>>> temp_adj;
 
 		do {
 			if (*curChar == '\n' || *curChar == '\0') {

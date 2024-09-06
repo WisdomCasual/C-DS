@@ -4,6 +4,7 @@
 #include <string>
 #include <set>
 #include <map>
+#include <unordered_map>
 #include <stack>
 #include <queue>
 #include <vector>
@@ -71,10 +72,10 @@ private:
 
 	class DSU {
 	private:
-        std::map<std::string, std::string> parent;
-		std::map<std::string, int> st_size;
+        std::unordered_map<std::string, std::string> parent;
+		std::unordered_map<std::string, int> st_size;
 	public:
-		DSU(std::map<std::string, Vertex>& nodes) {
+		DSU(std::unordered_map<std::string, Vertex>& nodes) {
 
             for (auto node : nodes){
                 parent[node.first] = node.first;
@@ -102,9 +103,9 @@ private:
 
     // private fields:
 
-    std::map<std::string, Vertex> nodes;
+    std::unordered_map<std::string, Vertex> nodes;
     std::map<std::pair<std::string, std::string>, Edge> edges;
-    std::map<std::string, std::vector<std::pair<std::string, std::pair<int, bool>>>> adj;
+    std::unordered_map<std::string, std::vector<std::pair<std::string, std::pair<int, bool>>>> adj;
     DSU* mst_dsu = nullptr;
 
     char graphText[500000];
@@ -127,10 +128,10 @@ private:
     std::queue<std::string> bfs_queue;
     std::priority_queue<std::pair<long long, std::string>> dijkstra_queue;
 	std::priority_queue<std::pair<long long, std::pair<std::string, std::string>>> kruskal_queue;
-    std::map<std::string, long long> vis;
+    std::unordered_map<std::string, long long> vis;
     std::map<std::pair<std::string, std::string>, long long> edge_vis;
-    std::map<std::string, std::string> par;
-    std::map<std::string, std::vector<std::string>>path;
+    std::unordered_map<std::string, std::string> par;
+    std::unordered_map<std::string, std::vector<std::string>>path;
 
     // private methods:
     void controlsUpdate();

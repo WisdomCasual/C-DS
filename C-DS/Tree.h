@@ -2,6 +2,7 @@
 #include "GrandWindow.h"
 #include <imgui.h>
 #include <map>
+#include <unordered_map>
 #include <set>
 #include <string>
 class Tree :
@@ -36,13 +37,6 @@ private:
 		}
 	};
 
-	struct CustomStringSort {
-		bool operator()(const std::string& first, const std::string& second) const {
-			if (first.size() != second.size()) return first.size() < second.size();
-			return first < second;
-		}
-	};
-
 	// private fields:
 
 	ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
@@ -56,13 +50,13 @@ private:
 	bool movingCam = false, leftClickPressed = false, disabled=false;
 	std::string node_u, node_v, cur_node_u, cur_node_v, viewComponent;
 
-	std::map<std::string, std::string> parent;
-	std::map<std::string, Vertex, CustomStringSort> nodes;
+	std::unordered_map<std::string, std::string> parent;
+	std::unordered_map<std::string, Vertex> nodes;
 
 	std::string dragging;
 
     int n,cur_tool = 0;
-    std::map<std::string, int> node_level;
+    std::unordered_map<std::string, int> node_level;
     char add_node_text[20] = {};
 	std::string root = "\0";
 
