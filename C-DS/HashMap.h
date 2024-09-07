@@ -37,7 +37,8 @@ class HashMap :
         FAIL_NODE_COL,
         FOUND_NODE_COL,
         DEFAULT_EDGE_COL,
-        TEXT_COL
+        TEXT_COL,
+        TEXT_OUTLINE_COL
     };
 
 
@@ -78,6 +79,7 @@ private:
 
     // private methods:
     ImU32 getColor(int color_code);
+    void drawText(ImVec2, const char*);
     void controlsUpdate();
     void tableUpdate();
     float calcDist(float, float, float, float);

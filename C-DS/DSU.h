@@ -32,7 +32,8 @@ private:
         COMP_VERT_COL,
         VERT_BORDER_COL,
         DEFAULT_EDGE_COL,
-        TEXT_COL
+        TEXT_COL,
+        TEXT_OUTLINE_COL
     };
     
     struct Vertex {
@@ -74,6 +75,7 @@ private:
     void graphUpdate();
     float calcDist(float, float, float, float);
     ImU32 getColor(int color_code);
+    void drawText(ImVec2, const char*);
     void controlsUpdate();
     void drawEdge(ImDrawList*, const std::string, const std::string);
     void mergeGroup(const std::string, const std::string);

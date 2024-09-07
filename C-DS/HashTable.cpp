@@ -27,10 +27,26 @@ ImU32 HashTable::getColor(int color_code)
 		return colorMode ? ImGui::GetColorU32(IM_COL32(80, 200, 80, 255)) : ImGui::GetColorU32(IM_COL32(50, 150, 50, 255));
 	case TEXT_COL:
 		return colorMode ? ImGui::GetColorU32(IM_COL32(0, 0, 0, 255)) : ImGui::GetColorU32(IM_COL32(255, 255, 255, 255));
+	case TEXT_OUTLINE_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(255, 255, 255, 255)) : ImGui::GetColorU32(IM_COL32(0, 0, 0, 255));
 
 	default:
 		return ImGui::GetColorU32(IM_COL32(255, 0, 255, 255));
 	}
+}
+
+void HashTable::drawText(ImVec2 pos, const char* text)
+{
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+	for (float x = -1; x <= 1; x++) {
+		for (float y = -1; y <= 1; y++) {
+			if (x == 0 && y == 0) continue;
+			draw_list->AddText(ImVec2(pos.x + x, pos.y + y), getColor(TEXT_OUTLINE_COL), text);
+		}
+	}
+
+	draw_list->AddText(pos, getColor(TEXT_COL), text);
 }
 
 void HashTable::getInput()
@@ -213,7 +229,7 @@ void HashTable::tableUpdate()
 			draw_list->AddCircle(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - viewport->WorkSize.y / 3.f), HT_VERTEX_RADIUS * zoomScale, getColor(tempNode->color), 100, 5.f * zoomScale);
 
 			
-			draw_list->AddText(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - textCenter.y - viewport->WorkSize.y / 3.f), getColor(TEXT_COL), tempNode->value.c_str());
+			drawText(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - textCenter.y - viewport->WorkSize.y / 3.f), tempNode->value.c_str());
 		}
 
 		ImVec2 prevPos(targetPos);
@@ -234,7 +250,7 @@ void HashTable::tableUpdate()
 			draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale, center.y + (camPos.y + cur_node->curPos.y) * zoomScale - viewport->WorkSize.y / 3.f), HT_VERTEX_RADIUS * zoomScale, getColor(cur_node->color));
 			draw_list->AddCircle(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale, center.y + (camPos.y + cur_node->curPos.y) * zoomScale - viewport->WorkSize.y / 3.f), HT_VERTEX_RADIUS * zoomScale, getColor(NODE_BORDER_COL), 100, 5.f * zoomScale);
 
-			draw_list->AddText(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + cur_node->curPos.y) * zoomScale - textCenter.y - viewport->WorkSize.y / 3.f), getColor(TEXT_COL), cur_node->value.c_str());
+			drawText(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + cur_node->curPos.y) * zoomScale - textCenter.y - viewport->WorkSize.y / 3.f), cur_node->value.c_str());
 
 			cur_node->curPos.x += (targetPos.x - cur_node->curPos.x) * 10.f * io->DeltaTime;
 			cur_node->curPos.y += (targetPos.y - cur_node->curPos.y) * 10.f * io->DeltaTime;
@@ -255,7 +271,7 @@ void HashTable::tableUpdate()
 		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + std::max(CELL_SIZE_X * zoomScale, textSize.x), cur_pos.y + CELL_SIZE_Y * zoomScale), getColor(i == cur_bucket ? CUR_BUCKET_COL : DEFAULT_BUCKET_COL), BUCKET_ROUNDNESS * zoomScale);
 		draw_list->AddRect(cur_pos, ImVec2(cur_pos.x + std::max(CELL_SIZE_X * zoomScale, textSize.x), cur_pos.y + CELL_SIZE_Y * zoomScale), getColor(BUCKET_BORDER_COL), BUCKET_ROUNDNESS * zoomScale, 0, 5.f * zoomScale);
 		
-		draw_list->AddText(bucketPos, getColor(TEXT_COL), bucket_label.c_str());
+		drawText(bucketPos, bucket_label.c_str());
 		cur_pos.x += std::max(CELL_SIZE_X * zoomScale, textSize.x) + HT_SEPARATOR_SIZE * zoomScale;
 	}
 

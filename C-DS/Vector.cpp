@@ -68,10 +68,26 @@ ImU32 Vector::getColor(int color_code)
 		return colorMode ? ImGui::GetColorU32(IM_COL32(80, 200, 200, 255)) : ImGui::GetColorU32(IM_COL32(50, 150, 150, 255));
 	case TEXT_COLOR:
 		return colorMode ? ImGui::GetColorU32(IM_COL32(0, 0, 0, 255)) : ImGui::GetColorU32(IM_COL32(255, 255, 255, 255));
+	case TEXT_OUTLINE_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(255, 255, 255, 255)) : ImGui::GetColorU32(IM_COL32(0, 0, 0, 255));
 
 	default:
 		return ImGui::GetColorU32(IM_COL32(255, 0, 255, 255));
 	}
+}
+
+void Vector::drawText(ImVec2 pos, const char* text)
+{
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+	for (float x = -1; x <= 1; x++) {
+		for (float y = -1; y <= 1; y++) {
+			if (x == 0 && y == 0) continue;
+			draw_list->AddText(ImVec2(pos.x + x, pos.y + y), getColor(TEXT_OUTLINE_COL), text);
+		}
+	}
+
+	draw_list->AddText(pos, getColor(TEXT_COLOR), text);
 }
 
 void Vector::vectorUpdate()
@@ -178,7 +194,7 @@ void Vector::drawVector(int ypos, std::string temp[], int mxSz, int tail, bool i
 		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + std::max(cell_size, textSize.x + 15.f * zoomScale), cur_pos.y + cell_size), getColor((i == eraseIdx || i == insertIdx ? MARKED_CELL_COL : DEFAULT_CELL_COL)), VEC_ROUNDNESS * zoomScale);
 		draw_list->AddRect(cur_pos, ImVec2(cur_pos.x + std::max(cell_size, textSize.x + 15.f * zoomScale), cur_pos.y + cell_size), getColor(CELL_BORDER_COL), VEC_ROUNDNESS * zoomScale, 0, 4.f * zoomScale);
 
-		draw_list->AddText(pos, getColor(TEXT_COLOR), temp[i].c_str());
+		drawText(pos, temp[i].c_str());
 		cur_pos.x += std::max(cell_size, textSize.x + 15.f * zoomScale) + separator_size;
 	}
 

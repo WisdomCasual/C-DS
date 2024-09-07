@@ -25,7 +25,8 @@ private:
 		END_CELL_COL,
 		ARROW1_COL,
 		ARROW2_COL,
-		TEXT_COLOR
+		TEXT_COLOR,
+		TEXT_OUTLINE_COL
 	};
 
 // private fields:
@@ -52,9 +53,7 @@ private:
 	void controlsUpdate();
 
 	ImU32 getColor(int);
-
-	//ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
+	void drawText(ImVec2, const char*);
 	void getInput();
 	void stackUpdate();
 	void drawStack(int, std::string[], int, int, float, bool);

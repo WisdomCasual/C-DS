@@ -8,7 +8,7 @@ class Deque :
     public GrandWindow
 {
     const float DQ_VERTEX_RADIUS = 30.f;
-    const float DQ_NODES_SPACING = 200.f;
+    const float DQ_NODES_SPACING = 150.f;
 
 
     // speed constraints:
@@ -22,6 +22,7 @@ class Deque :
         VERT_BORDER_COL,
         DEFAULT_EDGE_COL,
         TEXT_COL,
+        TEXT_OUTLINE_COL,
 
         PUSH_BACK,
         PUSH_FRONT,
@@ -67,6 +68,7 @@ class Deque :
     void popFront();
     void popBack();
     ImU32 getColor(int color_code);
+    void drawText(ImVec2, const char*);
     void getInput();
     void controlsUpdate();
     float calcDist(float, float, float, float);

@@ -38,6 +38,7 @@ class HashTable :
         FOUND_NODE_COL,
         DEFAULT_EDGE_COL,
         TEXT_COL,
+        TEXT_OUTLINE_COL,
 
         INSERT,
         FIND,
@@ -81,6 +82,7 @@ private:
 
     // private methods:
     ImU32 getColor(int color_code);
+    void drawText(ImVec2, const char*);
     void getInput();
     void selectBucket(int);
     void controlsUpdate();

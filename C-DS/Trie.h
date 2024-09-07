@@ -30,7 +30,8 @@ private:
 		MARKED_VERT_COL,
 		DEFAULT_EDGE_COL,
 
-		TEXT_COL
+		TEXT_COL,
+		TEXT_OUTLINE_COL
 	};
 
 	struct Vertex {
@@ -78,6 +79,7 @@ private:
 
 	// private methods:
 	ImU32 getColor(int);
+	void drawText(ImVec2, const char*);
 	void graphUpdate();
 	float calcDist(float, float, float, float);
 	void controlsUpdate();

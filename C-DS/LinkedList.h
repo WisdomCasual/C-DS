@@ -9,7 +9,7 @@ class LinkedList :
     public GrandWindow
 {
     const float LL_VERTEX_RADIUS = 30.f;
-    const float NODES_DIST = 200.f;
+    const float NODES_DIST = 150.f;
 
     // speed constraints:
     const float LL_MAX_SPEED = 5.0f;
@@ -22,6 +22,7 @@ class LinkedList :
         VERT_BORDER_COL,
         DEFAULT_EDGE_COL,
         TEXT_COL,
+        TEXT_OUTLINE_COL,
 
         PUSH_BACK,
         PUSH_FRONT,
@@ -61,6 +62,7 @@ class LinkedList :
 
     // private methods:
     ImU32 getColor(int color_code);
+    void drawText(ImVec2, const char*);
     void pushFront(std::string);
     void pushBack(std::string);
     void popFront();

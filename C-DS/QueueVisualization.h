@@ -24,7 +24,8 @@ private:
 		CELL_BORDER_COL,
 		ARROW1_COL,
 		ARROW2_COL,
-		TEXT_COLOR
+		TEXT_COLOR,
+		TEXT_OUTLINE_COL
 	};
 
 // private fields:
@@ -46,6 +47,7 @@ private:
 	void controlsUpdate();
 	void getInput();
 	ImU32 getColor(int);
+	void drawText(ImVec2, const char*);
 	void queueUpdate();
 	void drawQueue(int, std::string[], int, int, int);
 	void drawArrow(int, int, int, bool);

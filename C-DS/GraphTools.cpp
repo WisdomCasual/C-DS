@@ -3,6 +3,8 @@
 #include <sstream>
 #include <iostream>
 
+GraphTools::Random GraphTools::randomizer;
+
 void GraphTools::pointToNode(const std::string u, ImU32 color)
 {
 	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
@@ -375,11 +377,11 @@ void GraphTools::generateGraph()
 	clearStates();
 
 	std::string gen;
-	int n = rand() % 20 + 3;
+	int n = randomizer.DrawNumber(5, 30);
 	for (int i = 0; i < n; i++)
 		gen += std::to_string(i + 1) + '\n';
 
-	int m = rand() % (2 * n);
+	int m = randomizer.DrawNumber(0, 2 * n);
 
 	for (int i = 0; i < m; i++) {
 		std::string u = std::to_string(rand() % n + 1), v = std::to_string(rand() % n + 1);
@@ -436,6 +438,30 @@ void GraphTools::drawEdge(ImDrawList* draw_list, const std::string u, const std:
 
 	draw_list->AddLine(from, to, getColor(color), thickness);
 
+}
+
+void GraphTools::drawEdgeWeight(ImDrawList* draw_list, const std::string u, const std::string v, Edge& edge)
+{
+	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+
+	ImVec2 from = ImVec2(center.x + (camPos.x + nodes[u].x) * zoomScale, center.y + (camPos.y + nodes[u].y) * zoomScale);
+	ImVec2 to = ImVec2(center.x + (camPos.x + nodes[v].x) * zoomScale, center.y + (camPos.y + nodes[v].y) * zoomScale);
+
+	ImVec2 dir = ImVec2(to.x - from.x, to.y - from.y);
+	float length = calcDist(from.x, from.y, to.x, to.y);
+	dir.x /= length;
+	dir.y /= length;
+
+	const float headSize = 15.f * zoomScale;
+	to.x -= dir.x * VERTEX_RADIUS * zoomScale;
+	to.y -= dir.y * VERTEX_RADIUS * zoomScale;
+	from.x += dir.x * VERTEX_RADIUS * zoomScale;
+	from.y += dir.y * VERTEX_RADIUS * zoomScale;
+
+	to.x -= dir.x * headSize / 2;
+	to.y -= dir.y * headSize / 2;
+	from.x += dir.x * headSize / 2;
+	from.y += dir.y * headSize / 2;
 	if (edge.weighted && showWeightText) {
 
 		length = calcDist(from.x, from.y, to.x, to.y);
@@ -463,9 +489,22 @@ void GraphTools::drawEdge(ImDrawList* draw_list, const std::string u, const std:
 		pos.x += (to.x - pos.x - center.x - camPos.x * zoomScale) * 40.f * io->DeltaTime;
 		pos.y += (to.y - pos.y - center.y - camPos.y * zoomScale) * 40.f * io->DeltaTime;
 
-		draw_list->AddText(ImVec2(center.x + pos.x + camPos.x * zoomScale, center.y + pos.y + camPos.y * zoomScale), getColor(TEXT_COL), w_label.c_str());
+		drawText(ImVec2(center.x + pos.x + camPos.x * zoomScale, center.y + pos.y + camPos.y * zoomScale), w_label.c_str());
+	}
+}
+
+void GraphTools::drawText(ImVec2 pos, const char* text)
+{
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+	for (float x = -1; x <= 1; x++) {
+		for (float y = -1; y <= 1; y++) {
+			if (x == 0 && y == 0) continue;
+			draw_list->AddText(ImVec2(pos.x + x, pos.y + y), getColor(TEXT_OUTLINE_COL), text);
+		}
 	}
 
+	draw_list->AddText(pos, getColor(TEXT_COL), text);
 }
 
 void GraphTools::updateDraggedComponent()
@@ -544,8 +583,8 @@ void GraphTools::graphUpdate()
 					u.fy -= force * dy;
 				}
 				else if(v.beingDragged){
-					u.fx -= force * 4.f * dx;
-					u.fy -= force * 4.f * dy;
+					u.fx -= force * 3.f * dx;
+					u.fy -= force * 3.f * dy;
 				}
 			}
 		}
@@ -642,6 +681,9 @@ void GraphTools::graphUpdate()
 	for (auto& edge : edges)
 		drawEdge(draw_list, edge.first.first, edge.first.second, edge.second);
 
+	for (auto& edge : edges)
+		drawEdgeWeight(draw_list, edge.first.first, edge.first.second, edge.second);
+
 	for (auto& node : nodes) {
 		ImVec2 textCenter = ImGui::CalcTextSize(node.first.c_str());
 		textCenter.x /= 2.f;
@@ -651,7 +693,7 @@ void GraphTools::graphUpdate()
 		if (node.second.fixed)
 			draw_list->AddCircle(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale, center.y + (camPos.y + node.second.y) * zoomScale), VERTEX_RADIUS * zoomScale, getColor(FIXED_NODE_COLOR), 100, 10.f * zoomScale);
 		if(showNodeText)
-			draw_list->AddText(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale - textCenter.x, center.y + (camPos.y + node.second.y) * zoomScale - textCenter.y), getColor(TEXT_COL), node.first.c_str());
+			drawText(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale - textCenter.x, center.y + (camPos.y + node.second.y) * zoomScale - textCenter.y), node.first.c_str());
 	}
 
 	if (startNode.size()) pointToNode(startNode, getColor(START_POINT_COL));
@@ -1071,6 +1113,8 @@ ImU32 GraphTools::getColor(int color_code)
 		return colorMode ? ImGui::GetColorU32(IM_COL32(200, 200, 200, 255)) : ImGui::GetColorU32(IM_COL32(50, 50, 50, 255));
 	case TEXT_COL:
 		return colorMode ? ImGui::GetColorU32(IM_COL32(0, 0, 0, 255)) : ImGui::GetColorU32(IM_COL32(255, 255, 255, 255));
+	case TEXT_OUTLINE_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(255, 255, 255, 255)) : ImGui::GetColorU32(IM_COL32(0, 0, 0, 255));
 
 	default:
 		return ImGui::GetColorU32(IM_COL32(255, 0, 255, 255));

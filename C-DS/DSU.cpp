@@ -202,10 +202,26 @@ ImU32 DSU::getColor(int color_code)
 		return colorMode ? ImGui::GetColorU32(IM_COL32(40, 40, 40, 255)) : ImGui::GetColorU32(IM_COL32(200, 200, 200, 255));
 	case TEXT_COL:
 		return colorMode ? ImGui::GetColorU32(IM_COL32(0, 0, 0, 255)) : ImGui::GetColorU32(IM_COL32(255, 255, 255, 255));
+	case TEXT_OUTLINE_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(255, 255, 255, 255)) : ImGui::GetColorU32(IM_COL32(0, 0, 0, 255));
 
 	default:
 		return ImGui::GetColorU32(IM_COL32(255, 0, 255, 255));
 	}
+}
+
+void DSU::drawText(ImVec2 pos, const char* text)
+{
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+	for (float x = -1; x <= 1; x++) {
+		for (float y = -1; y <= 1; y++) {
+			if (x == 0 && y == 0) continue;
+			draw_list->AddText(ImVec2(pos.x + x, pos.y + y), getColor(TEXT_OUTLINE_COL), text);
+		}
+	}
+
+	draw_list->AddText(pos, getColor(TEXT_COL), text);
 }
 
 void DSU::updateDraggedComponent()
@@ -264,8 +280,8 @@ void DSU::graphUpdate()
 					u.fy -= force * dy;
 				}
 				else if (v.beingDragged) {
-					u.fx -= force * 4.f * dx;
-					u.fy -= force * 4.f * dy;
+					u.fx -= force * 3.f * dx;
+					u.fy -= force * 3.f * dy;
 				}
 			}
 		}
@@ -364,7 +380,7 @@ void DSU::graphUpdate()
 		if (node.second.fixed)
 			draw_list->AddCircle(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale, center.y + (camPos.y + node.second.y) * zoomScale), VERTEX_RADIUS * zoomScale, getColor(FIXED_NODE_COL), 100, 10.f * zoomScale);
 
-		draw_list->AddText(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale - textCenter.x, center.y + (camPos.y + node.second.y) * zoomScale - textCenter.y), getColor(TEXT_COL), node.first.c_str());
+		drawText(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale - textCenter.x, center.y + (camPos.y + node.second.y) * zoomScale - textCenter.y), node.first.c_str());
 	}
 
 	if (ImGui::IsMouseDown(0))

@@ -2,12 +2,12 @@
 #include "GrandWindow.h"
 #include <imgui.h>
 #include <string>
-#include <set>
 #include <map>
 #include <unordered_map>
 #include <stack>
 #include <queue>
 #include <vector>
+#include <random>
 
 class GraphTools :
     public GrandWindow
@@ -41,7 +41,8 @@ private:
         INQUE_EDGE_COL,
         CANCELED_EDGE_COL,
 
-        TEXT_COL
+        TEXT_COL,
+        TEXT_OUTLINE_COL
     };
 
 
@@ -50,15 +51,31 @@ private:
     #define GRAPH_MIN_SPEED 0.1f
     #define GRAPH_DELAY 1.f
 
+    class Random {
+    private:
+        std::mt19937 eng{ std::random_device{}() };
+
+    public:
+        Random() = default;
+        Random(std::mt19937::result_type seed) : eng(seed) {}
+
+        int DrawNumber(int min, int max) {
+            if (max < min) return 0;
+            return std::uniform_int_distribution<int>{min, max}(eng);
+        }
+    };
+
+    static Random randomizer;
+
     struct Vertex {
         float x, y;
         float fx = 0, fy = 0;
         bool fixed = false, beingDragged = false;
-        int color;
+        int color = DEFAULT_VERT_COL;
+
         Vertex() {
-            x = (rand() % 10000) / 100.f;
-            y = (rand() % 10000) / 100.f;
-            color = DEFAULT_VERT_COL;
+            x = randomizer.DrawNumber(0, 10000) / 100.f;
+            y = randomizer.DrawNumber(0, 10000) / 100.f;
         }
     };
 
@@ -108,7 +125,7 @@ private:
     std::unordered_map<std::string, std::vector<std::pair<std::string, std::pair<int, bool>>>> adj;
     DSU* mst_dsu = nullptr;
 
-    char graphText[500000];
+    char graphText[100000];
 
     ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
     ImGuiWindowFlags controls_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
@@ -139,6 +156,8 @@ private:
     void clearStates();
     void pointToNode(const std::string, ImU32);
     void drawEdge(ImDrawList*, const std::string, const std::string, Edge&);
+    void drawEdgeWeight(ImDrawList*, const std::string, const std::string, Edge&);
+    void drawText(ImVec2, const char*);
     float calcDist(float, float, float, float);
     void updateDraggedComponent();
     void graphUpdate();

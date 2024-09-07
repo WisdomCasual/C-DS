@@ -159,10 +159,26 @@ ImU32 Trie::getColor(int color_code)
 		return colorMode ? ImGui::GetColorU32(IM_COL32(40, 40, 40, 255)) : ImGui::GetColorU32(IM_COL32(200, 200, 200, 255));
 	case TEXT_COL:
 		return colorMode ? ImGui::GetColorU32(IM_COL32(0, 0, 0, 255)) : ImGui::GetColorU32(IM_COL32(255, 255, 255, 255));
+	case TEXT_OUTLINE_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(255, 255, 255, 255)) : ImGui::GetColorU32(IM_COL32(0, 0, 0, 255));
 
 	default:
 		return ImGui::GetColorU32(IM_COL32(255, 0, 255, 255));
 	}
+}
+
+void Trie::drawText(ImVec2 pos, const char* text)
+{
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+	for (float x = -1; x <= 1; x++) {
+		for (float y = -1; y <= 1; y++) {
+			if (x == 0 && y == 0) continue;
+			draw_list->AddText(ImVec2(pos.x + x, pos.y + y), getColor(TEXT_OUTLINE_COL), text);
+		}
+	}
+
+	draw_list->AddText(pos, getColor(TEXT_COL), text);
 }
 
 float Trie::calcDist(float x1, float y1, float x2, float y2)
@@ -289,7 +305,7 @@ void Trie::graphUpdate()
 
 		if (node.fixed)
 			draw_list->AddCircle(ImVec2(center.x + (camPos.x + node.x) * zoomScale, center.y + (camPos.y + node.y) * zoomScale), TRIE_VERTEX_RADIUS * zoomScale, getColor(FIXED_VERT_COLOR), 100, 10.f * zoomScale);
-		draw_list->AddText(ImVec2(center.x + (camPos.x + node.x) * zoomScale - textCenter.x, center.y + (camPos.y + node.y) * zoomScale - textCenter.y), getColor(TEXT_COL), node.val.c_str());
+		drawText(ImVec2(center.x + (camPos.x + node.x) * zoomScale - textCenter.x, center.y + (camPos.y + node.y) * zoomScale - textCenter.y), node.val.c_str());
 	}
 
 	if (ImGui::IsMouseDown(0))

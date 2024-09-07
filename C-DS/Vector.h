@@ -30,7 +30,8 @@ private:
 		END_CELL_COL,
 		ARROW1_COL,
 		ARROW2_COL,
-		TEXT_COLOR
+		TEXT_COLOR,
+		TEXT_OUTLINE_COL
 	};
 
 // private fields:
@@ -57,8 +58,7 @@ private:
 
 
 	ImU32 getColor(int);
-
-
+	void drawText(ImVec2, const char*);
 	void vectorUpdate();
 	void drawVector(int, std::string[], int, int, bool);
 	void getInput();

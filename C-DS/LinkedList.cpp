@@ -10,8 +10,8 @@ void LinkedList::pushFront(std::string node)
 	head = newNode;
 	if (tail == nullptr)
 		tail = newNode;
-	if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + NODES_DIST * zoomScale > viewport->WorkSize.x ||
-		center.x + (camPos.x + newNode->curPos.x) * zoomScale - NODES_DIST * zoomScale < 0.f)
+	if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + NODES_DIST > viewport->WorkSize.x ||
+		center.x + (camPos.x + newNode->curPos.x) * zoomScale - NODES_DIST < 0.f)
 		followNode(newNode->curPos);
 	listSize++;
 }
@@ -26,8 +26,8 @@ void LinkedList::pushBack(std::string node)
 	tail = newNode;
 	if (head == nullptr)
 		head = newNode;
-	if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + NODES_DIST * zoomScale > viewport->WorkSize.x ||
-		center.x + (camPos.x + newNode->curPos.x) * zoomScale - NODES_DIST * zoomScale < 0.f)
+	if (center.x + (camPos.x + newNode->curPos.x) * zoomScale + NODES_DIST > viewport->WorkSize.x ||
+		center.x + (camPos.x + newNode->curPos.x) * zoomScale - NODES_DIST < 0.f)
 		followNode(newNode->curPos);
 	listSize++;
 }
@@ -45,10 +45,26 @@ ImU32 LinkedList::getColor(int color_code)
 		return colorMode ? ImGui::GetColorU32(IM_COL32(40, 40, 40, 255)) : ImGui::GetColorU32(IM_COL32(200, 200, 200, 255));
 	case TEXT_COL:
 		return colorMode ? ImGui::GetColorU32(IM_COL32(0, 0, 0, 255)) : ImGui::GetColorU32(IM_COL32(255, 255, 255, 255));
+	case TEXT_OUTLINE_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(255, 255, 255, 255)) : ImGui::GetColorU32(IM_COL32(0, 0, 0, 255));
 
 	default:
 		return ImGui::GetColorU32(IM_COL32(255, 0, 255, 255));
 	}
+}
+
+void LinkedList::drawText(ImVec2 pos, const char* text)
+{
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+	for (float x = -1; x <= 1; x++) {
+		for (float y = -1; y <= 1; y++) {
+			if (x == 0 && y == 0) continue;
+			draw_list->AddText(ImVec2(pos.x + x, pos.y + y), getColor(TEXT_OUTLINE_COL), text);
+		}
+	}
+
+	draw_list->AddText(pos, getColor(TEXT_COL), text);
 }
 
 LinkedList::Node* LinkedList::reverse(Node* h)
@@ -282,7 +298,7 @@ void LinkedList::listUpdate()
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	Node* cur_node = head;
-	ImVec2 targetPos(-(float)(listSize - 1) * NODES_DIST * zoomScale / 2.f, 0.f);
+	ImVec2 targetPos(-(float)(listSize - 1) * NODES_DIST / 2.f, 0.f);
 	int curIdx = 0;
 
 	if (tempNode != nullptr) {
@@ -296,9 +312,9 @@ void LinkedList::listUpdate()
 		if (tempNode->next != nullptr)
 			drawEdge(tempNode->curPos, tempNode->next->curPos);
 
-		draw_list->AddText(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - textCenter.y), getColor(TEXT_COL), tempNode->value.c_str());
+		drawText(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - textCenter.y), tempNode->value.c_str());
 
-		tempNode->curPos.y += (-NODES_DIST * zoomScale - tempNode->curPos.y) * 20.f * io->DeltaTime;
+		tempNode->curPos.y += (-NODES_DIST - tempNode->curPos.y) * 20.f * io->DeltaTime;
 	}
 
 	while (cur_node != nullptr) {
@@ -314,12 +330,12 @@ void LinkedList::listUpdate()
 			if (cur_node->next != nullptr)
 				drawEdge(cur_node->curPos, cur_node->next->curPos);
 
-			draw_list->AddText(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + cur_node->curPos.y) * zoomScale - textCenter.y), getColor(TEXT_COL), cur_node->value.c_str());
+			drawText(ImVec2(center.x + (camPos.x + cur_node->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + cur_node->curPos.y) * zoomScale - textCenter.y), cur_node->value.c_str());
 
 			cur_node->curPos.x += (targetPos.x - cur_node->curPos.x) * 10.f * io->DeltaTime;
 			cur_node->curPos.y += (targetPos.y - cur_node->curPos.y) * 10.f * io->DeltaTime;
 
-			targetPos.x += NODES_DIST * zoomScale;
+			targetPos.x += NODES_DIST;
 		}
 		cur_node = cur_node->next;
 		curIdx++;
