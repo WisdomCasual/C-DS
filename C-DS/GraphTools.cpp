@@ -1088,11 +1088,11 @@ ImU32 GraphTools::getColor(int color_code)
 	case ADJ_CHILD_COL:
 		return colorMode ? ImGui::GetColorU32(IM_COL32(150, 150, 220, 255)) : ImGui::GetColorU32(IM_COL32(80, 80, 160, 255));
 	case VIS_VERT_COL:
-		return colorMode ? ImGui::GetColorU32(IM_COL32(50, 200, 50, 255)) : ImGui::GetColorU32(IM_COL32(50, 150, 50, 255));
+		return colorMode ? ImGui::GetColorU32(IM_COL32(50, 190, 50, 255)) : ImGui::GetColorU32(IM_COL32(50, 150, 50, 255));
 	case PATH_VERT_COL:
 		return colorMode ? ImGui::GetColorU32(IM_COL32(50, 200, 200, 255)) : ImGui::GetColorU32(IM_COL32(50, 150, 150, 255));
 	case INQUE_VERT_COL:
-		return colorMode ? ImGui::GetColorU32(IM_COL32(240, 240, 0, 255)) : ImGui::GetColorU32(IM_COL32(150, 150, 0, 255));
+		return colorMode ? ImGui::GetColorU32(IM_COL32(220, 170, 0, 255)) : ImGui::GetColorU32(IM_COL32(200, 150, 0, 255));
 	case ADJ_EDGE_COL:
 		return colorMode ? ImGui::GetColorU32(IM_COL32(80, 80, 180, 255)) : ImGui::GetColorU32(IM_COL32(120, 120, 200, 255));
 	case VERT_BORDER_COL:
@@ -1104,11 +1104,11 @@ ImU32 GraphTools::getColor(int color_code)
 	case DEFAULT_EDGE_COL:
 		return colorMode ? ImGui::GetColorU32(IM_COL32(40, 40, 40, 255)) : ImGui::GetColorU32(IM_COL32(200, 200, 200, 255));
 	case VIS_EDGE_COL:
-		return colorMode ? ImGui::GetColorU32(IM_COL32(80, 200, 80, 255)) : ImGui::GetColorU32(IM_COL32(80, 180, 80, 255));
+		return colorMode ? ImGui::GetColorU32(IM_COL32(80, 180, 80, 255)) : ImGui::GetColorU32(IM_COL32(80, 180, 80, 255));
 	case PATH_EDGE_COL:
 		return colorMode ? ImGui::GetColorU32(IM_COL32(80, 200, 200, 255)) : ImGui::GetColorU32(IM_COL32(80, 180, 180, 255));
 	case INQUE_EDGE_COL:
-		return colorMode ? ImGui::GetColorU32(IM_COL32(220, 220, 0, 255)) : ImGui::GetColorU32(IM_COL32(200, 200, 0, 255));
+		return colorMode ? ImGui::GetColorU32(IM_COL32(200, 150, 0, 255)) : ImGui::GetColorU32(IM_COL32(220, 170, 0, 255));
 	case CANCELED_EDGE_COL:
 		return colorMode ? ImGui::GetColorU32(IM_COL32(200, 200, 200, 255)) : ImGui::GetColorU32(IM_COL32(50, 50, 50, 255));
 	case TEXT_COL:
