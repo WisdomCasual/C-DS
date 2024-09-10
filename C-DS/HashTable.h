@@ -90,6 +90,9 @@ private:
     float calcDist(float, float, float, float);
     void drawEdge(ImVec2, ImVec2);
     void followNode(ImVec2);
+    void insertUpdate();
+    void findUpdate();
+    void eraseUpdate();
     int hashValue(std::string);
 
 public:

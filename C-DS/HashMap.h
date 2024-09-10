@@ -38,7 +38,12 @@ class HashMap :
         FOUND_NODE_COL,
         DEFAULT_EDGE_COL,
         TEXT_COL,
-        TEXT_OUTLINE_COL
+        TEXT_OUTLINE_COL,
+
+        INSERT,
+        FIND,
+        ERASE,
+        IDLE
     };
 
 
@@ -50,7 +55,7 @@ private:
     
     
 
-    int cur_tool = 0, table_size_slider = 10, table_size = 10, cur_bucket = -1, mode = 0;
+    int cur_tool = 0, table_size_slider = 10, table_size = 10, cur_bucket = -1, mode = IDLE;
     float speed = 1.f, curTime = 0;
     bool paused = false, camFollow = false, movingCam = false, found = false;;
     
@@ -85,6 +90,9 @@ private:
     float calcDist(float, float, float, float);
     void drawEdge(ImVec2, ImVec2);
     void followNode(ImVec2);
+    void insertUpdate();
+    void findUpdate();
+    void eraseUpdate();
     int hashValue(std::string);
 
 public:
