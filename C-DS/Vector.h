@@ -38,13 +38,13 @@ private:
 	ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
 	ImGuiWindowFlags controls_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
 
-	const ImGuiViewport* viewport = ImGui::GetMainViewport();
-	ImGuiIO* io;
+	
+	
 
 
 	int cur_tool = 0, sz = 0, tailpointer = 0, currentMaxSize = 1, expansion = -1, tempSize = 0, insertIdx = -1, eraseIdx = -1, selected_index = 0;
 	bool camfollow = false, movingCam = false, inserting = 0;
-	ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
+	
 	char add_element_content[200] = {};
 	float speed = 1.f, passedTime = 0.f;
 

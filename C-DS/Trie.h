@@ -55,10 +55,10 @@ private:
 	ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
 	ImGuiWindowFlags controls_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
 
-	const ImGuiViewport* viewport = ImGui::GetMainViewport();
+	
 	ImGuiIO* io = &ImGui::GetIO();
 
-	ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
+	
 	float speed = 1.f, curTime = 0;
 	bool movingCam = false, leftClickPressed = false;
 	bool disableButtons = false, trueUpdate = false, camFollow = false;

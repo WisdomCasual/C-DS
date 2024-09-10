@@ -178,10 +178,13 @@ void App::overlay()
 {
     static int location = 1;
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+	const ImGuiIO* io = &ImGui::GetIO();
+
     if (location >= 0)
     {
         const float PAD = 10.0f;
-        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        
         ImVec2 work_pos = viewport->WorkPos;
         ImVec2 work_size = viewport->WorkSize;
         ImVec2 window_pos, window_pos_pivot;

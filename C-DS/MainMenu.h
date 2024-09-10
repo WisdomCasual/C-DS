@@ -28,7 +28,7 @@ private:
 
     // private fields:
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    
     
 
     static int* comp;

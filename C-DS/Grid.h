@@ -40,13 +40,10 @@ private:
     ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
     ImGuiWindowFlags controls_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
 
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGuiIO* io;
-
     int cur_tool = 0, x_size = 5, y_size = 5, activeAlgo = 0, obstaclesCnt = 0;
     float speed = 1.f, curTime = 0;
     bool diagonal_movement = false, found = false, cleared = false, paused = false, camFollow = false, movingCam = false;
-    ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
+    
     int prev_x = -1, prev_y = -1;
 
     std::pair<int, int> start_pos = { 0, 0 }, end_pos = { x_size - 1, y_size - 1 };

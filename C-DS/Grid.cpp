@@ -35,7 +35,7 @@ void Grid::controlsUpdate()
 			is_obstacle[x_size - 1][y_size - 1] = false;
 		}
 		camTarget = { 0, 0 };
-		targetZoom = std::min({ 1.f, std::min(viewport->WorkSize.x / x_size, viewport->WorkSize.y / y_size) / (CELL_SIZE + SEPARATOR_SIZE) - 0.01f });
+		autoZoom(std::min({ 1.f, std::min(viewport->WorkSize.x / x_size, viewport->WorkSize.y / y_size) / (CELL_SIZE + SEPARATOR_SIZE) - 0.01f }));
 	}
 	if(ImGui::SliderInt("Y", &y_size, Y_MIN, Y_MAX, NULL, ImGuiSliderFlags_AlwaysClamp)) {
 		clearVisited();
@@ -45,7 +45,7 @@ void Grid::controlsUpdate()
 			is_obstacle[x_size - 1][y_size - 1] = false;
 		}
 		camTarget = { 0, 0 };
-		targetZoom = std::min({ 1.f, std::min(viewport->WorkSize.x / x_size, viewport->WorkSize.y / y_size) / (CELL_SIZE + SEPARATOR_SIZE) - 0.01f });
+		autoZoom(std::min({ 1.f, std::min(viewport->WorkSize.x / x_size, viewport->WorkSize.y / y_size) / (CELL_SIZE + SEPARATOR_SIZE) - 0.01f }));
 	}
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
@@ -144,7 +144,7 @@ void Grid::controlsUpdate()
 
 	if (ImGui::Checkbox("Camera Follow", &camFollow)) {
 		if (camFollow)
-			targetZoom = 1.4f;
+			autoZoom(1.4f);
 	}
 
 	if (camFollow) {
@@ -671,7 +671,6 @@ void Grid::a_star()
 Grid::Grid(std::string name, int& state, float& GuiScale, bool& settingsEnabled, int& colorMode)
 	: GrandWindow(name, state, GuiScale, settingsEnabled, colorMode)
 {
-	io = &ImGui::GetIO(); (void)io;
 	clearVisited();
 }
 
@@ -728,14 +727,7 @@ void Grid::update()
 		movingCam = false;
 	}
 
-	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
-	camPos.y += (camTarget.y - camPos.y) * 10.f * io->DeltaTime;
-	zoomScale += (targetZoom - zoomScale) * 10.f * io->DeltaTime;
-
-	if (ImGui::IsWindowHovered() && io->MouseWheel != 0.0f) {
-		targetZoom += io->MouseWheel * 0.15f;
-		targetZoom = std::min(std::max(targetZoom, std::min(0.5f, std::min(viewport->WorkSize.x / x_size, viewport->WorkSize.y / y_size) / (CELL_SIZE + SEPARATOR_SIZE) - 0.01f)), 3.f);
-	}
+	updateCam();
 
 	ImGui::End();
 

@@ -497,7 +497,7 @@ void DSU::addNode(std::string u)
 DSU::DSU(std::string name, int& state, float& GuiScale, bool& settingsEnabled, int& colorMode)
 	: GrandWindow(name, state, GuiScale, settingsEnabled, colorMode)
 {
-	io = &ImGui::GetIO(); (void)io;
+
 }
 
 DSU::~DSU()
@@ -548,6 +548,8 @@ void DSU::update()
 
 	}
 
+	updateCam();
+
 	if ((ImGui::IsWindowHovered() || movingCam) && ((ImGui::IsMouseDown(0) && cur_tool == 1) || ImGui::IsMouseDown(2))) {
 		movingCam = true;
 		camPos.x += io->MouseDelta.x / zoomScale;
@@ -559,14 +561,7 @@ void DSU::update()
 		movingCam = false;
 	}
 
-	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
-	camPos.y += (camTarget.y - camPos.y) * 10.f * io->DeltaTime;
-	zoomScale += (targetZoom - zoomScale) * 10.f * io->DeltaTime;
-
-	if (ImGui::IsWindowHovered() && io->MouseWheel != 0.0f) {
-		targetZoom += io->MouseWheel * 0.15f;
-		targetZoom = std::min(std::max(targetZoom, 0.5f), 3.0f);
-	}
+	updateCam();
 
 	ImGui::End();
 

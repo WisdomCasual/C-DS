@@ -23,8 +23,8 @@ private:
     // private fields:
     ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
     ImGuiWindowFlags controls_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGuiIO* io;
+    
+    
 
     int cur_tool = 0, LOG = 18, x_size, y_size,sz=0;
     float speed = 1.f, curTime = 0;

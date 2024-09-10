@@ -46,8 +46,8 @@ private:
 
 	GrandWindow* curWindow = nullptr;
 	Settings* settings = nullptr;
-
 	ImGuiIO* io;
+	
 	bool vSyncEnabled = true;
 	int windowPosX = 100, windowPosY = 100;
 	int windowWidth = 1280, windowHeight = 720;

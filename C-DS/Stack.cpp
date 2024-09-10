@@ -28,14 +28,7 @@ void Stack::update()
 		movingCam = false;
 	}
 
-	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
-	camPos.y += (camTarget.y - camPos.y) * 10.f * io->DeltaTime;
-	zoomScale += (targetZoom - zoomScale) * 10.f * io->DeltaTime;
-
-	if (ImGui::IsWindowHovered() && io->MouseWheel != 0.0f) {
-		targetZoom += io->MouseWheel * 0.15f;
-		targetZoom = std::min(std::max(targetZoom, 0.5f), 3.0f);
-	}
+	updateCam();
 
 	ImGui::End();
 
@@ -45,7 +38,7 @@ void Stack::update()
 Stack::Stack(std::string name, int& state, float& GuiScale, bool& settingsEnabled, int& colorMode)
 	: GrandWindow(name, state, GuiScale, settingsEnabled, colorMode)
 {
-	io = &ImGui::GetIO(); (void)io;
+
 }
 
 Stack::~Stack()

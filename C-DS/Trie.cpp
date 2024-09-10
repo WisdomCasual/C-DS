@@ -517,13 +517,7 @@ void Trie::update()
 		movingCam = false;
 	}
 
-	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
-	camPos.y += (camTarget.y - camPos.y) * 10.f * io->DeltaTime;
-
-	if (ImGui::IsWindowHovered() && io->MouseWheel != 0.0f) {
-		zoomScale += io->MouseWheel * 0.15f;
-		zoomScale = std::min(std::max(zoomScale, 0.5f), 3.0f);
-	}
+	updateCam();
 
 	ImGui::End();
 

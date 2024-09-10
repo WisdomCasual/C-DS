@@ -130,8 +130,6 @@ private:
     ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
     ImGuiWindowFlags controls_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
 
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGuiIO* io;
 
     int cur_tool = 0, activeAlgo = 0, directed = 0, found = 0;
     float speed = 1.f, curTime = 0;
@@ -139,7 +137,7 @@ private:
     bool showNodeText = true, showWeightText = true;
     std::string dragging, cur_node;
     std::string viewAdjacent, startNode = "", endNode = "";
-    ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
+    
 
     std::stack<std::pair< std::string, int>> dfs_stack;
     std::queue<std::string> bfs_queue;

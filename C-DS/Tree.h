@@ -42,10 +42,10 @@ private:
 	ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
 	ImGuiWindowFlags controls_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
 
-	const ImGuiViewport* viewport = ImGui::GetMainViewport();
-	ImGuiIO* io;
+	
+	
 
-	ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
+	
 	float speed = 1.f, curTime = 0;
 	bool movingCam = false, leftClickPressed = false, disabled=false;
 	std::string node_u, node_v, cur_node_u, cur_node_v, viewComponent;
