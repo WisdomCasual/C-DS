@@ -28,6 +28,7 @@ void GraphTools::pointToNode(const std::string u, ImU32 color)
 
 void GraphTools::controlsUpdate()
 {
+
 	ImVec2 controlsWinSize(std::min(520.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(1230.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
 	ImVec2 controlsWinPos(viewport->Size.x - controlsWinSize.x - ImGui::GetStyle().WindowPadding.x, viewport->Size.y - controlsWinSize.y - ImGui::GetStyle().WindowPadding.y);
 	bool disabled = false;
@@ -98,7 +99,7 @@ void GraphTools::controlsUpdate()
 
 	ImGui::Text("Graph Data:   [u], [v], [w]");
 
-	ImGui::InputTextMultiline(" ", graphText, IM_ARRAYSIZE(graphText), ImVec2(-FLT_MIN, 300));
+	ImGui::InputTextMultiline(" ", graphText, IM_ARRAYSIZE(graphText), ImVec2(-FLT_MIN, 300.f * GuiScale));
 
 	ImGui::Checkbox("Show Node Label", &showNodeText);
 	ImGui::SameLine();
@@ -1144,6 +1145,8 @@ void GraphTools::update()
 	ImGui::Begin(getName().c_str(), NULL, main_flags);
 
 	ImGui::PopStyleVar();
+
+	drawWatermark();
 
 	graphUpdate();
 

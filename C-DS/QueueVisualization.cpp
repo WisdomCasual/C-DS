@@ -13,6 +13,8 @@ void QueueVisualization::update()
 
 	ImGui::PopStyleVar();
 
+	drawWatermark();
+
 	queueUpdate();
 
 	if ((ImGui::IsWindowHovered() || movingCam) && ((ImGui::IsMouseDown(0) && cur_tool == 0) || ImGui::IsMouseDown(2))) {

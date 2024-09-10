@@ -393,6 +393,8 @@ void HashMap::update()
 
 	ImGui::PopStyleVar();
 
+	drawWatermark();
+
 	tableUpdate();
 
 

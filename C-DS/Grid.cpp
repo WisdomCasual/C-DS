@@ -690,6 +690,8 @@ void Grid::update()
 
 	ImGui::PopStyleVar();
 
+	drawWatermark();
+
 	gridUpdate();
 
 	if (!paused && activeAlgo != 0) {

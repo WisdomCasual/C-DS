@@ -371,6 +371,8 @@ void LinkedList::update()
 
 	ImGui::PopStyleVar();
 
+	drawWatermark();
+
 	listUpdate();
 
 	if ((ImGui::IsWindowHovered() || movingCam) && ((ImGui::IsMouseDown(0) && cur_tool == 0) || ImGui::IsMouseDown(2))) {

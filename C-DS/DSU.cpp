@@ -515,6 +515,8 @@ void DSU::update()
 
 	ImGui::PopStyleVar();
 
+	drawWatermark();
+
 	graphUpdate();
 
 	if (isMerging) {

@@ -2,6 +2,8 @@
 #include <imgui_internal.h>
 #include <iostream>
 #include<cmath>
+
+
 void SparseTable::update()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
@@ -11,6 +13,8 @@ void SparseTable::update()
 	ImGui::Begin(getName().c_str(), NULL, main_flags);
 
 	ImGui::PopStyleVar();
+
+	drawWatermark();
 
 	//drawtable();
 	if(!built)
@@ -39,6 +43,7 @@ void SparseTable::update()
 
 	controlsUpdate();
 }
+
 SparseTable::SparseTable(std::string name, int& state, float& GuiScale, bool& settingsEnabled, int& colorMode)
 	: GrandWindow(name, state, GuiScale, settingsEnabled, colorMode)
 {

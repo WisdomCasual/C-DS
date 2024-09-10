@@ -33,8 +33,8 @@ private:
 
     static int* comp;
     static unsigned char* frame_data;
-    GLuint logoTextureID;
-    int logoWidth, logoHeight;
+    GLuint logoTextureID[2];
+    int logo_width[2], logo_height[2];
 
     int buttons_cnt;
     ButtonData buttons[11] = { ButtonData("Grid", "Resources\\grids.png", 1),
@@ -53,6 +53,7 @@ private:
     // private methods:
     bool ImageButtonWithText(const char*, ImTextureID, const ImVec2&);
     void updateButtons();
+    void drawLogo();
 
 public:
 

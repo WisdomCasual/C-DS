@@ -28,6 +28,14 @@ void Settings::update()
         ImGui::GetIO().FontGlobalScale = GuiScale / 1.5f;
     }
 
+    if (GuiScale != 1.0f) {
+        ImGui::SameLine();
+        if (ImGui::Button("Reset##GUI_SCALE")) {
+            GuiScale = 1.0f;
+            ImGui::GetIO().FontGlobalScale = GuiScale / 1.5f;
+        }
+    }
+
     ImGui::Dummy(ImVec2(0.0f, 20.0f * GuiScale));
 
     ImGui::Text("Color Mode:");
@@ -40,6 +48,8 @@ void Settings::update()
 
 	if(ImGui::RadioButton("Dark Mode", &colorMode, 0))
 		ImGui::StyleColorsDark();
+
+
 
     if(debuggingSettings){
 

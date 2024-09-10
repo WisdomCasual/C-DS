@@ -406,6 +406,8 @@ void Trie::update()
 
 	ImGui::PopStyleVar();
 
+	drawWatermark();
+
 	graphUpdate();
 
 	if (updatedNodes.size() || curNode != -1 || deletedNodes.size()) {

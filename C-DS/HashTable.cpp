@@ -226,7 +226,7 @@ void HashTable::tableUpdate()
 			textCenter.y /= 2.f;
 
 			draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - viewport->WorkSize.y / 3.f), HT_VERTEX_RADIUS * zoomScale, getColor(tempNode->color));
-			draw_list->AddCircle(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - viewport->WorkSize.y / 3.f), HT_VERTEX_RADIUS * zoomScale, getColor(tempNode->color), 100, 5.f * zoomScale);
+			draw_list->AddCircle(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - viewport->WorkSize.y / 3.f), HT_VERTEX_RADIUS * zoomScale, getColor(NODE_BORDER_COL), 100, 5.f * zoomScale);
 
 			
 			drawText(ImVec2(center.x + (camPos.x + tempNode->curPos.x) * zoomScale - textCenter.x, center.y + (camPos.y + tempNode->curPos.y) * zoomScale - textCenter.y - viewport->WorkSize.y / 3.f), tempNode->value.c_str());
@@ -356,6 +356,8 @@ void HashTable::update()
 	ImGui::Begin(getName().c_str(), NULL, main_flags);
 
 	ImGui::PopStyleVar();
+
+	drawWatermark();
 
 	tableUpdate();
 

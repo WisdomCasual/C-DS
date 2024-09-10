@@ -75,7 +75,8 @@ MainMenu::MainMenu(std::string name, int& state, float& GuiScale, bool& settings
         }
     }
 
-    image_imp::loadImage("Resources\\C-DS.png", &logoTextureID, &logoWidth, &logoHeight);
+    image_imp::loadImage("Resources\\LogoDark.png", &logoTextureID[0], &logo_width[0], &logo_height[0]);
+    image_imp::loadImage("Resources\\LogoLight.png", &logoTextureID[1], &logo_width[1], &logo_height[1]);
 
 }
 
@@ -140,29 +141,22 @@ void MainMenu::updateButtons()
     }
 }
 
-void MainMenu::update()
+void MainMenu::drawLogo()
 {
-
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
-	ImGui::SetNextWindowPos(viewport->WorkPos);
-	ImGui::SetNextWindowSize(viewport->WorkSize);
-
-	ImGui::Begin(getName().c_str(), NULL, flags);
-
-    
     float logoScale = GuiScale;
 
-    float logo_height = 300.f * GuiScale;
-    if (logo_height > viewport->WorkSize.y * 2.f / 5.f) {
-        logoScale = std::max(viewport->WorkSize.y * 2.f / 5.f, 100.f) / logo_height;
-        logo_height = std::max(viewport->WorkSize.y * 2.f / 5.f, 100.f);
+    float logo_space = 300.f * GuiScale;
+
+    if (logo_space > viewport->WorkSize.y * 2.f / 5.f) {
+        logoScale = std::max(viewport->WorkSize.y * 2.f / 5.f, 100.f) / logo_space;
+        logo_space = std::max(viewport->WorkSize.y * 2.f / 5.f, 100.f);
     }
 
-    ImVec2 logo_size(logo_height * logoWidth / logoHeight, logo_height);
+    ImVec2 logo_size(logo_space * logo_width[colorMode] / logo_height[colorMode], logo_space);
 
     if (logo_size.x > (viewport->WorkSize.x - ImGui::GetStyle().ScrollbarSize)) {
-        logoScale = ((viewport->WorkSize.x - ImGui::GetStyle().ScrollbarSize) * logoHeight / logoWidth) / (300.f * GuiScale);
-        logo_size = ImVec2((viewport->WorkSize.x - ImGui::GetStyle().ScrollbarSize), (viewport->WorkSize.x - ImGui::GetStyle().ScrollbarSize) * logoHeight / logoWidth);
+        logoScale = ((viewport->WorkSize.x - ImGui::GetStyle().ScrollbarSize) * logo_height[colorMode] / logo_width[colorMode]) / (300.f * GuiScale);
+        logo_size = ImVec2((viewport->WorkSize.x - ImGui::GetStyle().ScrollbarSize), (viewport->WorkSize.x - ImGui::GetStyle().ScrollbarSize) * logo_height[colorMode] / logo_width[colorMode]);
     }
 
     ImGui::SetCursorPosX(viewport->WorkPos.x + viewport->WorkSize.x - 130.f * GuiScale);
@@ -172,7 +166,19 @@ void MainMenu::update()
     }
 
     ImGui::SetCursorPosX(viewport->WorkPos.x + (viewport->WorkSize.x - logo_size.x) / 2.f);
-    ImGui::Image((void*)(intptr_t)logoTextureID, logo_size);
+    ImGui::Image((void*)(intptr_t)logoTextureID[colorMode], logo_size);
+}
+
+void MainMenu::update()
+{
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
+	ImGui::SetNextWindowPos(viewport->WorkPos);
+	ImGui::SetNextWindowSize(viewport->WorkSize);
+
+	ImGui::Begin(getName().c_str(), NULL, flags);
+
+    drawLogo();
 
     updateButtons();
 

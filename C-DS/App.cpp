@@ -83,6 +83,8 @@ void App::initStyle()
 
     // load custom font
     ImFont* customFont = io->Fonts->AddFontFromFileTTF("Resources/font.ttf", 45.0f);
+    io->Fonts->AddFontFromFileTTF("Resources/logoFont.ttf", 150.0f);
+
     ImGui::GetIO().FontGlobalScale = GuiScale / 1.5f;
 
     // Set custom font as default

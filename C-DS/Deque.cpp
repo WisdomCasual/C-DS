@@ -384,6 +384,8 @@ void Deque::update()
 
 	ImGui::PopStyleVar();
 
+	drawWatermark();
+
 	dequeUpdate();
 
 	if ((ImGui::IsWindowHovered() || movingCam) && ((ImGui::IsMouseDown(0) && cur_tool == 0) || ImGui::IsMouseDown(2))) {

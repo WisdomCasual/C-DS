@@ -13,6 +13,8 @@ void Stack::update()
 
 	ImGui::PopStyleVar();
 
+	drawWatermark();
+
 	stackUpdate();
 
 	if ((ImGui::IsWindowHovered() || movingCam) && ((ImGui::IsMouseDown(0) && cur_tool == 0) || ImGui::IsMouseDown(2))) {
