@@ -15,7 +15,7 @@ public:
 	float zoomScale = 1.f, targetZoom = 1.f;
 	bool& settingsEnabled;
 	int& colorMode;
-	ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
+	ImVec2 camPos = { 0, 500.f * GuiScale }, camTarget = { 0, 0 };
 	bool autoZooming = false;
 
 	const ImGuiViewport* viewport = ImGui::GetMainViewport();

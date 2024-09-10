@@ -727,7 +727,7 @@ void Grid::update()
 		movingCam = false;
 	}
 
-	updateCam();
+	updateCam(std::min({ 0.6f, std::min(viewport->WorkSize.x / x_size, viewport->WorkSize.y / y_size) / (CELL_SIZE + SEPARATOR_SIZE) - 0.01f }), 3.0f);
 
 	ImGui::End();
 
