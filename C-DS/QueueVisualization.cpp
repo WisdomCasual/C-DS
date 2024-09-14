@@ -108,7 +108,7 @@ void QueueVisualization::drawText(ImVec2 pos, const char* text)
 void QueueVisualization::queueUpdate()
 {
 
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 	if (~expansion)
 	{
@@ -142,7 +142,7 @@ void QueueVisualization::queueUpdate()
 void QueueVisualization::drawQueue(int ypos, std::string temp[], int mxSz, int tail, int head)
 {
 
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, (float)ypos);
+	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x * 0.5f, (float)ypos);
 
 	float separator_size = std::max(SEPARATOR_SIZE * zoomScale, 1.f);
 	float cell_size = CELL_SIZE * zoomScale;
@@ -157,27 +157,27 @@ void QueueVisualization::drawQueue(int ypos, std::string temp[], int mxSz, int t
 		xSize += std::max(cell_size, textWidth) + separator_size;
 		if (i <= head) {
 			if (i == head)
-				headPointerX += std::max(cell_size, textWidth) / 2.f;
+				headPointerX += std::max(cell_size, textWidth) * 0.5f;
 			else
 				headPointerX += std::max(cell_size, textWidth) + separator_size;
 		}
 		if (i <= tail) {
 			if (i == tail)
-				tailPointerX += std::max(cell_size, textWidth) / 2.f;
+				tailPointerX += std::max(cell_size, textWidth) * 0.5f;
 			else
 				tailPointerX += std::max(cell_size, textWidth) + separator_size;
 		}
 	}
 
-	ImVec2 s_pos(center.x + camPos.x * zoomScale - xSize / 2.f,
-		center.y + camPos.y * zoomScale - cell_size / 2.f);
+	ImVec2 s_pos(center.x + camPos.x * zoomScale - xSize * 0.5f,
+		center.y + camPos.y * zoomScale - cell_size * 0.5f);
 	ImVec2 cur_pos(s_pos);
 
 	for (int i = 0; i < mxSz; i++)
 	{
 		i %= mxSz;
 		ImVec2 textSize = ImGui::CalcTextSize(temp[i].c_str());
-		ImVec2 pos((cur_pos.x + (std::max(cell_size, textSize.x + 15.f * zoomScale) - textSize.x) / 2.f), (cur_pos.y + (cell_size - textSize.y) / 2.f));
+		ImVec2 pos((cur_pos.x + (std::max(cell_size, textSize.x + 15.f * zoomScale) - textSize.x) * 0.5f), (cur_pos.y + (cell_size - textSize.y) * 0.5f));
 
 		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + std::max(cell_size, textSize.x + 15.f * zoomScale), cur_pos.y + cell_size), getColor(DEFAULT_CELL_COL), QUEUE_ROUNDNESS * zoomScale);
 		draw_list->AddRect(cur_pos, ImVec2(cur_pos.x + std::max(cell_size, textSize.x + 15.f * zoomScale), cur_pos.y + cell_size), getColor(CELL_BORDER_COL), QUEUE_ROUNDNESS * zoomScale, 0, 4.f * zoomScale);
@@ -193,7 +193,7 @@ void QueueVisualization::drawQueue(int ypos, std::string temp[], int mxSz, int t
 void QueueVisualization::drawArrow(int x, int y, int col, bool DownToUp)
 {
 	// This will be given the x and y where the head of the arrow should be
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	const float headSize = 20.f * zoomScale;
 	const float length = 50.f * zoomScale;
@@ -207,7 +207,7 @@ void QueueVisualization::drawArrow(int x, int y, int col, bool DownToUp)
 	ImVec2 to = ImVec2((float)x, y + sign*headSize);
 
 	draw_list->AddLine(from, to, getColor(col), 20.f * zoomScale);
-	to.y += -sign*headSize / 2.f;
+	to.y += -sign*headSize * 0.5f;
 
 	ImVec2 p1 = ImVec2(to.x + headSize, to.y + sign*headSize);
 	ImVec2 p2 = ImVec2(to.x - headSize, to.y + sign*headSize);

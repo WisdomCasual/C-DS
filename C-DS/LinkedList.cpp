@@ -3,7 +3,7 @@
 
 void LinkedList::pushFront(std::string node)
 {
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 	Node* newNode = new Node(node, (head == nullptr ? ImVec2(0, 0) : head->curPos));
 	newNode->next = head;
@@ -18,7 +18,7 @@ void LinkedList::pushFront(std::string node)
 
 void LinkedList::pushBack(std::string node)
 {
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 	Node* newNode = new Node(node, (tail == nullptr ? ImVec2(0, 0) : tail->curPos));
 	if (tail != nullptr)
@@ -84,7 +84,7 @@ LinkedList::Node* LinkedList::reverse(Node* h)
 
 void LinkedList::popFront()
 {
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 	if (listSize != 0) {
 		Node* delNode = head;
@@ -125,7 +125,7 @@ void LinkedList::getInput()
 
 void LinkedList::controlsUpdate()
 {
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 	ImVec2 controlsWinSize(std::min(450.f * GuiScale, viewport->WorkSize.x - ImGui::GetStyle().WindowPadding.x), std::min(640.f * GuiScale, viewport->WorkSize.y - 2 * ImGui::GetStyle().WindowPadding.y));
 	ImVec2 controlsWinPos(viewport->Size.x - controlsWinSize.x - ImGui::GetStyle().WindowPadding.x, viewport->Size.y - controlsWinSize.y - ImGui::GetStyle().WindowPadding.y);
 	bool disabled = false;
@@ -260,7 +260,7 @@ float LinkedList::calcDist(float x1, float y1, float x2, float y2)
 
 void LinkedList::drawEdge(ImVec2& u, ImVec2& v) {
 
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	ImVec2 from = ImVec2(center.x + (camPos.x + u.x) * zoomScale, center.y + (camPos.y + u.y) * zoomScale);
@@ -294,11 +294,11 @@ void LinkedList::drawEdge(ImVec2& u, ImVec2& v) {
 
 void LinkedList::listUpdate()
 {
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	Node* cur_node = head;
-	ImVec2 targetPos(-(float)(listSize - 1) * NODES_DIST / 2.f, 0.f);
+	ImVec2 targetPos(-(float)(listSize - 1) * NODES_DIST * 0.5f, 0.f);
 	int curIdx = 0;
 
 	if (tempNode != nullptr) {

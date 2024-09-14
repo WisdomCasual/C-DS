@@ -233,7 +233,7 @@ void DSU::updateDraggedComponent()
 void DSU::graphUpdate()
 {
 
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	updateDraggedComponent();
@@ -392,7 +392,7 @@ void DSU::graphUpdate()
 
 void DSU::drawEdge(ImDrawList* draw_list, const std::string u, const std::string v)
 {
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 	ImVec2 from = ImVec2(center.x + (camPos.x + nodes[u].x) * zoomScale, center.y + (camPos.y + nodes[u].y) * zoomScale);
 	ImVec2 to = ImVec2(center.x + (camPos.x + nodes[v].x) * zoomScale, center.y + (camPos.y + nodes[v].y) * zoomScale);

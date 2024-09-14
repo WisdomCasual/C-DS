@@ -110,7 +110,7 @@ void Stack::drawText(ImVec2 pos, const char* text)
 void Stack::stackUpdate()
 {
 
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 
 	float mxCellWidth = STACK_CELL_SIZE * zoomScale;
@@ -150,7 +150,7 @@ void Stack::stackUpdate()
 void Stack::drawStack(int xpos, std::string temp[], int mxSz, int head, float mxCellWidth, bool inverted)
 {
 
-	ImVec2 center((float)xpos, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	ImVec2 center((float)xpos, viewport->WorkPos.y + viewport->WorkSize.y * 0.5f);
 
 	float separator_size = std::max(STACK_SEPARATOR_SIZE * zoomScale, 1.f);
 	float cell_size = STACK_CELL_SIZE * zoomScale;
@@ -158,12 +158,12 @@ void Stack::drawStack(int xpos, std::string temp[], int mxSz, int head, float mx
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	float ySize = ((cell_size + separator_size) * (mxSz-2));
-	float headPointerY = ((cell_size + separator_size) * head) - cell_size / 2.f;
+	float headPointerY = ((cell_size + separator_size) * head) - cell_size * 0.5f;
 
-	ImVec2 s_pos(center.x + camPos.x * zoomScale - mxCellWidth / 2.f, center.y + camPos.y * zoomScale + ySize / 2.f);
+	ImVec2 s_pos(center.x + camPos.x * zoomScale - mxCellWidth * 0.5f, center.y + camPos.y * zoomScale + ySize * 0.5f);
 
 	if (!inverted)
-		s_pos.y += cell_size / 2.f;
+		s_pos.y += cell_size * 0.5f;
 
 	ImVec2 cur_pos(s_pos);
 
@@ -171,7 +171,7 @@ void Stack::drawStack(int xpos, std::string temp[], int mxSz, int head, float mx
 	{
 		i %= mxSz;
 		ImVec2 textSize = ImGui::CalcTextSize(temp[i].c_str());
-		ImVec2 pos((cur_pos.x + (mxCellWidth - textSize.x) / 2.f), (cur_pos.y + (cell_size - textSize.y) / 2.f));
+		ImVec2 pos((cur_pos.x + (mxCellWidth - textSize.x) * 0.5f), (cur_pos.y + (cell_size - textSize.y) * 0.5f));
 
 		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + mxCellWidth, cur_pos.y + cell_size), getColor(DEFAULT_CELL_COL), STACK_ROUNDNESS * zoomScale);
 		draw_list->AddRect(cur_pos, ImVec2(cur_pos.x + mxCellWidth, cur_pos.y + cell_size), getColor(CELL_BORDER_COL), STACK_ROUNDNESS * zoomScale, 0, 4.f * zoomScale);
@@ -190,7 +190,7 @@ void Stack::drawStack(int xpos, std::string temp[], int mxSz, int head, float mx
 void Stack::drawArrow(int x, int y, int col, bool inverted, float mxCellWidth)
 {
 	// This will be given the x and y where the head of the arrow should be
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	const float headSize = 20.f * zoomScale;
 	const float length = 50.f * zoomScale;
@@ -205,7 +205,7 @@ void Stack::drawArrow(int x, int y, int col, bool inverted, float mxCellWidth)
 	ImVec2 to = ImVec2(x - sign * headSize, (float)y);
 
 	draw_list->AddLine(from, to, getColor(col), 20.f * zoomScale);
-	to.x += sign * headSize / 2.f;
+	to.x += sign * headSize * 0.5f;
 
 	ImVec2 p1 = ImVec2(to.x - sign * headSize, to.y + headSize);
 	ImVec2 p2 = ImVec2(to.x - sign * headSize, to.y - headSize);

@@ -55,10 +55,9 @@ private:
     
 
     int cur_tool = 0, table_size_slider = 10,  table_size = 10, cur_bucket = -1, mode = IDLE;
-    float speed = 1.f, curTime = 0;
+    float speed = 1.0f, curTime = 0.0f, window_height = 100.0f;
     bool paused = false, camFollow = false, movingCam = false, found = false;;
     
-    ImVec2 center = { 0, 0 };
     std::string searchVal, toDelete;
 
     struct Node {

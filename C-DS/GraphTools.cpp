@@ -7,7 +7,7 @@ GraphTools::Random GraphTools::randomizer;
 
 void GraphTools::pointToNode(const std::string u, ImU32 color)
 {
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	const float headSize = 12.f * zoomScale;
 	const float length = 30.f * zoomScale;
@@ -17,7 +17,7 @@ void GraphTools::pointToNode(const std::string u, ImU32 color)
 	ImVec2 to = ImVec2(center.x + (camPos.x + node.x) * zoomScale, center.y + (camPos.y + node.y) * zoomScale - VERTEX_RADIUS * zoomScale - headSize);
 
 	draw_list->AddLine(from, to, color, 5.f * zoomScale);
-	to.y += headSize / 2.f;
+	to.y += headSize * 0.5f;
 
 	ImVec2 p1 = ImVec2(to.x + headSize, to.y - headSize);
 	ImVec2 p2 = ImVec2(to.x - headSize, to.y - headSize);
@@ -89,13 +89,17 @@ void GraphTools::controlsUpdate()
 	ImGui::Checkbox("Weighted", &weighted_rand);
 	
 
-	if (ImGui::RadioButton("Undirected", &directed, 0))
+	if (ImGui::RadioButton("Undirected", &directed, 0)) {
 		clearStates();
+		edgesLastTransition = 0.0f;
+	}
 
 	ImGui::SameLine();
 
-	if (ImGui::RadioButton("Directed", &directed, 1))
+	if (ImGui::RadioButton("Directed", &directed, 1)){
 		clearStates();
+		edgesLastTransition = 0.0f;
+	}
 
 	ImGui::Text("Graph Data:   [u], [v], [w]");
 
@@ -406,7 +410,7 @@ void GraphTools::generateGraph()
 
 void GraphTools::drawEdge(ImDrawList* draw_list, const std::string u, const std::string v, Edge& edge) {
 
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 	ImVec2 from = ImVec2(center.x + (camPos.x + nodes[u].x) * zoomScale, center.y + (camPos.y + nodes[u].y) * zoomScale);
 	ImVec2 to = ImVec2(center.x + (camPos.x + nodes[v].x) * zoomScale, center.y + (camPos.y + nodes[v].y) * zoomScale);
@@ -443,7 +447,7 @@ void GraphTools::drawEdge(ImDrawList* draw_list, const std::string u, const std:
 
 void GraphTools::drawEdgeWeight(ImDrawList* draw_list, const std::string u, const std::string v, Edge& edge)
 {
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 	ImVec2 from = ImVec2(center.x + (camPos.x + nodes[u].x) * zoomScale, center.y + (camPos.y + nodes[u].y) * zoomScale);
 	ImVec2 to = ImVec2(center.x + (camPos.x + nodes[v].x) * zoomScale, center.y + (camPos.y + nodes[v].y) * zoomScale);
@@ -476,19 +480,26 @@ void GraphTools::drawEdgeWeight(ImDrawList* draw_list, const std::string u, cons
 			to.y -= dir.y * length / 4.f;
 		}
 		else {
-			to.x -= dir.x * length / 2.f;
-			to.y -= dir.y * length / 2.f;
+			to.x -= dir.x * length * 0.5f;
+			to.y -= dir.y * length * 0.5f;
 		}
-		to.x -= textSize.x / 2.f;
-		to.y -= textSize.y / 2.f;
+		to.x -= textSize.x * 0.5f;
+		to.y -= textSize.y * 0.5f;
 
-		to.x += dir.y * (textSize.x / 2.f + 12.f * zoomScale);
-		to.y -= dir.x * (textSize.y / 2.f + 10.f * zoomScale);
+		to.x += dir.y * (textSize.x * 0.5f + 12.f * zoomScale);
+		to.y -= dir.x * (textSize.y * 0.5f + 10.f * zoomScale);
 
 		auto& pos = edge.pos;
 
-		pos.x += (to.x - pos.x - center.x - camPos.x * zoomScale) * 40.f * io->DeltaTime;
-		pos.y += (to.y - pos.y - center.y - camPos.y * zoomScale) * 40.f * io->DeltaTime;
+		if (edgesLastTransition <= 1.0f) {
+			edgesLastTransition += io->DeltaTime;
+			pos.x += (to.x - pos.x - center.x - camPos.x * zoomScale) * 20.f * io->DeltaTime;
+			pos.y += (to.y - pos.y - center.y - camPos.y * zoomScale) * 20.f * io->DeltaTime;
+		}
+		else {
+			pos.x = (to.x - center.x - camPos.x * zoomScale);
+			pos.y = (to.y - center.y - camPos.y * zoomScale);
+		}
 
 		drawText(ImVec2(center.x + pos.x + camPos.x * zoomScale, center.y + pos.y + camPos.y * zoomScale), w_label.c_str());
 	}
@@ -537,7 +548,7 @@ void GraphTools::updateDraggedComponent()
 void GraphTools::graphUpdate()
 {
 
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	updateDraggedComponent();

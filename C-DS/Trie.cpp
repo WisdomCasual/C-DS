@@ -188,7 +188,7 @@ float Trie::calcDist(float x1, float y1, float x2, float y2)
 
 void Trie::graphUpdate()
 {
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	const float cf = 0.55f; // center attraction
@@ -317,7 +317,7 @@ void Trie::graphUpdate()
 
 void Trie::drawEdge(ImDrawList* draw_list, int u, int v)
 {
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 	ImVec2 from = ImVec2(center.x + (camPos.x + nodes[v].x) * zoomScale, center.y + (camPos.y + nodes[v].y) * zoomScale);
 	ImVec2 to = ImVec2(center.x + (camPos.x + nodes[u].x) * zoomScale, center.y + (camPos.y + nodes[u].y) * zoomScale);

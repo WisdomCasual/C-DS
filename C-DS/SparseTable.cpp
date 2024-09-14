@@ -9,7 +9,7 @@ void SparseTable::update()
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
 	ImGui::SetNextWindowPos(viewport->WorkPos);
 	ImGui::SetNextWindowSize(viewport->WorkSize);
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 	ImGui::Begin(getName().c_str(), NULL, main_flags);
 
 	ImGui::PopStyleVar();
@@ -157,7 +157,7 @@ void SparseTable::init()
 void SparseTable::drawtable()
 {
 	init();
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 	float separator_size = std::max(SEPARATOR_SIZE * zoomScale, 1.f);
 	float cell_size = CELL_SIZE * zoomScale;
@@ -165,8 +165,8 @@ void SparseTable::drawtable()
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	x_size = (int)Elements.size();
 	y_size = LOG;
-	ImVec2 s_pos(center.x + camPos.x * zoomScale - x_size * (cell_size + separator_size) / 2.f,
-		center.y + camPos.y * zoomScale - y_size * (cell_size + separator_size) / 2.f);
+	ImVec2 s_pos(center.x + camPos.x * zoomScale - x_size * (cell_size + separator_size) * 0.5f,
+		center.y + camPos.y * zoomScale - y_size * (cell_size + separator_size) * 0.5f);
 	ImVec2 cur_pos(s_pos);
 	for (int y = 1; y < y_size; y++) {
 		cur_pos.x = s_pos.x;
@@ -181,15 +181,15 @@ void SparseTable::drawtable()
 
 void SparseTable::drawarray(float yPos)
 {
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, yPos);
+	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x * 0.5f, yPos);
 
 	float separator_size = std::max(SEPARATOR_SIZE * zoomScale, 1.f);
 	float cell_size = CELL_SIZE * zoomScale;
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	sz = (int)Elements.size();
-	ImVec2 s_pos(center.x + camPos.x * zoomScale - sz* cell_size / 2.f ,
-		center.y + camPos.y * zoomScale - cell_size / 2.f);
+	ImVec2 s_pos(center.x + camPos.x * zoomScale - sz* cell_size * 0.5f ,
+		center.y + camPos.y * zoomScale - cell_size * 0.5f);
 	ImVec2 cur_pos(s_pos);
 	for (int i = 0; i < sz; i++)
 	{
@@ -200,7 +200,7 @@ void SparseTable::drawarray(float yPos)
 			temp /= 10;
 		}
 		ImVec2 textSize = ImGui::CalcTextSize(CurNum.c_str());
-		ImVec2 pos((cur_pos.x + (std::max(cell_size, textSize.x) - textSize.x) / 2.f), (cur_pos.y + (cell_size - textSize.y) / 2.f));
+		ImVec2 pos((cur_pos.x + (std::max(cell_size, textSize.x) - textSize.x) * 0.5f), (cur_pos.y + (cell_size - textSize.y) * 0.5f));
 		ImU32 col = IM_COL32(255, 255, 255, 255);
 		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + std::max(cell_size, textSize.x),
 			cur_pos.y + cell_size), IM_COL32(100, 100, 100, 255));

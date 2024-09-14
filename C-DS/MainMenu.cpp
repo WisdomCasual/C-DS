@@ -3,6 +3,7 @@
 #include "Image.h"
 
 #include <iostream>
+#include "Markdown.h"
 
 bool MainMenu::ImageButtonWithText(const char* label, ImTextureID texId, const ImVec2& imageSize) {
 
@@ -102,16 +103,16 @@ void MainMenu::updateButtons()
 
     int row_idx = 1;
 
-    ImVec2 pos(viewport->WorkPos.x + (viewport->WorkSize.x - usabe_area) / 2.f, ImGui::GetCursorPosY());
+    ImVec2 pos(viewport->WorkPos.x + (viewport->WorkSize.x - usabe_area) * 0.5f, ImGui::GetCursorPosY());
 
     if (per_row > buttons_cnt)
-        ImGui::SetCursorPosX(viewport->WorkPos.x + (viewport->WorkSize.x - ((button_width * GuiScale + item_spacing.x) * buttons_cnt)) / 2.f);
+        ImGui::SetCursorPosX(viewport->WorkPos.x + (viewport->WorkSize.x - ((button_width * GuiScale + item_spacing.x) * buttons_cnt)) * 0.5f);
     else 
         ImGui::SetCursorPosX(pos.x);
 
 
     if (((buttons_cnt + per_row - 1) / per_row) * (button_height * GuiScale + text_height + item_spacing.y) + 50.f * GuiScale < viewport->WorkSize.y - pos.y) {
-        pos.y += (viewport->WorkSize.y - pos.y - ((buttons_cnt + per_row - 1) / per_row) * (button_height * GuiScale + text_height + item_spacing.y)) / 2.f;
+        pos.y += (viewport->WorkSize.y - pos.y - ((buttons_cnt + per_row - 1) / per_row) * (button_height * GuiScale + text_height + item_spacing.y)) * 0.5f;
     }
 
     ImGui::SetCursorPosY(pos.y);
@@ -127,7 +128,7 @@ void MainMenu::updateButtons()
 
             int rem = buttons_cnt - button_idx - 1;
             if (rem < per_row)
-                ImGui::SetCursorPosX(viewport->WorkPos.x + (viewport->WorkSize.x - ((button_width * GuiScale + item_spacing.x) * rem)) / 2.f);
+                ImGui::SetCursorPosX(viewport->WorkPos.x + (viewport->WorkSize.x - ((button_width * GuiScale + item_spacing.x) * rem)) * 0.5f);
             else
                 ImGui::SetCursorPosX(pos.x);
 
@@ -165,7 +166,7 @@ void MainMenu::drawLogo()
         settingsEnabled = true;
     }
 
-    ImGui::SetCursorPosX(viewport->WorkPos.x + (viewport->WorkSize.x - logo_size.x) / 2.f);
+    ImGui::SetCursorPosX(viewport->WorkPos.x + (viewport->WorkSize.x - logo_size.x) * 0.5f);
     ImGui::Image((void*)(intptr_t)logoTextureID[colorMode], logo_size);
 }
 
@@ -179,7 +180,6 @@ void MainMenu::update()
 	ImGui::Begin(getName().c_str(), NULL, flags);
 
     drawLogo();
-
     updateButtons();
 
 	ImGui::End();

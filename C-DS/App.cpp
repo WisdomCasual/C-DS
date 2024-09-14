@@ -1,5 +1,6 @@
 #include "App.h"
 #include "Image.h"
+#include "Markdown.h"
 #include <iostream>
 
 
@@ -81,14 +82,11 @@ void App::initStyle()
     else
         ImGui::StyleColorsLight();
 
-    // load custom font
-    ImFont* customFont = io->Fonts->AddFontFromFileTTF("Resources/font.ttf", 45.0f);
+    // load custom fonts
+    LoadFonts(45.0f);
     io->Fonts->AddFontFromFileTTF("Resources/logoFont.ttf", 150.0f);
 
     ImGui::GetIO().FontGlobalScale = GuiScale / 1.5f;
-
-    // Set custom font as default
-    io->FontDefault = customFont;
 
     // Set window rounding radius
     style->WindowRounding = 10.0f;

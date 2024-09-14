@@ -88,7 +88,7 @@ void Vector::drawText(ImVec2 pos, const char* text)
 void Vector::vectorUpdate()
 {
 
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 
 	if (~insertIdx) {
@@ -148,7 +148,7 @@ void Vector::vectorUpdate()
 void Vector::drawVector(int ypos, std::string temp[], int mxSz, int tail, bool inverted)
 {
 
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, (float)ypos);
+	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x * 0.5f, (float)ypos);
 
 	float separator_size = std::max(VEC_SEPARATOR_SIZE * zoomScale, 1.f);
 	float cell_size = VEC_CELL_SIZE * zoomScale;
@@ -164,19 +164,19 @@ void Vector::drawVector(int ypos, std::string temp[], int mxSz, int tail, bool i
 
 		if (i <= tail) {
 			if (i == tail)
-				tailPointerX += std::max(cell_size, textWidth) / 2.f;
+				tailPointerX += std::max(cell_size, textWidth) * 0.5f;
 			else
 				tailPointerX += std::max(cell_size, textWidth) + separator_size;
 		}
 	}
 
 	if (mxSz == tail)
-		tailPointerX += cell_size / 2.f;
+		tailPointerX += cell_size * 0.5f;
 
-	ImVec2 s_pos(center.x + camPos.x * zoomScale - xSize / 2.f,
-		center.y + camPos.y * zoomScale - cell_size / 2.f);
+	ImVec2 s_pos(center.x + camPos.x * zoomScale - xSize * 0.5f,
+		center.y + camPos.y * zoomScale - cell_size * 0.5f);
 	if (!inverted)
-		s_pos.x -= cell_size / 2.f;
+		s_pos.x -= cell_size * 0.5f;
 
 	ImVec2 cur_pos(s_pos);
 
@@ -184,7 +184,7 @@ void Vector::drawVector(int ypos, std::string temp[], int mxSz, int tail, bool i
 	{
 		ImVec2 textSize = ImGui::CalcTextSize(temp[i].c_str());
 
-		ImVec2 pos((cur_pos.x + (std::max(cell_size, textSize.x + 15.f * zoomScale) - textSize.x) / 2.f), (cur_pos.y + (cell_size - textSize.y) / 2.f));
+		ImVec2 pos((cur_pos.x + (std::max(cell_size, textSize.x + 15.f * zoomScale) - textSize.x) * 0.5f), (cur_pos.y + (cell_size - textSize.y) * 0.5f));
 
 		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + std::max(cell_size, textSize.x + 15.f * zoomScale), cur_pos.y + cell_size), getColor((i == eraseIdx || i == insertIdx ? MARKED_CELL_COL : DEFAULT_CELL_COL)), VEC_ROUNDNESS * zoomScale);
 		draw_list->AddRect(cur_pos, ImVec2(cur_pos.x + std::max(cell_size, textSize.x + 15.f * zoomScale), cur_pos.y + cell_size), getColor(CELL_BORDER_COL), VEC_ROUNDNESS * zoomScale, 0, 4.f * zoomScale);
@@ -229,7 +229,7 @@ void Vector::getInput()
 void Vector::drawArrow(int x, int y, int col, bool DownToUp)
 {
 	// This will be given the x and y where the head of the arrow should be
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	const float headSize = 20.f * zoomScale;
 	const float length = 50.f * zoomScale;
@@ -243,7 +243,7 @@ void Vector::drawArrow(int x, int y, int col, bool DownToUp)
 	ImVec2 to = ImVec2((float)x, y + sign * headSize);
 
 	draw_list->AddLine(from, to, getColor(col), 20.f * zoomScale);
-	to.y += -sign * headSize / 2.f;
+	to.y += -sign * headSize * 0.5f;
 
 	ImVec2 p1 = ImVec2(to.x + headSize, to.y + sign * headSize);
 	ImVec2 p2 = ImVec2(to.x - headSize, to.y + sign * headSize);

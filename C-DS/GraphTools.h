@@ -132,7 +132,7 @@ private:
 
 
     int cur_tool = 0, activeAlgo = 0, directed = 0, found = 0;
-    float speed = 1.f, curTime = 0;
+    float speed = 1.f, curTime = 0, edgesLastTransition = 0.0f;;
     bool cleared = true, paused = false, leftClickPressed = false, camFollow = false, movingCam = false, weighted_rand = false;
     bool showNodeText = true, showWeightText = true;
     std::string dragging, cur_node;

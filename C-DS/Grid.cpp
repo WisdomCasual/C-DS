@@ -211,7 +211,7 @@ void Grid::st_line_eq(ImVec2 s_pos, float cell_size)
 void Grid::gridUpdate()
 {
 
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 	float separator_size = std::max(SEPARATOR_SIZE * zoomScale, 1.f);
 	float cell_size = CELL_SIZE * zoomScale;
@@ -219,8 +219,8 @@ void Grid::gridUpdate()
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 
-	ImVec2 s_pos(center.x + camPos.x * zoomScale - x_size * (cell_size + separator_size) / 2.f,
-					    center.y + camPos.y * zoomScale - y_size * (cell_size + separator_size) / 2.f);
+	ImVec2 s_pos(center.x + camPos.x * zoomScale - x_size * (cell_size + separator_size) * 0.5f,
+					    center.y + camPos.y * zoomScale - y_size * (cell_size + separator_size) * 0.5f);
 	ImVec2 cur_pos(s_pos);
 
 	draw_list->AddRectFilled(ImVec2(cur_pos.x - separator_size, cur_pos.y - separator_size), ImVec2(cur_pos.x + (cell_size + separator_size) * x_size, cur_pos.y + (cell_size + separator_size) * y_size), getColor(OUTLINE_COL), GRID_ROUNDNESS * zoomScale);
@@ -366,8 +366,8 @@ void Grid::followCell(int x, int y)
 {
 	float separator_size = std::max(SEPARATOR_SIZE * zoomScale, 1.f);
 	float cell_size = CELL_SIZE * zoomScale;
-	camTarget = ImVec2(x_size * (cell_size + separator_size) / 2.f - (cell_size + separator_size) * x,
-					   y_size * (cell_size + separator_size) / 2.f - (cell_size + separator_size) * y);
+	camTarget = ImVec2(x_size * (cell_size + separator_size) * 0.5f - (cell_size + separator_size) * x,
+					   y_size * (cell_size + separator_size) * 0.5f - (cell_size + separator_size) * y);
 	camTarget.x /= zoomScale;
 	camTarget.y /= zoomScale;
 }
