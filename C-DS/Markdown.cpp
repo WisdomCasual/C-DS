@@ -19,9 +19,6 @@ static ImFont* italic = NULL;
 
 std::unordered_map<std::string, ImGui::MarkdownImageData> cached_images;
 
-void LinkCallback(ImGui::MarkdownLinkCallbackData data_);
-inline ImGui::MarkdownImageData ImageCallback(ImGui::MarkdownLinkCallbackData data_);
-
 void LinkCallback(ImGui::MarkdownLinkCallbackData data_)
 {
     std::string url(data_.link, data_.linkLength);

@@ -12,7 +12,7 @@ void LinkCallback(ImGui::MarkdownLinkCallbackData data_);
 
 void LoadFonts(float fontSize_);
 
-void ExampleMarkdownFormatCallback(const ImGui::MarkdownFormatInfo& markdownFormatInfo_, bool start_);
+void MarkdownFormatCallback(const ImGui::MarkdownFormatInfo& markdownFormatInfo_, bool start_);
 
 void Markdown(const std::string& markdown_);
 
