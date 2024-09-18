@@ -2299,7 +2299,7 @@ bool ImGui::DragBehaviorT(ImGuiDataType data_type, TYPE* v, float v_speed, const
     if (axis == ImGuiAxis_Y)
         adjust_delta = -adjust_delta;
 
-    // For logarithmic use our range is effectively 0..1 so scale the delta into that range
+    // For logarithmic use our range is effectively 0..1 so GuiScale the delta into that range
     if (is_logarithmic && (v_max - v_min < FLT_MAX) && ((v_max - v_min) > 0.000001f)) // Epsilon to avoid /0
         adjust_delta /= (float)(v_max - v_min);
 
@@ -3664,7 +3664,7 @@ static ImVec2 InputTextCalcTextSizeW(ImGuiContext* ctx, const ImWchar* text_begi
     ImGuiContext& g = *ctx;
     ImFont* font = g.Font;
     const float line_height = g.FontSize;
-    const float scale = line_height / font->FontSize;
+    const float GuiScale = line_height / font->FontSize;
 
     ImVec2 text_size = ImVec2(0, 0);
     float line_width = 0.0f;
@@ -3685,7 +3685,7 @@ static ImVec2 InputTextCalcTextSizeW(ImGuiContext* ctx, const ImWchar* text_begi
         if (c == '\r')
             continue;
 
-        const float char_width = font->GetCharAdvance((ImWchar)c) * scale;
+        const float char_width = font->GetCharAdvance((ImWchar)c) * GuiScale;
         line_width += char_width;
     }
 
@@ -4329,7 +4329,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         const ImFontGlyph* glyph = g.Font->FindGlyph('*');
         ImFont* password_font = &g.InputTextPasswordFont;
         password_font->FontSize = g.Font->FontSize;
-        password_font->Scale = g.Font->Scale;
+        password_font->GuiScale = g.Font->GuiScale;
         password_font->Ascent = g.Font->Ascent;
         password_font->Descent = g.Font->Descent;
         password_font->ContainerAtlas = g.Font->ContainerAtlas;
@@ -7038,7 +7038,7 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
         return -1;
     const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.InFlags);
 
-    // Determine scale from values if not specified
+    // Determine GuiScale from values if not specified
     if (scale_min == FLT_MAX || scale_max == FLT_MAX)
     {
         float v_min = FLT_MAX;

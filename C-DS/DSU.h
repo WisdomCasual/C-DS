@@ -2,6 +2,7 @@
 #include "GrandWindow.h"
 #include <imgui.h>
 #include <map>
+#include <unordered_map>
 #include <set>
 #include <string>
 
@@ -11,29 +12,35 @@ class DSU :
 
 private:
     // graph settings:
-    #define EDGE_LENGTH 200.f
+    const float EDGE_LENGTH = 200.f;
+    const float VERTEX_RADIUS = 30.f;
 
-    #define VERTEX_RADIUS 30.f * zoomScale
-
-    #define FIXED_NODE_COLOR ImGui::GetColorU32(IM_COL32(40, 40, 40, 255))
-    #define VIS_VERT_COL ImGui::GetColorU32(IM_COL32(50, 150, 50, 255))
-
-    #define DEFAULT_VERT_COL ImGui::GetColorU32(IM_COL32(150, 150, 150, 255))
-    #define COMP_VERT_COL ImGui::GetColorU32(IM_COL32(50, 150, 150, 255))
-
-    #define BY_SIZE 1
-    #define BY_HEIGHT 2
+    const int BY_SIZE = 1;
+    const int BY_HEIGHT = 2;
 
     // speed constraints:
-    #define DSU_MAX_SPEED 10.0f
-    #define DSU_MIN_SPEED 0.1f
-    #define DSU_DELAY 1.f
+    const float MAX_SPEED = 10.0f;
+    const float MIN_SPEED = 0.1f;
+    const float DELAY = 1.f;
+    
+    const char NO_DRAGGING = char(2);
+
+    enum {
+        FIXED_NODE_COL,
+        VIS_VERT_COL,
+        DEFAULT_VERT_COL,
+        COMP_VERT_COL,
+        VERT_BORDER_COL,
+        DEFAULT_EDGE_COL,
+        TEXT_COL,
+        TEXT_OUTLINE_COL
+    };
     
     struct Vertex {
         float x, y;
         float fx = 0, fy = 0;
-        bool fixed = false, searching = false;
-        ImU32 color;
+        bool fixed = false, searching = false, beingDragged = false;
+        int color;
         Vertex() {
             x = (rand() % 10000) / 100.f;
             y = (rand() % 10000) / 100.f;
@@ -41,39 +48,34 @@ private:
         }
     };
 
-    struct CustomStringSort {
-		bool operator()(const std::string& first, const std::string& second) const {
-            if (first.size() != second.size()) return first.size() < second.size();
-			return first < second;
-		}
-    };
-
     // private fields:
 
     ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
     ImGuiWindowFlags controls_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
 
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGuiIO* io;
+    
+    
 
-    ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
+    
     int cur_tool = 0, rank_type = 0;
     float speed = 1.f, curTime = 0;
     bool movingCam = false, leftClickPressed = false, pathCompression = false, isMerging = false;
     std::string node_u, node_v, cur_node_u, cur_node_v, viewComponent;
 
-    std::map<std::string, int> st_height, st_size;
-    std::map<std::string, std::string> parent;
-    std::map<std::string, Vertex, CustomStringSort> nodes;
+    std::unordered_map<std::string, int> st_height, st_size;
+    std::unordered_map<std::string, std::string> parent;
+    std::unordered_map<std::string, Vertex> nodes;
     char add_node_text[50] = {};
 
     std::string dragging;
 
     // private methods:
 
-    ImU32 ContrastingColor(ImU32);
+    void updateDraggedComponent();
     void graphUpdate();
     float calcDist(float, float, float, float);
+    ImU32 getColor(int color_code);
+    void drawText(ImVec2, const char*);
     void controlsUpdate();
     void drawEdge(ImDrawList*, const std::string, const std::string);
     void mergeGroup(const std::string, const std::string);
@@ -83,7 +85,7 @@ private:
 
 public:
 
-    DSU(std::string, int&, float&, bool&);
+    DSU(std::string, int&, float&, bool&, int&);
     ~DSU();
 
     // public methods:

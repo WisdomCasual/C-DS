@@ -28,16 +28,16 @@ private:
 
     // private fields:
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    
     
 
     static int* comp;
     static unsigned char* frame_data;
-    GLuint logoTextureID;
-    int logoWidth, logoHeight;
+    GLuint logoTextureID[2];
+    int logo_width[2], logo_height[2];
 
     int buttons_cnt;
-    ButtonData buttons[12] = { ButtonData("Grid", "Resources\\grids.png", 1),
+    ButtonData buttons[11] = { ButtonData("Grid", "Resources\\grids.png", 1),
                               ButtonData("Graph", "Resources\\graphs.png", 2),
                               ButtonData("Stack", "Resources\\stack.png", 10),
                               ButtonData("Queue", "Resources\\queue.png", 5),
@@ -48,15 +48,16 @@ private:
                               ButtonData("Hash Map", "Resources\\hash_map.png", 9),
                               ButtonData("DSU", "Resources\\DSU.png", 3),
                               ButtonData("Trie", "Resources\\trie.png", 12),
-                              ButtonData("Sparse Table", "Resources\\sparce_table.png",30) };
+                              /*ButtonData("Sparse Table", "Resources\\sparce_table.png",30)*/ };
 
     // private methods:
     bool ImageButtonWithText(const char*, ImTextureID, const ImVec2&);
     void updateButtons();
+    void drawLogo();
 
 public:
 
-    MainMenu(std::string, int&, float&, bool&);
+    MainMenu(std::string, int&, float&, bool&, int&);
     ~MainMenu();
 
     // public methods:

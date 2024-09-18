@@ -23,14 +23,18 @@ private:
     // private fields:
     ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
     ImGuiWindowFlags controls_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGuiIO* io;
+    
+    
 
-    int cur_tool = 0, x_size = 1, y_size = 1;
+    int cur_tool = 0, LOG = 18, x_size, y_size,sz=0;
     float speed = 1.f, curTime = 0;
-    bool cleared = true, paused = false, camFollow = false, movingCam = false, building = false;    
-    ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
-
+    bool cleared = true, paused = false, camFollow = false, movingCam = false, building = false, built=false;
+    ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 }, cur_pos{ 0,0 }, s_pos{ 0,0 }, cur_cell{ 0,0 };
+    char buffer[256];
+    std::vector<int>Elements;
+    std::vector<std::vector<bool>>selected;
+    std::vector<std::vector<int>>table;
+    std::vector<int>logs;
     /*
         Sparse_Table[LOG][arr_size]
         first row will hold the full array 
@@ -43,14 +47,14 @@ private:
     */
 
     void controlsUpdate();
-    void tableUpdate();
     ImU32 getColor(int, int);
     void build();
     void init();
     void drawtable();
+    void drawarray(float);
 public:
     void update();
-    SparseTable(std::string, int&, float&, bool&);
+    SparseTable(std::string, int&, float&, bool&, int&);
     ~SparseTable();
 };
 

@@ -34,8 +34,8 @@ void Grid::controlsUpdate()
 			is_obstacle[0][0] = false;
 			is_obstacle[x_size - 1][y_size - 1] = false;
 		}
-
-		zoomScale = std::min(zoomScale, viewport->WorkSize.x / x_size / (CELL_SIZE + SEPARATOR_SIZE));
+		camTarget = { 0, 0 };
+		autoZoom(std::min({ 1.f, std::min(viewport->WorkSize.x / x_size, viewport->WorkSize.y / y_size) / (CELL_SIZE + SEPARATOR_SIZE) - 0.01f }));
 	}
 	if(ImGui::SliderInt("Y", &y_size, Y_MIN, Y_MAX, NULL, ImGuiSliderFlags_AlwaysClamp)) {
 		clearVisited();
@@ -44,7 +44,8 @@ void Grid::controlsUpdate()
 			is_obstacle[0][0] = false;
 			is_obstacle[x_size - 1][y_size - 1] = false;
 		}
-		zoomScale = std::min(zoomScale, viewport->WorkSize.y / y_size / (CELL_SIZE + SEPARATOR_SIZE));
+		camTarget = { 0, 0 };
+		autoZoom(std::min({ 1.f, std::min(viewport->WorkSize.x / x_size, viewport->WorkSize.y / y_size) / (CELL_SIZE + SEPARATOR_SIZE) - 0.01f }));
 	}
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
@@ -141,7 +142,10 @@ void Grid::controlsUpdate()
 		ImGui::PopStyleVar();
 	}
 
-	ImGui::Checkbox("Camera Follow", &camFollow);
+	if (ImGui::Checkbox("Camera Follow", &camFollow)) {
+		if (camFollow)
+			autoZoom(1.4f);
+	}
 
 	if (camFollow) {
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
@@ -207,16 +211,19 @@ void Grid::st_line_eq(ImVec2 s_pos, float cell_size)
 void Grid::gridUpdate()
 {
 
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 	float separator_size = std::max(SEPARATOR_SIZE * zoomScale, 1.f);
 	float cell_size = CELL_SIZE * zoomScale;
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	ImVec2 s_pos(center.x + camPos.x * zoomScale - x_size * (cell_size + separator_size) / 2.f,
-					    center.y + camPos.y * zoomScale - y_size * (cell_size + separator_size) / 2.f);
+
+	ImVec2 s_pos(center.x + camPos.x * zoomScale - x_size * (cell_size + separator_size) * 0.5f,
+					    center.y + camPos.y * zoomScale - y_size * (cell_size + separator_size) * 0.5f);
 	ImVec2 cur_pos(s_pos);
+
+	draw_list->AddRectFilled(ImVec2(cur_pos.x - separator_size, cur_pos.y - separator_size), ImVec2(cur_pos.x + (cell_size + separator_size) * x_size, cur_pos.y + (cell_size + separator_size) * y_size), getColor(OUTLINE_COL), GRID_ROUNDNESS * zoomScale);
 
 	if (ImGui::IsMouseDown(0)) {
 		st_line_eq(s_pos, cell_size + separator_size);
@@ -229,7 +236,7 @@ void Grid::gridUpdate()
 		cur_pos.x = s_pos.x;
 		for (int x = 0; x < x_size; x++) {
 
-			draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + cell_size, cur_pos.y + cell_size), getColor(x, y));
+			draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + cell_size, cur_pos.y + cell_size), getCellColor(x, y), GRID_ROUNDNESS * zoomScale);
 			cur_pos.x += cell_size + separator_size;
 		}
 		cur_pos.y += cell_size + separator_size;
@@ -277,24 +284,46 @@ void Grid::useTool(int x, int y)
 
 }
 
-ImU32 Grid::getColor(int x, int y)
+ImU32 Grid::getColor(int color_code) {
+
+	switch (color_code) {
+	case PATH_CELL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(50, 200, 200, 255)) : ImGui::GetColorU32(IM_COL32(50, 150, 150, 255));
+	case VISITED_CELL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(50, 200, 50, 255)) : ImGui::GetColorU32(IM_COL32(50, 150, 50, 255));
+	case START_POS_CELL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(50, 50, 200, 255)) : ImGui::GetColorU32(IM_COL32(50, 50, 150, 255));
+	case END_POS_CELL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(200, 50, 50, 255)) : ImGui::GetColorU32(IM_COL32(150, 50, 50, 255));
+	case OBSTACLE_CELL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(50, 50, 50, 255)) : ImGui::GetColorU32(IM_COL32(50, 50, 50, 255));
+	case INQUE_CELL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(220, 220, 0, 255)) : ImGui::GetColorU32(IM_COL32(200, 200, 0, 255));
+	case EMPTY_CELL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(200, 200, 200, 255)) : ImGui::GetColorU32(IM_COL32(150, 150, 150, 255));
+	case OUTLINE_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(0, 0, 0, 255)) : ImGui::GetColorU32(IM_COL32(40, 40, 40, 255));
+
+
+	default:
+		return ImGui::GetColorU32(IM_COL32(255, 0, 255, 255));
+	}
+
+}
+
+ImU32 Grid::getCellColor(int x, int y)
 {
-	ImU32 col;
 
-	if(vis[x][y] == 2)
-		col = ImGui::GetColorU32(IM_COL32(50, 150, 150, 255)); // path
-	else if(vis[x][y] == 1)
-		col = ImGui::GetColorU32(IM_COL32(50, 150, 50, 255)); // visited
-	else if(x == start_pos.first && y == start_pos.second)
-		col = ImGui::GetColorU32(IM_COL32(50, 50, 150, 255)); // starting pos
-	else if (x == end_pos.first && y == end_pos.second)
-		col = ImGui::GetColorU32(IM_COL32(150, 50, 50, 255)); // end pos
-	else if(is_obstacle[x][y])
-		col = ImGui::GetColorU32(IM_COL32(50, 50, 50, 255)); // obstacle
-	else
-		col = ImGui::GetColorU32(IM_COL32(150, 150, 150, 255)); // default
+	if(is_obstacle[x][y])
+		return getColor(OBSTACLE_CELL);
 
-	return col;
+	if(x == start_pos.first && y == start_pos.second)
+		return getColor(START_POS_CELL);
+
+	if (x == end_pos.first && y == end_pos.second)
+		return getColor(END_POS_CELL);
+
+	return getColor(vis[x][y]);
 }
 
 void Grid::clearVisited()
@@ -317,7 +346,7 @@ void Grid::clearVisited()
 	cleared = true;
 	for (int x = 0; x < X_MAX; x++)
 		for (int y = 0; y < Y_MAX; y++)
-			vis[x][y] = 0, cost[x][y] = FLT_MAX;
+			vis[x][y] = EMPTY_CELL, cost[x][y] = FLT_MAX;
 }
 
 bool Grid::inbounds(int x, int y)
@@ -337,8 +366,8 @@ void Grid::followCell(int x, int y)
 {
 	float separator_size = std::max(SEPARATOR_SIZE * zoomScale, 1.f);
 	float cell_size = CELL_SIZE * zoomScale;
-	camTarget = ImVec2(x_size * (cell_size + separator_size) / 2.f - (cell_size + separator_size) * x,
-					   y_size * (cell_size + separator_size) / 2.f - (cell_size + separator_size) * y);
+	camTarget = ImVec2(x_size * (cell_size + separator_size) * 0.5f - (cell_size + separator_size) * x,
+					   y_size * (cell_size + separator_size) * 0.5f - (cell_size + separator_size) * y);
 	camTarget.x /= zoomScale;
 	camTarget.y /= zoomScale;
 }
@@ -347,57 +376,66 @@ void Grid::dfs()
 {
 
 	if (!found && !dfs_stack.empty()) {
+		while (!found && !dfs_stack.empty()) {
+			std::pair<int, int> node = dfs_stack.top();
+			vis[node.first][node.second] = VISITED_CELL;
 
-		std::pair<int, int> node = dfs_stack.top();
-		vis[node.first][node.second] = 1;
+			if (camFollow)
+				followCell(node.first, node.second);
 
-		if (camFollow)
-			followCell(node.first, node.second);
+			if (node == end_pos) {
+				cur_node = node;
+				found = true;
+				return;
+			}
 
-		if (node == end_pos) {
-			cur_node = node;
-			found = true;
-			return;
-		}
+			if (diagonal_movement) {
+				for (int i = 0; i < 3; i++) {
+					for (int j = 0; j < 3; j++) {
 
-		dfs_stack.pop();
+						if (i == 2 && j == 2) dfs_stack.pop();
 
-		if (diagonal_movement) {
-			for (int i = 0; i < 3; i++) {
-				for (int j = 0; j < 3; j++) {
-					int new_x = node.first + dir[i];
-					int new_y = node.second + dir[j];
-					if (inbounds(new_x, new_y) && !is_obstacle[new_x][new_y] && vis[new_x][new_y] == 0) {
-						if (dir[i] != 0 && dir[j] != 0 && is_obstacle[new_x][node.second] && is_obstacle[node.first][new_y])
-							continue;
-						vis[new_x][new_y] = -1;
-						par[new_x][new_y] = node;
-						dfs_stack.push({ new_x, new_y });
+						int new_x = node.first + dir[i];
+						int new_y = node.second + dir[j];
+						if (inbounds(new_x, new_y) && !is_obstacle[new_x][new_y] && vis[new_x][new_y] == EMPTY_CELL) {
+							if (dir[i] != 0 && dir[j] != 0 && is_obstacle[new_x][node.second] && is_obstacle[node.first][new_y])
+								continue;
+							vis[new_x][new_y] = INQUE_CELL;
+							par[new_x][new_y] = node;
+							dfs_stack.push({ new_x, new_y });
+
+							return;
+						}
 					}
 				}
 			}
-		}
-		else {
-			for (int i = 0; i < 4; i++) {
-				int new_x = node.first + dx[i];
-				int new_y = node.second + dy[i];
-				if (inbounds(new_x, new_y) && !is_obstacle[new_x][new_y] && vis[new_x][new_y] == 0) {
-					vis[new_x][new_y] = -1;
-					par[new_x][new_y] = node;
-					dfs_stack.push({ new_x, new_y });
+			else {
+				for (int i = 0; i < 4; i++) {
+
+					if (i == 3) dfs_stack.pop();
+
+					int new_x = node.first + dx[i];
+					int new_y = node.second + dy[i];
+					if (inbounds(new_x, new_y) && !is_obstacle[new_x][new_y] && vis[new_x][new_y] == EMPTY_CELL) {
+						vis[new_x][new_y] = INQUE_CELL;
+						par[new_x][new_y] = node;
+						dfs_stack.push({ new_x, new_y });
+
+						return;
+					}
 				}
 			}
 		}
 	}
 	else if (found && cur_node != start_pos) {
-		vis[cur_node.first][cur_node.second] = 2;
+		vis[cur_node.first][cur_node.second] = PATH_CELL;
 		if (camFollow)
 			followCell(cur_node.first, cur_node.second);
 		cur_node = par[cur_node.first][cur_node.second];
 	}
 	else {
 		if (found) {
-			vis[cur_node.first][cur_node.second] = 2;
+			vis[cur_node.first][cur_node.second] = PATH_CELL;
 			if (camFollow)
 				followCell(cur_node.first, cur_node.second);
 		}
@@ -413,7 +451,7 @@ void Grid::bfs()
 	if (!found && !bfs_queue.empty()) {
 
 		std::pair<int, int> node = bfs_queue.front();
-		vis[node.first][node.second] = 1;
+		vis[node.first][node.second] = VISITED_CELL;
 		bfs_queue.pop();
 
 		if(camFollow)
@@ -430,10 +468,10 @@ void Grid::bfs()
 				for (int j = 0; j < 3; j++) {
 					int new_x = node.first + dir[i];
 					int new_y = node.second + dir[j];
-					if (inbounds(new_x, new_y) && !is_obstacle[new_x][new_y] && vis[new_x][new_y] == 0) {
+					if (inbounds(new_x, new_y) && !is_obstacle[new_x][new_y] && vis[new_x][new_y] == EMPTY_CELL) {
 						if (dir[i] != 0 && dir[j] != 0 && is_obstacle[new_x][node.second] && is_obstacle[node.first][new_y])
 							continue;
-						vis[new_x][new_y] = -1;
+						vis[new_x][new_y] = INQUE_CELL;
 						par[new_x][new_y] = node;
 						bfs_queue.push({ new_x, new_y });
 					}
@@ -444,8 +482,8 @@ void Grid::bfs()
 			for (int i = 0; i < 4; i++) {
 				int new_x = node.first + dx[i];
 				int new_y = node.second + dy[i];
-				if (inbounds(new_x, new_y) && !is_obstacle[new_x][new_y] && vis[new_x][new_y] == 0) {
-					vis[new_x][new_y] = -1;
+				if (inbounds(new_x, new_y) && !is_obstacle[new_x][new_y] && vis[new_x][new_y] == EMPTY_CELL) {
+					vis[new_x][new_y] = INQUE_CELL;
 					par[new_x][new_y] = node;
 					bfs_queue.push({ new_x, new_y });
 				}
@@ -455,12 +493,12 @@ void Grid::bfs()
 	else if (found && cur_node != start_pos) {
 		if(camFollow)
 			followCell(cur_node.first, cur_node.second);
-		vis[cur_node.first][cur_node.second] = 2;
+		vis[cur_node.first][cur_node.second] = PATH_CELL;
 		cur_node = par[cur_node.first][cur_node.second];
 	}
 	else {
 		if (found) {
-			vis[cur_node.first][cur_node.second] = 2;
+			vis[cur_node.first][cur_node.second] = PATH_CELL;
 			if (camFollow)
 				followCell(cur_node.first, cur_node.second);
 		}
@@ -494,10 +532,10 @@ void Grid::dijkstra()
 				for (int j = 0; j < 3; j++) {
 					int new_x = node.first + dir[i];
 					int new_y = node.second + dir[j];
-					if (inbounds(new_x, new_y) && !is_obstacle[new_x][new_y] && vis[new_x][new_y] == 0) {
+					if (inbounds(new_x, new_y) && !is_obstacle[new_x][new_y] && vis[new_x][new_y] == EMPTY_CELL) {
 						if (dir[i] != 0 && dir[j] != 0 && is_obstacle[new_x][node.second] && is_obstacle[node.first][new_y])
 							continue;
-						vis[new_x][new_y] = -1;
+						vis[new_x][new_y] = INQUE_CELL;
 						par[new_x][new_y] = node;
 						dijkstra_queue.push({ distance - getCost(dir[i], dir[j]) , {new_x, new_y}});
 					}
@@ -508,8 +546,8 @@ void Grid::dijkstra()
 			for (int i = 0; i < 4; i++) {
 				int new_x = node.first + dx[i];
 				int new_y = node.second + dy[i];
-				if (inbounds(new_x, new_y) && !is_obstacle[new_x][new_y] && vis[new_x][new_y] == 0) {
-					vis[new_x][new_y] = -1;
+				if (inbounds(new_x, new_y) && !is_obstacle[new_x][new_y] && vis[new_x][new_y] == EMPTY_CELL) {
+					vis[new_x][new_y] = INQUE_CELL;
 					par[new_x][new_y] = node;
 					dijkstra_queue.push({ distance - getCost(dx[i], dy[i]) , { new_x, new_y } });
 				}
@@ -517,14 +555,14 @@ void Grid::dijkstra()
 		}
 	}
 	else if (found && cur_node != start_pos) {
-		vis[cur_node.first][cur_node.second] = 2;
+		vis[cur_node.first][cur_node.second] = PATH_CELL;
 		if (camFollow)
 			followCell(cur_node.first, cur_node.second);
 		cur_node = par[cur_node.first][cur_node.second];
 	}
 	else {
 		if (found) {
-			vis[cur_node.first][cur_node.second] = 2;
+			vis[cur_node.first][cur_node.second] = PATH_CELL;
 			if (camFollow)
 				followCell(cur_node.first, cur_node.second);
 		}
@@ -552,7 +590,7 @@ void Grid::a_star()
 	if (!found && !astar_queue.empty()) {
 		Node node = astar_queue.top().curNode.coordinates;
 		double distance = cost[node.x][node.y];
-		vis[node.x][node.y] = 1;
+		vis[node.x][node.y] = VISITED_CELL;
 		astar_queue.pop();
 
 		if (camFollow)
@@ -582,8 +620,8 @@ void Grid::a_star()
 							par[new_node.x][new_node.y].first = node.x;
 							par[new_node.x][new_node.y].second = node.y;
 						}
-						if (vis[new_node.x][new_node.y] == 0) {
-							vis[new_node.x][new_node.y] = -1;
+						if (vis[new_node.x][new_node.y] == EMPTY_CELL) {
+							vis[new_node.x][new_node.y] = INQUE_CELL;
 							double g = g_val(new_node);
 							astar_queue.push(aStarNode(new_node, new_dist, g));
 						}
@@ -603,8 +641,8 @@ void Grid::a_star()
 						par[new_node.x][new_node.y].first = node.x;
 						par[new_node.x][new_node.y].second = node.y;
 					}
-					if (vis[new_node.x][new_node.y] == 0) {
-						vis[new_node.x][new_node.y] = -1;
+					if (vis[new_node.x][new_node.y] == EMPTY_CELL) {
+						vis[new_node.x][new_node.y] = INQUE_CELL;
 						double g = g_val(new_node);
 						astar_queue.push(aStarNode(new_node, new_dist, g));
 					}
@@ -613,14 +651,14 @@ void Grid::a_star()
 		}
 	}
 	else if (found && cur_node != start_pos) {
-		vis[cur_node.first][cur_node.second] = 2;
+		vis[cur_node.first][cur_node.second] = PATH_CELL;
 		if (camFollow)
 			followCell(cur_node.first, cur_node.second);
 		cur_node = par[cur_node.first][cur_node.second];
 	}
 	else {
 		if (found) {
-			vis[cur_node.first][cur_node.second] = 2;
+			vis[cur_node.first][cur_node.second] = PATH_CELL;
 			if (camFollow)
 				followCell(cur_node.first, cur_node.second);
 		}
@@ -630,10 +668,10 @@ void Grid::a_star()
 	}
 }
 
-Grid::Grid(std::string name, int& state, float& scale, bool& settingEnabled)
-	: GrandWindow(name, state, scale, settingsEnabled)
+Grid::Grid(std::string name, int& state, float& GuiScale, bool& settingsEnabled, int& colorMode)
+	: GrandWindow(name, state, GuiScale, settingsEnabled, colorMode)
 {
-	io = &ImGui::GetIO(); (void)io;
+	clearVisited();
 }
 
 Grid::~Grid()
@@ -650,6 +688,8 @@ void Grid::update()
 	ImGui::Begin(getName().c_str(), NULL, main_flags);
 
 	ImGui::PopStyleVar();
+
+	drawWatermark();
 
 	gridUpdate();
 
@@ -687,13 +727,7 @@ void Grid::update()
 		movingCam = false;
 	}
 
-	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
-	camPos.y += (camTarget.y - camPos.y) * 10.f * io->DeltaTime;
-
-	if (ImGui::IsWindowHovered() && io->MouseWheel != 0.0f) {
-		zoomScale += io->MouseWheel * 0.15f;
-		zoomScale = std::min(std::max(zoomScale, std::min(0.5f, std::min(viewport->WorkSize.x / x_size, viewport->WorkSize.y / y_size) / (CELL_SIZE + SEPARATOR_SIZE))), 3.f);
-	}
+	updateCam(std::min({ 0.6f, std::min(viewport->WorkSize.x / x_size, viewport->WorkSize.y / y_size) / (CELL_SIZE + SEPARATOR_SIZE) - 0.01f }), 3.0f);
 
 	ImGui::End();
 

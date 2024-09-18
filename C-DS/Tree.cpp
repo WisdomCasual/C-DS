@@ -144,7 +144,7 @@ float Tree::calcDist(float x1, float y1, float x2, float y2)
 void Tree::graphUpdate()
 {
 
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	const float cf = 0.55f; // center attraction
@@ -269,7 +269,7 @@ void Tree::graphUpdate()
 
 void Tree::drawEdge(ImDrawList* draw_list, const std::string u, const std::string v)
 {
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 	ImVec2 from = ImVec2(center.x + (camPos.x + nodes[v].x) * zoomScale, center.y + (camPos.y + nodes[v].y) * zoomScale);
 	ImVec2 to = ImVec2(center.x + (camPos.x + nodes[u].x) * zoomScale, center.y + (camPos.y + nodes[u].y) * zoomScale);
@@ -307,10 +307,10 @@ void Tree::addNode(std::string u, std::string p)
 	nodes[u];
 	parent[u] = p;
 }
-Tree::Tree(std::string name, int& state, float& GuiScale, bool& settingEnabled)
-	: GrandWindow(name, state, GuiScale, settingsEnabled)
+Tree::Tree(std::string name, int& state, float& GuiScale, bool& settingsEnabled, int& colorMode)
+	: GrandWindow(name, state, GuiScale, settingsEnabled, colorMode)
 {
-	io = &ImGui::GetIO(); (void)io;
+
 }
 
 Tree::~Tree()
@@ -341,13 +341,7 @@ void Tree::update()
 		movingCam = false;
 	}
 
-	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
-	camPos.y += (camTarget.y - camPos.y) * 10.f * io->DeltaTime;
-
-	if (ImGui::IsWindowHovered() && io->MouseWheel != 0.0f) {
-		zoomScale += io->MouseWheel * 0.15f;
-		zoomScale = std::min(std::max(zoomScale, 0.5f), 3.0f);
-	}
+	updateCam();
 
 	ImGui::End();
 

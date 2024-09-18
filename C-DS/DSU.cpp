@@ -1,16 +1,6 @@
 #include "DSU.h"
+#include <queue>
 #include <imgui_internal.h>
-
-ImU32 DSU::ContrastingColor(ImU32 col)
-{
-	ImVec4 ret = ImGui::ColorConvertU32ToFloat4(col);
-
-	ret.x = std::min(ret.x + 50.f, 255.f);
-	ret.y = std::min(ret.y + 50.f, 255.f);
-	ret.z = std::min(ret.z + 50.f, 255.f);
-
-	return ImGui::ColorConvertFloat4ToU32(ret);
-}
 
 void DSU::controlsUpdate()
 {
@@ -185,7 +175,7 @@ void DSU::controlsUpdate()
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
-	ImGui::SliderFloat("Speed", &speed, DSU_MIN_SPEED, DSU_MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
+	ImGui::SliderFloat("Speed", &speed, MIN_SPEED, MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
 
 	ImGui::End();
 }
@@ -195,34 +185,104 @@ float DSU::calcDist(float x1, float y1, float x2, float y2)
 	return sqrtf((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 }
 
+ImU32 DSU::getColor(int color_code)
+{
+	switch (color_code) {
+	case FIXED_NODE_COL:
+		return ImGui::GetColorU32(IM_COL32(40, 40, 40, 255));
+	case VIS_VERT_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(50, 200, 50, 255)) : ImGui::GetColorU32(IM_COL32(50, 150, 50, 255));
+	case DEFAULT_VERT_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(200, 200, 200, 255)) : ImGui::GetColorU32(IM_COL32(150, 150, 150, 255));
+	case COMP_VERT_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(50, 200, 200, 255)) : ImGui::GetColorU32(IM_COL32(50, 150, 150, 255));
+	case VERT_BORDER_COL:
+		return ImGui::GetColorU32(IM_COL32(40, 40, 40, 255));
+	case DEFAULT_EDGE_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(40, 40, 40, 255)) : ImGui::GetColorU32(IM_COL32(200, 200, 200, 255));
+	case TEXT_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(0, 0, 0, 255)) : ImGui::GetColorU32(IM_COL32(255, 255, 255, 255));
+	case TEXT_OUTLINE_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(255, 255, 255, 255)) : ImGui::GetColorU32(IM_COL32(0, 0, 0, 255));
+
+	default:
+		return ImGui::GetColorU32(IM_COL32(255, 0, 255, 255));
+	}
+}
+
+void DSU::drawText(ImVec2 pos, const char* text)
+{
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+	for (float x = -1; x <= 1; x++) {
+		for (float y = -1; y <= 1; y++) {
+			if (x == 0 && y == 0) continue;
+			draw_list->AddText(ImVec2(pos.x + x, pos.y + y), getColor(TEXT_OUTLINE_COL), text);
+		}
+	}
+
+	draw_list->AddText(pos, getColor(TEXT_COL), text);
+}
+
+void DSU::updateDraggedComponent()
+{
+	for (auto& node : nodes)
+		node.second.beingDragged = sameGroup(node.first, dragging);
+}
+
 void DSU::graphUpdate()
 {
 
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	const float cf = 0.55f; // center attraction
-	const float k = 3.f; // Spring constant
-	const float c = 8500.f; // Repulsion constant
-	const float dampening = 0.85f; // Dampening factor
+	updateDraggedComponent();
+
+	float cf = 0.3f; // center attraction
+	float k = 1.5f; // Spring constant
+	float c = 5000.f; // Repulsion constant
+	float dampening = 0.9f; // Dampening factor
+
+	if (nodes.size() > 100) {
+		cf = 0.7f;
+		k = 5.0f;
+		c = 10000.0f;
+		dampening = 0.8f;
+	}
+	else if (nodes.size() > 20) {
+		cf = 0.5f;
+		k = 3.0f;
+		c = 8500.0f;
+		dampening = 0.85f;
+	}
 
 	for (auto& node : nodes) {
 
 		auto& u = node.second;
-		u.fx -= cf * u.x;
-		u.fy -= cf * u.y;
+
+		if (!u.beingDragged) {
+			u.fx -= cf * u.x;
+			u.fy -= cf * u.y;
+		}
 
 		for (auto& otherNode : nodes) {
 			if (node.first != otherNode.first) {
+
 				auto& v = otherNode.second;
 
-				float d = calcDist(u.x, u.y, v.x, v.y);
+				float d = std::max(calcDist(u.x, u.y, v.x, v.y), 0.1f);
 				float dx = v.x - u.x;
 				float dy = v.y - u.y;
-				float force = c / (d * d);
+				float force = std::min(c / (d * d), 10000.f);
 
-				u.fx -= force * dx;
-				u.fy -= force * dy;
+				if (u.beingDragged == v.beingDragged) {
+					u.fx -= force * dx;
+					u.fy -= force * dy;
+				}
+				else if (v.beingDragged) {
+					u.fx -= force * 3.f * dx;
+					u.fy -= force * 3.f * dy;
+				}
 			}
 		}
 	}
@@ -234,9 +294,11 @@ void DSU::graphUpdate()
 
 			float dx = v.x - u.x;
 			float dy = v.y - u.y;
-			float d = calcDist(u.x, u.y, v.x, v.y);
+			float d = std::max(calcDist(u.x, u.y, v.x, v.y), 0.1f);
+			float force = std::min(k * (d - EDGE_LENGTH), 10000.f);
 
-			float force = k * (d - EDGE_LENGTH);
+			if (u.beingDragged)
+				force *= 2.f;
 
 			u.fx += force * dx / d;
 			u.fy += force * dy / d;
@@ -252,31 +314,28 @@ void DSU::graphUpdate()
 
 		float dist = calcDist(pos.x, pos.y, io->MousePos.x, io->MousePos.y);
 
-		if (ImGui::IsMouseDown(0) && dragging.empty() && dist <= VERTEX_RADIUS && ImGui::IsWindowHovered() && cur_tool == 0) {
+		if (ImGui::IsMouseDown(0) && dragging.empty() && dist <= VERTEX_RADIUS * zoomScale && ImGui::IsWindowHovered() && (cur_tool == 0 || cur_tool == 2)) {
 			dragging = node.first;
 		}
-		else if ((!ImGui::IsWindowFocused() || !ImGui::IsMouseDown(0 || cur_tool != 0)) && !dragging.empty()) {
-			dragging.clear();
-		}
 
-		if (ImGui::IsMouseDoubleClicked(0) && dist <= VERTEX_RADIUS && ImGui::IsWindowHovered() && cur_tool == 0) {
+		if (ImGui::IsMouseDoubleClicked(0) && dist <= VERTEX_RADIUS * zoomScale && ImGui::IsWindowHovered() && (cur_tool == 0 || cur_tool == 2)) {
 			node.second.fixed = !node.second.fixed;
 		}
 
-		if (ImGui::IsMouseDown(0) && dist <= VERTEX_RADIUS && ImGui::IsWindowHovered() && cur_tool == 2) {
+		if (ImGui::IsMouseDown(0) && dist <= VERTEX_RADIUS * zoomScale && ImGui::IsWindowHovered() && cur_tool == 2) {
 			if (!leftClickPressed) {
 				viewComponent = node.first;
 			}
 		}
 
 		if (node.second.searching) {
-			node.second.color = VIS_VERT_COL;
+			node.second.color = getColor(VIS_VERT_COL);
 		}
 		else if (sameGroup(node.first, viewComponent)) {
-			node.second.color = COMP_VERT_COL;
+			node.second.color = getColor(COMP_VERT_COL);
 		}
 		else
-			node.second.color = DEFAULT_VERT_COL;
+			node.second.color = getColor(DEFAULT_VERT_COL);
 
 		if (dragging == node.first) {
 			if (!movingCam) {
@@ -298,8 +357,12 @@ void DSU::graphUpdate()
 		node.second.fy *= dampening;
 	}
 
-	if (ImGui::IsMouseDown(0) && dragging.empty() && ImGui::IsWindowFocused() && cur_tool == 0) {
-		dragging = char(2);
+	if (ImGui::IsMouseDown(0) && dragging.empty() && ImGui::IsWindowHovered() && (cur_tool == 0 || cur_tool == 2)) {
+		dragging = NO_DRAGGING;
+	}
+
+	if ((!ImGui::IsWindowFocused() || !ImGui::IsMouseDown(0)) && !dragging.empty()) {
+		dragging.clear();
 	}
 
 	for (auto& node : nodes)
@@ -311,10 +374,13 @@ void DSU::graphUpdate()
 		textCenter.x /= 2.f;
 		textCenter.y /= 2.f;
 
-		draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale, center.y + (camPos.y + node.second.y) * zoomScale), VERTEX_RADIUS, node.second.color);
+		draw_list->AddCircleFilled(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale, center.y + (camPos.y + node.second.y) * zoomScale), VERTEX_RADIUS * zoomScale, node.second.color);
+		draw_list->AddCircle(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale, center.y + (camPos.y + node.second.y) * zoomScale), VERTEX_RADIUS * zoomScale, getColor(VERT_BORDER_COL), 100, 5.f * zoomScale);
+		
 		if (node.second.fixed)
-			draw_list->AddCircle(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale, center.y + (camPos.y + node.second.y) * zoomScale), VERTEX_RADIUS, FIXED_NODE_COLOR, 100, 5.f * zoomScale);
-		draw_list->AddText(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale - textCenter.x, center.y + (camPos.y + node.second.y) * zoomScale - textCenter.y), ContrastingColor(node.second.color), node.first.c_str());
+			draw_list->AddCircle(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale, center.y + (camPos.y + node.second.y) * zoomScale), VERTEX_RADIUS * zoomScale, getColor(FIXED_NODE_COL), 100, 10.f * zoomScale);
+
+		drawText(ImVec2(center.x + (camPos.x + node.second.x) * zoomScale - textCenter.x, center.y + (camPos.y + node.second.y) * zoomScale - textCenter.y), node.first.c_str());
 	}
 
 	if (ImGui::IsMouseDown(0))
@@ -326,13 +392,12 @@ void DSU::graphUpdate()
 
 void DSU::drawEdge(ImDrawList* draw_list, const std::string u, const std::string v)
 {
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 	ImVec2 from = ImVec2(center.x + (camPos.x + nodes[u].x) * zoomScale, center.y + (camPos.y + nodes[u].y) * zoomScale);
 	ImVec2 to = ImVec2(center.x + (camPos.x + nodes[v].x) * zoomScale, center.y + (camPos.y + nodes[v].y) * zoomScale);
 
-	//const ImU32 color = edge.color;
-	const ImU32 color = ImGui::GetColorU32(IM_COL32(200, 200, 200, 255));
+	const ImU32 color = getColor(DEFAULT_EDGE_COL);
 	const float thickness = 5.f * zoomScale;
 
 	ImVec2 dir = ImVec2(to.x - from.x, to.y - from.y);
@@ -341,10 +406,10 @@ void DSU::drawEdge(ImDrawList* draw_list, const std::string u, const std::string
 	dir.y /= length;
 
 	const float headSize = 15.f * zoomScale;
-	to.x -= dir.x * VERTEX_RADIUS;
-	to.y -= dir.y * VERTEX_RADIUS;
-	from.x += dir.x * VERTEX_RADIUS;
-	from.y += dir.y * VERTEX_RADIUS;
+	to.x -= dir.x * VERTEX_RADIUS * zoomScale;
+	to.y -= dir.y * VERTEX_RADIUS * zoomScale;
+	from.x += dir.x * VERTEX_RADIUS * zoomScale;
+	from.y += dir.y * VERTEX_RADIUS * zoomScale;
 
 	ImVec2 p1 = ImVec2(to.x - dir.x * headSize - dir.y * headSize, to.y - dir.y * headSize + dir.x * headSize);
 	ImVec2 p2 = ImVec2(to.x - dir.x * headSize + dir.y * headSize, to.y - dir.y * headSize - dir.x * headSize);
@@ -429,10 +494,10 @@ void DSU::addNode(std::string u)
 	st_height[u] = 1;
 }
 
-DSU::DSU(std::string name, int& state, float& GuiScale, bool& settingEnabled)
-	: GrandWindow(name, state, GuiScale, settingsEnabled)
+DSU::DSU(std::string name, int& state, float& GuiScale, bool& settingsEnabled, int& colorMode)
+	: GrandWindow(name, state, GuiScale, settingsEnabled, colorMode)
 {
-	io = &ImGui::GetIO(); (void)io;
+
 }
 
 DSU::~DSU()
@@ -450,15 +515,17 @@ void DSU::update()
 
 	ImGui::PopStyleVar();
 
+	drawWatermark();
+
 	graphUpdate();
 
 	if (isMerging) {
 
 		curTime += io->DeltaTime;
 
-		while (curTime * speed >= DSU_DELAY) {
+		while (curTime * speed >= DELAY) {
 
-			curTime -= DSU_DELAY / speed;
+			curTime -= DELAY / speed;
 
 			if (cur_node_u != parent[cur_node_u] || cur_node_v != parent[cur_node_v]) {
 				nodes[cur_node_u].searching = false;
@@ -481,6 +548,8 @@ void DSU::update()
 
 	}
 
+	updateCam();
+
 	if ((ImGui::IsWindowHovered() || movingCam) && ((ImGui::IsMouseDown(0) && cur_tool == 1) || ImGui::IsMouseDown(2))) {
 		movingCam = true;
 		camPos.x += io->MouseDelta.x / zoomScale;
@@ -492,13 +561,7 @@ void DSU::update()
 		movingCam = false;
 	}
 
-	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
-	camPos.y += (camTarget.y - camPos.y) * 10.f * io->DeltaTime;
-
-	if (ImGui::IsWindowHovered() && io->MouseWheel != 0.0f) {
-		zoomScale += io->MouseWheel * 0.15f;
-		zoomScale = std::min(std::max(zoomScale, 0.5f), 3.0f);
-	}
+	updateCam();
 
 	ImGui::End();
 

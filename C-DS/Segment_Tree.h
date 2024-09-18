@@ -41,7 +41,7 @@ private:
 		}
 	};
 
-	ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
+	
 	float speed = 1.f, curTime = 0;
 	bool movingCam = false, leftClickPressed = false, camFollow = false;
 
@@ -79,7 +79,7 @@ private:
 
 	void clear();
 
-	Segment_Tree(std::string, int&, float&, bool&);
+	Segment_Tree(std::string, int&, float&, bool&, int&);
 	~Segment_Tree();
 
 	// public methods:

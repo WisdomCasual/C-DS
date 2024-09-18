@@ -46,14 +46,14 @@ private:
 
 	GrandWindow* curWindow = nullptr;
 	Settings* settings = nullptr;
-
 	ImGuiIO* io;
+	
 	bool vSyncEnabled = true;
 	int windowPosX = 100, windowPosY = 100;
 	int windowWidth = 1280, windowHeight = 720;
 	bool settingsEnabled = false, overlayEndabled = false, f3Pressed = false;
 	bool isFullscreen = false, f11Pressed = false;
-	int colorMode = 0;
+	int colorMode = 1;
 	int state = 0;
 	float GuiScale = 1.f;
 	bool zoomIn = false, zoomOut = false;

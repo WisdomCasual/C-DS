@@ -86,10 +86,10 @@ void Segment_Tree::clear()
 {
 }
 
-Segment_Tree::Segment_Tree(std::string name, int& state, float& GuiScale, bool& settingEnabled)
-	: GrandWindow(name, state, GuiScale, settingsEnabled)
+Segment_Tree::Segment_Tree(std::string name, int& state, float& GuiScale, bool& settingsEnabled, int& colorMode)
+	: GrandWindow(name, state, GuiScale, settingsEnabled, colorMode)
 {
-	//io = &ImGui::GetIO(); (void)io;
+
 }
 
 Segment_Tree::~Segment_Tree()

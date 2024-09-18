@@ -1,14 +1,14 @@
 # C-DS
 
 <div align="center">
-  <img src="https://i.imgur.com/GbVXQ5w.png" width="600">
+  <img src="https://i.imgur.com/UmciC9Q.png" width="600">
 </div>
 <div align="center">
     <a href="https://isocpp.org/">
-        <img src="https://img.shields.io/badge/Made_with-C%2B%2B-00ffff">
+        <img src="https://img.shields.io/badge/Made_with-C%2B%2B-cccccc">
     </a>
     <a href="https://github.com/ocornut/imgui/tree/docking">
-        <img src="https://img.shields.io/badge/Graphics_with-ImGui-ff00ff">
+        <img src="https://img.shields.io/badge/Graphics_with-ImGui-4d99ff">
     </a>
 </div>
 

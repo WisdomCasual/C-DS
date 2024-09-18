@@ -173,6 +173,7 @@
     <ClCompile Include="Deque.cpp" />
     <ClCompile Include="DockingArea.cpp" />
     <ClCompile Include="DSU.cpp" />
+    <ClCompile Include="GrandWindow.cpp" />
     <ClCompile Include="GraphTools.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="HashMap.cpp" />
@@ -181,6 +182,7 @@
     <ClCompile Include="LinkedList.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainMenu.cpp" />
+    <ClCompile Include="Markdown.cpp" />
     <ClCompile Include="QueueVisualization.cpp" />
     <ClCompile Include="Segment_Tree.cpp" />
     <ClCompile Include="Settings.cpp" />

@@ -13,6 +13,8 @@ void Stack::update()
 
 	ImGui::PopStyleVar();
 
+	drawWatermark();
+
 	stackUpdate();
 
 	if ((ImGui::IsWindowHovered() || movingCam) && ((ImGui::IsMouseDown(0) && cur_tool == 0) || ImGui::IsMouseDown(2))) {
@@ -26,23 +28,17 @@ void Stack::update()
 		movingCam = false;
 	}
 
-	camPos.x += (camTarget.x - camPos.x) * 10.f * io->DeltaTime;
-	camPos.y += (camTarget.y - camPos.y) * 10.f * io->DeltaTime;
-
-	if (ImGui::IsWindowHovered() && io->MouseWheel != 0.0f) {
-		zoomScale += io->MouseWheel * 0.15f;
-		zoomScale = std::min(std::max(zoomScale, std::min(0.5f, std::min(viewport->WorkSize.x / currentMaxSize, viewport->WorkSize.y) / (CELL_SIZE + SEPARATOR_SIZE))), 3.f);
-	}
+	updateCam();
 
 	ImGui::End();
 
 	controlsUpdate();
 }
 
-Stack::Stack(std::string name, int& state, float& scale, bool& settingEnabled)
-	: GrandWindow(name, state, scale, settingEnabled)
+Stack::Stack(std::string name, int& state, float& GuiScale, bool& settingsEnabled, int& colorMode)
+	: GrandWindow(name, state, GuiScale, settingsEnabled, colorMode)
 {
-	io = &ImGui::GetIO(); (void)io;
+
 }
 
 Stack::~Stack()
@@ -50,57 +46,96 @@ Stack::~Stack()
 
 }
 
-ImU32 Stack::getColor(int state)
+void Stack::getInput()
 {
-	ImU32 col;
+	std::string curElement;
+	char* ptr = add_element_content;
+	while (*ptr != '\0') {
+		if (*ptr == ',') {
+			if (curElement.size() > 0) {
+				pending.push(curElement);
+				curElement.clear();
+			}
+		}
+		else
+			curElement.push_back(*ptr);
 
-	//Cyan : 1, Red : 2, Grey : 3
-
-	switch (state)
-	{
-	case 1:
-		col = ImGui::GetColorU32(IM_COL32(50, 150, 150, 255));
-		break;
-	case 2:
-		col = ImGui::GetColorU32(IM_COL32(150, 50, 50, 255));;
-		break;
-	default:
-		col = ImGui::GetColorU32(IM_COL32(150, 150, 150, 255));
+		ptr++;
+	}
+	if (curElement.size() > 0) {
+		pending.push(curElement);
+		curElement.clear();
 	}
 
-	return col;
+	memset(add_element_content, 0, sizeof add_element_content);
+}
+
+ImU32 Stack::getColor(int color_code)
+{
+	switch (color_code) {
+	case DEFAULT_CELL_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(200, 200, 200, 255)) : ImGui::GetColorU32(IM_COL32(150, 150, 150, 255));
+	case CELL_BORDER_COL:
+		return ImGui::GetColorU32(IM_COL32(40, 40, 40, 255));
+	case ARROW1_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(200, 50, 50, 255)) : ImGui::GetColorU32(IM_COL32(150, 50, 50, 255));
+	case ARROW2_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(50, 50, 200, 255)) : ImGui::GetColorU32(IM_COL32(50, 50, 150, 255));
+	case END_CELL_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(200, 80, 80, 255)) : ImGui::GetColorU32(IM_COL32(150, 50, 50, 255));
+	case TEXT_COLOR:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(0, 0, 0, 255)) : ImGui::GetColorU32(IM_COL32(255, 255, 255, 255));
+	case TEXT_OUTLINE_COL:
+		return colorMode ? ImGui::GetColorU32(IM_COL32(255, 255, 255, 255)) : ImGui::GetColorU32(IM_COL32(0, 0, 0, 255));
+
+	default:
+		return ImGui::GetColorU32(IM_COL32(255, 0, 255, 255));
+	}
+}
+
+void Stack::drawText(ImVec2 pos, const char* text)
+{
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+	for (float x = -1; x <= 1; x++) {
+		for (float y = -1; y <= 1; y++) {
+			if (x == 0 && y == 0) continue;
+			draw_list->AddText(ImVec2(pos.x + x, pos.y + y), getColor(TEXT_OUTLINE_COL), text);
+		}
+	}
+
+	draw_list->AddText(pos, getColor(TEXT_COLOR), text);
 }
 
 void Stack::stackUpdate()
 {
 
-	ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 
 
-	float mxCellWidth = CELL_SIZE * zoomScale;
+	float mxCellWidth = STACK_CELL_SIZE * zoomScale;
 	for (int i = 0; i < currentMaxSize; i++)
-	{
-		mxCellWidth = std::max(mxCellWidth, ImGui::CalcTextSize(content[i].c_str()).x);
-	}
+		mxCellWidth = std::max(mxCellWidth, ImGui::CalcTextSize(content[i].c_str()).x + 15.f * zoomScale);
 
 	if (~expansion)
 	{
 		passedTime += io->DeltaTime * speed;
-		if (passedTime >= BASE_DELAY) {
+		if (passedTime >= STACK_BASE_DELAY) {
 			expand();
 			passedTime = 0.f;
 		}
 
-		drawStack(int(center.x - (mxCellWidth+CELL_SIZE*zoomScale)/2.f), content, currentMaxSize, headpointer, mxCellWidth, 0);
+		drawStack(int(center.x - (mxCellWidth+ STACK_CELL_SIZE*zoomScale)/2.f), content, currentMaxSize, headpointer, mxCellWidth, 0);
+
 		if (~expansion)
-			drawStack(int(center.x + (mxCellWidth+CELL_SIZE*zoomScale)/2.f), tempContent, currentMaxSize * 2, expansion, mxCellWidth, 1);
+			drawStack(int(center.x + (mxCellWidth+ STACK_CELL_SIZE*zoomScale)/2.f), tempContent, currentMaxSize * 2, expansion, mxCellWidth, 1);
 	}
 	else
 	{
 
 		if (pending.size()) {
 			passedTime += io->DeltaTime * speed;
-			if (passedTime >= BASE_DELAY) {
+			if (passedTime >= STACK_BASE_DELAY) {
 				if (Push(pending.front()))
 					pending.pop();
 				passedTime = 0.f;
@@ -115,44 +150,50 @@ void Stack::stackUpdate()
 void Stack::drawStack(int xpos, std::string temp[], int mxSz, int head, float mxCellWidth, bool inverted)
 {
 
-	ImVec2 center((float)xpos, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	ImVec2 center((float)xpos, viewport->WorkPos.y + viewport->WorkSize.y * 0.5f);
 
-	float separator_size = std::max(SEPARATOR_SIZE * zoomScale, 1.f);
-	float cell_size = CELL_SIZE * zoomScale;
+	float separator_size = std::max(STACK_SEPARATOR_SIZE * zoomScale, 1.f);
+	float cell_size = STACK_CELL_SIZE * zoomScale;
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	float ySize = ((cell_size+separator_size)*mxSz), headPointerY = ((cell_size + separator_size) * head)-cell_size/2.f;
+	float ySize = ((cell_size + separator_size) * (mxSz-2));
+	float headPointerY = ((cell_size + separator_size) * head) - cell_size * 0.5f;
 
-	ImVec2 s_pos(center.x + camPos.x * zoomScale - mxCellWidth / 2.f,
-		center.y + camPos.y * zoomScale + ySize / 2.f);
+	ImVec2 s_pos(center.x + camPos.x * zoomScale - mxCellWidth * 0.5f, center.y + camPos.y * zoomScale + ySize * 0.5f);
+
+	if (!inverted)
+		s_pos.y += cell_size * 0.5f;
+
 	ImVec2 cur_pos(s_pos);
 
 	for (int i = 0; i < mxSz; i++)
 	{
 		i %= mxSz;
 		ImVec2 textSize = ImGui::CalcTextSize(temp[i].c_str());
-		ImVec2 pos((cur_pos.x + (mxCellWidth - textSize.x) / 2.f), (cur_pos.y + (cell_size - textSize.y) / 2.f));
-		ImU32 col = IM_COL32(255, 255, 255, 255);
-		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + mxCellWidth,
-			cur_pos.y + cell_size), getColor(3));
-		draw_list->AddText(pos, col, temp[i].c_str());
+		ImVec2 pos((cur_pos.x + (mxCellWidth - textSize.x) * 0.5f), (cur_pos.y + (cell_size - textSize.y) * 0.5f));
+
+		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + mxCellWidth, cur_pos.y + cell_size), getColor(DEFAULT_CELL_COL), STACK_ROUNDNESS * zoomScale);
+		draw_list->AddRect(cur_pos, ImVec2(cur_pos.x + mxCellWidth, cur_pos.y + cell_size), getColor(CELL_BORDER_COL), STACK_ROUNDNESS * zoomScale, 0, 4.f * zoomScale);
+
+		drawText(pos, temp[i].c_str());
 		cur_pos.y -= cell_size + separator_size;
 	}
-	if(!inverted)
-		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + mxCellWidth,
-			cur_pos.y + cell_size), getColor(2));
+	if (!inverted) {
+		draw_list->AddRectFilled(cur_pos, ImVec2(cur_pos.x + mxCellWidth, cur_pos.y + cell_size), getColor(END_CELL_COL), STACK_ROUNDNESS * zoomScale);
+		draw_list->AddRect(cur_pos, ImVec2(cur_pos.x + mxCellWidth, cur_pos.y + cell_size), getColor(CELL_BORDER_COL), STACK_ROUNDNESS * zoomScale, 0, 4.f * zoomScale);
+	}
 
-	drawArrow(int(cur_pos.x), int(s_pos.y - headPointerY), 1 + (!inverted && mxSz == head), inverted, mxCellWidth);
+	drawArrow(int(cur_pos.x), int(s_pos.y - headPointerY), (inverted ? ARROW2_COL : ARROW1_COL), inverted, mxCellWidth);
 }
 
 void Stack::drawArrow(int x, int y, int col, bool inverted, float mxCellWidth)
 {
 	// This will be given the x and y where the head of the arrow should be
-	const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x / 2.f, viewport->WorkPos.y + viewport->WorkSize.y / 2.f);
+	updateCenter();
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-	const float headSize = 12.f * zoomScale;
-	const float length = 40.f * zoomScale;
+	const float headSize = 20.f * zoomScale;
+	const float length = 50.f * zoomScale;
 
 	int sign = 1;
 	if (inverted) {
@@ -163,8 +204,8 @@ void Stack::drawArrow(int x, int y, int col, bool inverted, float mxCellWidth)
 	ImVec2 from = ImVec2(x - sign * length, (float)y);
 	ImVec2 to = ImVec2(x - sign * headSize, (float)y);
 
-	draw_list->AddLine(from, to, getColor(col), 5.f * zoomScale);
-	to.x += sign * headSize / 2.f;
+	draw_list->AddLine(from, to, getColor(col), 20.f * zoomScale);
+	to.x += sign * headSize * 0.5f;
 
 	ImVec2 p1 = ImVec2(to.x - sign * headSize, to.y + headSize);
 	ImVec2 p2 = ImVec2(to.x - sign * headSize, to.y - headSize);
@@ -176,7 +217,7 @@ bool Stack::Push(std::string value)
 {
 	if (sz == currentMaxSize)
 	{
-		if (sz == MAX_SIZE)
+		if (sz == STACK_MAX_SIZE)
 			return 1;
 
 		expand();
@@ -194,7 +235,7 @@ bool Stack::Push(std::string value)
 void Stack::expand()
 {
 
-	if (currentMaxSize * 2 > MAX_SIZE)
+	if (currentMaxSize * 2 > STACK_MAX_SIZE)
 		return;
 
 
@@ -221,18 +262,12 @@ void Stack::expand()
 	currentMaxSize *= 2;
 }
 
-
 void Stack::Pop()
 {
 	if (sz == 0)
 		return;
 	sz--;
 	content[--headpointer] = "";
-}
-
-void Stack::updateMenuBar()
-{
-
 }
 
 void Stack::controlsUpdate()
@@ -267,36 +302,45 @@ void Stack::controlsUpdate()
 
 	ImGui::SameLine();
 
-	if (ImGui::Button("Push")) {
-		std::string curElement;
-		char* ptr = add_element_content;
-		while (*ptr != '\0') {
-			if (*ptr == ',') {
-				if (curElement.size() > 0) {
-					pending.push(curElement);
-					curElement.clear();
-				}
-			}
-			else
-				curElement.push_back(*ptr);
-
-			ptr++;
-		}
-		if (curElement.size() > 0) {
-			pending.push(curElement);
-			curElement.clear();
-		}
-
-		memset(add_element_content, 0, sizeof add_element_content);
+	bool noPush = false;
+	if (sz == STACK_MAX_SIZE && currentMaxSize >= STACK_MAX_SIZE && !disabled) {
+		noPush = true;
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 	}
 
-	if (ImGui::Button("Pop"))
-	{
+	if (ImGui::Button("Push")) {
+		getInput();
+	}
+
+	if (noPush) {
+		ImGui::PopItemFlag();
+		ImGui::PopStyleVar();
+	}
+
+	bool noPop = false;
+	if (sz == 0 && !disabled) {
+		noPop = true;
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+	}
+
+	if (ImGui::Button("Pop")) {
 		Pop();
 	}
 
-	if (ImGui::Button("Expand"))
-	{
+	if (noPop) {
+		ImGui::PopItemFlag();
+		ImGui::PopStyleVar();
+	}
+
+	if (currentMaxSize >= STACK_MAX_SIZE && !disabled) {
+		disabled = true;
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+	}
+
+	if (ImGui::Button("Expand")) {
 		expand();
 	}
 
@@ -307,7 +351,7 @@ void Stack::controlsUpdate()
 
 	ImGui::Dummy(ImVec2(0.0f, 10.0f * GuiScale));
 
-	ImGui::SliderFloat("Speed", &speed, MIN_SPEED, MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
+	ImGui::SliderFloat("Speed", &speed, STACK_MIN_SPEED, STACK_MAX_SPEED, "%.1fx", ImGuiSliderFlags_AlwaysClamp);
 
 	ImGui::End();
 }

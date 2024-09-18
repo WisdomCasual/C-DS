@@ -2,38 +2,48 @@
 #include "GrandWindow.h"
 #include <imgui.h>
 #include <string>
-#include <set>
 #include <map>
+#include <unordered_map>
 #include <stack>
 #include <queue>
 #include <vector>
+#include <random>
 
 class GraphTools :
     public GrandWindow
 {
 private:
     // graph settings:
-    #define EDGE_LENGTH 200.f
-    #define VERTEX_RADIUS 30.f * zoomScale
+    const float EDGE_LENGTH = 200.f;
+    const float VERTEX_RADIUS = 30.f;
 
-    #define FIXED_NODE_COLOR ImGui::GetColorU32(IM_COL32(40, 40, 40, 255))
+    const char NO_DRAGGING = char(2);
 
-    #define DEFAULT_VERT_COL ImGui::GetColorU32(IM_COL32(150, 150, 150, 255))
-    #define ADJ_ROOT_COL ImGui::GetColorU32(IM_COL32(60, 60, 150, 255))
-    #define ADJ_CHILD_COL ImGui::GetColorU32(IM_COL32(80, 80, 160, 255))
-    #define VIS_VERT_COL ImGui::GetColorU32(IM_COL32(50, 150, 50, 255))
-    #define PATH_VERT_COL ImGui::GetColorU32(IM_COL32(50, 150, 150, 255))
-    #define INQUE_VERT_COL ImGui::GetColorU32(IM_COL32(70, 70, 70, 255))
-    #define ADJ_EDGE_COL ImGui::GetColorU32(IM_COL32(120, 120, 200, 255))
+    enum {
 
-    #define START_POINT_COL ImGui::GetColorU32(IM_COL32(50, 50, 150, 255))
-    #define END_POINT_COL ImGui::GetColorU32(IM_COL32(150, 50, 50, 255))
+        FIXED_NODE_COLOR,
 
-    #define DEFAULT_EDGE_COL ImGui::GetColorU32(IM_COL32(200, 200, 200, 255))
-    #define VIS_EDGE_COL ImGui::GetColorU32(IM_COL32(80, 180, 80, 255))
-    #define PATH_EDGE_COL ImGui::GetColorU32(IM_COL32(80, 180, 180, 255))
-    #define INQUE_EDGE_COL ImGui::GetColorU32(IM_COL32(120, 180, 120, 255))
-    #define CANCELED_EDGE_COL ImGui::GetColorU32(IM_COL32(50, 50, 50, 255))
+        DEFAULT_VERT_COL,
+        ADJ_ROOT_COL,
+        ADJ_CHILD_COL,
+        VIS_VERT_COL,
+        PATH_VERT_COL,
+        INQUE_VERT_COL,
+        ADJ_EDGE_COL,
+        VERT_BORDER_COL,
+
+        START_POINT_COL,
+        END_POINT_COL,
+
+        DEFAULT_EDGE_COL,
+        VIS_EDGE_COL,
+        PATH_EDGE_COL,
+        INQUE_EDGE_COL,
+        CANCELED_EDGE_COL,
+
+        TEXT_COL,
+        TEXT_OUTLINE_COL
+    };
 
 
     // speed constraints:
@@ -41,15 +51,31 @@ private:
     #define GRAPH_MIN_SPEED 0.1f
     #define GRAPH_DELAY 1.f
 
+    class Random {
+    private:
+        std::mt19937 eng{ std::random_device{}() };
+
+    public:
+        Random() = default;
+        Random(std::mt19937::result_type seed) : eng(seed) {}
+
+        int DrawNumber(int min, int max) {
+            if (max < min) return 0;
+            return std::uniform_int_distribution<int>{min, max}(eng);
+        }
+    };
+
+    static Random randomizer;
+
     struct Vertex {
         float x, y;
         float fx = 0, fy = 0;
-        bool fixed = false;
-        ImU32 color;
+        bool fixed = false, beingDragged = false;
+        int color = DEFAULT_VERT_COL;
+
         Vertex() {
-            x = (rand() % 10000) / 100.f;
-            y = (rand() % 10000) / 100.f;
-            color = DEFAULT_VERT_COL;
+            x = randomizer.DrawNumber(0, 10000) / 100.f;
+            y = randomizer.DrawNumber(0, 10000) / 100.f;
         }
     };
 
@@ -58,56 +84,92 @@ private:
         bool weighted = false;
         bool directed = true;
         ImVec2 pos = {0, 0};
-        ImU32 color = DEFAULT_EDGE_COL;
+        int color = DEFAULT_EDGE_COL;
     };
+
+	class DSU {
+	private:
+        std::unordered_map<std::string, std::string> parent;
+		std::unordered_map<std::string, int> st_size;
+	public:
+		DSU(std::unordered_map<std::string, Vertex>& nodes) {
+
+            for (auto node : nodes){
+                parent[node.first] = node.first;
+                st_size[node.first] = 1;
+            }
+
+		}
+		std::string find(const std::string& x) {
+			return (parent[x] == x ? x : parent[x] = find(parent[x]));
+		}
+        bool isConnected(const std::string& u, const std::string& v) {
+            return (find(u) == find(v));
+        }
+		void Union(const std::string& u, const std::string& v) {
+			std::string set_u = find(u);
+			std::string set_v = find(v);
+			if (set_u == set_v)
+				return;
+			if (st_size[set_u] < st_size[set_v])
+				parent[set_u] = set_v, st_size[set_v] += st_size[set_u];
+			else
+				parent[set_v] = set_u, st_size[set_u] += st_size[set_v];
+		}
+	};
 
     // private fields:
 
-    std::map<std::string, Vertex> nodes;
+    std::unordered_map<std::string, Vertex> nodes;
     std::map<std::pair<std::string, std::string>, Edge> edges;
-    std::map<std::string, std::vector<std::pair<std::string, std::pair<int, bool>>>> adj;
+    std::unordered_map<std::string, std::vector<std::pair<std::string, std::pair<int, bool>>>> adj;
+    DSU* mst_dsu = nullptr;
 
-    char graphText[1000];
+    char graphText[100000];
 
     ImGuiWindowFlags main_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
     ImGuiWindowFlags controls_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
 
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGuiIO* io;
 
     int cur_tool = 0, activeAlgo = 0, directed = 0, found = 0;
-    float speed = 1.f, curTime = 0;
-    bool cleared = true, paused = false, leftClickPressed = false, camFollow = false, movingCam = false;
+    float speed = 1.f, curTime = 0, edgesLastTransition = 0.0f;;
+    bool cleared = true, paused = false, leftClickPressed = false, camFollow = false, movingCam = false, weighted_rand = false;
+    bool showNodeText = true, showWeightText = true;
     std::string dragging, cur_node;
     std::string viewAdjacent, startNode = "", endNode = "";
-    ImVec2 camPos = { 0, 0 }, camTarget = { 0, 0 };
+    
 
     std::stack<std::pair< std::string, int>> dfs_stack;
     std::queue<std::string> bfs_queue;
     std::priority_queue<std::pair<long long, std::string>> dijkstra_queue;
-    std::map<std::string, long long> vis;
+	std::priority_queue<std::pair<long long, std::pair<std::string, std::string>>> kruskal_queue;
+    std::unordered_map<std::string, long long> vis;
     std::map<std::pair<std::string, std::string>, long long> edge_vis;
-    std::map<std::string, std::string> par;
-    std::map<std::string, std::vector<std::string>>path;
+    std::unordered_map<std::string, std::string> par;
+    std::unordered_map<std::string, std::vector<std::string>>path;
 
     // private methods:
     void controlsUpdate();
     void generateGraph();
     void clearStates();
-    ImU32 ContrastingColor(ImU32);
     void pointToNode(const std::string, ImU32);
     void drawEdge(ImDrawList*, const std::string, const std::string, Edge&);
+    void drawEdgeWeight(ImDrawList*, const std::string, const std::string, Edge&);
+    void drawText(ImVec2, const char*);
     float calcDist(float, float, float, float);
+    void updateDraggedComponent();
     void graphUpdate();
     void followNode(const std::string);
     void dfs();
     void bfs();
     void dijkstra();
+    void kruskal();
     void bellmanFord();
+    ImU32 getColor(int);
 
 public:
 
-    GraphTools(std::string, int&, float&, bool&);
+    GraphTools(std::string, int&, float&, bool&, int&);
     ~GraphTools();
 
     // public methods:
