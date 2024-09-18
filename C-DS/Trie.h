@@ -7,6 +7,7 @@
 #include <vector>
 #include <queue>
 #include <stack>
+// trie done
 class Trie :
 	public GrandWindow
 {
