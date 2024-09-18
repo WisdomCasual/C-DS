@@ -7,12 +7,11 @@
 #include <vector>
 #include <queue>
 #include <stack>
-// trie done
 class Trie :
 	public GrandWindow
 {
 private:
-	// graph settings:
+	// trie settings:
 	const float TRIE_EDGE_LENGTH = 100.f;
 	const float TRIE_VERTEX_RADIUS = 30.f;
 

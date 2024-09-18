@@ -250,21 +250,6 @@ void Trie::graphUpdate()
 		else if ((!ImGui::IsWindowFocused() || !ImGui::IsMouseDown(0 || cur_tool != 0)) && dragging != -1) {
 			dragging = -1;
 		}
-		/*
-		if (ImGui::IsMouseDoubleClicked(0) && dist <= TRIE_VERTEX_RADIUS * zoomScale && ImGui::IsWindowHovered() && cur_tool == 0) {
-			node.second.fixed = !node.second.fixed;
-		}
-		*/
-		/*
-		if (node.second.searching) {
-			node.second.color = VISITED_VERT_COL;
-		}
-		else if (sameGroup(node.first, viewComponent)) {
-			node.second.color = MARKED_VERT_COL;
-		}
-		else
-			node.second.color = DEF_VERT_COL;
-			*/
 
 		if (dragging == j) {
 			node.fx = node.fy = 0;
