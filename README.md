@@ -17,5 +17,5 @@
 
 ## Features
 * Interactive Visualizations: Dive into the world of data structures with interactive visualizations that bring algorithms to life. Explore how data is organized, accessed, and manipulated in real-time.
-* Multiple Data Structure Support: From stacks, queues and linked lists to trees, graphs, grids, and beyond, **C-DS** supports a wide range of data structures commonly used in programming and computer science.
+* Multiple Data Structure Support: From stacks, queues and linked lists to graphs, hash-tables, grids, and beyond, **C-DS** supports a wide range of data structures commonly used in programming and computer science.
 * Algorithm Simulation: Step through algorithms and see how they interact with data structures. Visualize sorting algorithms, search algorithms, traversal techniques, and more to grasp their inner workings.
